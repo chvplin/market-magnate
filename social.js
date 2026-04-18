@@ -406,11 +406,11 @@ function renderOwnedAccountCosmetics(owned){
 
       onlineWrap.innerHTML = online.length
         ? online.map(row => `
-            <div class="miniLeadRow">
+            <a class="miniLeadRow livePlayerRow" href="./index.html?u=${encodeURIComponent(row.username || "")}">
               <div class="miniRank">●</div>
               <div><div style="font-weight:900">${row.display_name || row.username || "Unknown"}</div><div class="muted" style="font-size:.8rem">${row.empire_tier || "-"}</div></div>
               <div style="font-weight:900">${fmtMoney(row.net_worth)}</div>
-            </div>
+            </a>
           `).join("")
         : '<div class="muted">No players active right now.</div>';
 
@@ -471,14 +471,17 @@ function renderOwnedAccountCosmetics(owned){
     if (el.publicProfileBody()) {
       el.publicProfileBody().innerHTML = `
         <div class="profileCard">
-          <h3>${data.display_name || data.username}</h3>
-          <p>@${data.username}</p>
-          <p>${data.bio || ""}</p>
-          <div class="statGrid">
-            <div class="statBox"><span>Net Worth</span><strong>${fmtMoney(data.net_worth)}</strong></div>
-            <div class="statBox"><span>Prestige</span><strong>${data.prestige || 0}</strong></div>
-            <div class="statBox"><span>Empire</span><strong>${data.empire_tier || "-"}</strong></div>
-            <div class="statBox"><span>Favorite Stock</span><strong>${data.favorite_stock || "-"}</strong></div>
+          <div class="socialBanner theme-${data.profile_theme || "default"}" style="min-height:120px"></div>
+          <div style="padding:12px 0 0">
+            <h3 style="margin:0">${data.display_name || data.username}</h3>
+            <p style="margin:6px 0 10px">@${data.username}</p>
+            <p style="margin:0 0 12px">${data.bio || ""}</p>
+            <div class="statGrid">
+              <div class="statBox"><span>Net Worth</span><strong>${fmtMoney(data.net_worth)}</strong></div>
+              <div class="statBox"><span>Prestige</span><strong>${data.prestige || 0}</strong></div>
+              <div class="statBox"><span>Empire</span><strong>${data.empire_tier || "-"}</strong></div>
+              <div class="statBox"><span>Favorite Stock</span><strong>${data.favorite_stock || "-"}</strong></div>
+            </div>
           </div>
         </div>`;
     }
@@ -487,7 +490,13 @@ function renderOwnedAccountCosmetics(owned){
   async function maybeLoadProfileFromURL() {
     const params = new URLSearchParams(location.search);
     const username = params.get("u");
-    if (username) await loadPublicProfileByUsername(username);
+    const panel = document.getElementById("publicProfilePanel");
+    if (username) {
+      if (panel) panel.style.display = "";
+      await loadPublicProfileByUsername(username);
+    } else {
+      if (panel) panel.style.display = "none";
+    }
   }
 
   function bindEvents() {

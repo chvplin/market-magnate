@@ -1607,6 +1607,11 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
       <div class="leaderMini" id="leaderMini"><div class="layoutHint">Sign in to load rankings.</div></div>
     </div>
     <div class="railCard">
+      <div class="railTitle">Online Players <span id="onlineCountGame" class="layoutHint"></span></div>
+      <div class="leaderMini" id="onlinePlayersGame"><div class="layoutHint">Loading live players…</div></div>
+    </div>
+
+    <div class="railCard">
       <div class="railTitle">Quick Links</div>
       <div class="feedMini">
         <button class="menuBtn" data-view="stocks"><div class="menuIcon">💹</div><div class="menuText"><b>Trade Now</b><span>Jump to active positions</span></div></button>
@@ -3631,6 +3636,17 @@ async function loadLeaderboardSocial(){
     renderRivalFromLeaderboard(rows);
     if(mini) mini.innerHTML = rows.slice(0,5).map((r,i)=>`<div class="leaderMiniRow"><div class="rankBubble">${i+1}</div><div><div style="font-weight:800">${r.display_name || r.username}</div><div class="layoutHint">@${r.username}</div></div><div style="text-align:right"><div style="font-weight:900">${formatMoney(r.net_worth)}</div><div class="layoutHint">${r.empire_tier || '-'}</div></div></div>`).join('') || '<div class="layoutHint">No players yet.</div>';
     if(modal) modal.innerHTML = rows.map((r,i)=>`<tr><td>${i+1}</td><td>${r.display_name || r.username}</td><td>${formatMoney(r.net_worth)}</td><td>${r.prestige || 0}</td></tr>`).join('') || '<tr><td colspan="4">No players yet.</td></tr>';
+    const onlineWrap = qs('#onlinePlayersGame');
+    const onlineCount = qs('#onlineCountGame');
+    if(onlineWrap){
+      const now = Date.now();
+      const online = rows.filter(r=>{
+        const t = r.updated_at ? new Date(r.updated_at).getTime() : 0;
+        return t && (now - t) <= 120000;
+      }).slice(0,12);
+      onlineWrap.innerHTML = online.length ? online.map((r)=>`<a class="leaderMiniRow livePlayerRow" href="./index.html?u=${encodeURIComponent(r.username || '')}"><div class="rankBubble">●</div><div><div style="font-weight:800">${r.display_name || r.username}</div><div class="layoutHint">@${r.username}</div></div><div style="text-align:right"><div style="font-weight:900">${formatMoney(r.net_worth)}</div><div class="layoutHint">${r.empire_tier || '-'}</div></div></a>`).join('') : '<div class="layoutHint">No players active right now.</div>';
+      if(onlineCount) onlineCount.textContent = `(${online.length})`;
+    }
   }
   async function syncStatsToCloud(){
     try{
