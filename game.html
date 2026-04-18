@@ -1552,7 +1552,8 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
           <div class="metrics" style="margin-top:14px">
             <div class="metric"><div class="k">Credit Score</div><div class="v" id="creditScoreStat">620</div></div>
             <div class="metric"><div class="k">Credit Tier</div><div class="v" id="creditTierStat">1</div></div>
-            <div class="metric"><div class="k">Credit Limit</div><div class="v" id="creditLimitStat">$2,000</div></div>
+            <div class="metric"><div class="k">Credit Limit</div><div class="v" id="creditLimitStat">$5,000</div></div>
+            <div class="metric"><div class="k">Next Unlock</div><div class="v" id="creditNextUnlock">$10,000</div></div>
             <div class="metric"><div class="k">Available Credit</div><div class="v" id="creditAvailStat">$2,000</div></div>
             <div class="metric"><div class="k">Borrowed This Cycle</div><div class="v" id="creditBorrowedStat">$0</div></div>
             <div class="metric"><div class="k">Paid This Cycle</div><div class="v" id="creditPaidStat">$0</div></div>
@@ -2485,8 +2486,8 @@ function renderQty(){
 }
 
 
-const CREDIT_LADDER = [10000,25000,50000,100000,250000,500000,1000000,2500000,5000000,10000000,25000000,50000000,100000000,250000000,500000000,1000000000];
-const CREDIT_UNLOCK_STREAKS = [0,0,1,2,3,4,5,6,8,10,12,14,16,18,20,24];
+const CREDIT_LADDER = [5000,10000,25000,50000,100000,250000,500000,1000000,2500000,5000000,10000000,25000000,50000000,100000000,250000000,500000000,1000000000];
+const CREDIT_UNLOCK_STREAKS = [0,0,1,1,2,2,3,4,5,6,7,8,9,10,12,14,16];
 
 function getCreditLimit(){
   recalcCreditTier();
@@ -2502,36 +2503,36 @@ function recalcCreditTier(){
     if((game.onTimePayments||0) >= CREDIT_UNLOCK_STREAKS[i]) tier = i;
   }
   const score = Number(game.creditScore||300);
-  if(score < 450) tier = Math.min(tier, 2);
-  else if(score < 550) tier = Math.min(tier, 5);
-  else if(score < 650) tier = Math.min(tier, 8);
-  else if(score < 725) tier = Math.min(tier, 11);
+  if(score < 420) tier = Math.min(tier, 1);
+  else if(score < 500) tier = Math.min(tier, 4);
+  else if(score < 580) tier = Math.min(tier, 7);
+  else if(score < 650) tier = Math.min(tier, 10);
+  else if(score < 720) tier = Math.min(tier, 13);
   game.creditTier = Math.max(0, Math.min(CREDIT_LADDER.length-1, tier));
 }
 function startCreditCycle(){
   game.loanCycleStartDay = Number(game.dayCount || 1);
-  game.loanDueDay = Number(game.dayCount || 1) + 100;
+  game.loanDueDay = Number(game.dayCount || 1) + 80;
   game.loanPaidThisCycle = 0;
-  game.loanDueAmount = game.debt > 0 ? Math.max(100, game.debt * 0.01) : 0;
+  game.loanDueAmount = game.debt > 0 ? Math.max(50, game.debt * 0.005) : 0;
 }
 function processCreditDay(){
   if(game.debt <= 0){
     game.loanDueAmount = 0;
     game.loanPaidThisCycle = 0;
     game.loanCycleStartDay = Number(game.dayCount || 1);
-    game.loanDueDay = Number(game.dayCount || 1) + 100;
+    game.loanDueDay = Number(game.dayCount || 1) + 80;
     return;
   }
   if(!game.loanDueDay || game.loanDueDay <= Number(game.dayCount || 1)){
-    const paidEnough = Number(game.loanPaidThisCycle || 0) >= Number(game.loanDueAmount || 0);
+    const paidEnough = Number(game.loanPaidThisCycle || 0) >= Number(game.loanDueAmount || 0) || game.debt <= 0;
     if(paidEnough){
-      game.creditScore = Math.min(850, (game.creditScore || 300) + 16);
+      game.creditScore = Math.min(850, (game.creditScore || 300) + 30);
       game.onTimePayments = (game.onTimePayments || 0) + 1;
-      toast('On-time loan payment improved your credit', 'success');
+      toast('On-time payment boosted your credit', 'success');
     }else{
-      game.creditScore = Math.max(300, (game.creditScore || 300) - 18);
+      game.creditScore = Math.max(300, (game.creditScore || 300) - 10);
       game.missedPayments = (game.missedPayments || 0) + 1;
-      game.onTimePayments = Math.max(0, (game.onTimePayments || 0) - 1);
       toast('Missed payment hurt your credit', 'warning');
     }
     recalcCreditTier();
