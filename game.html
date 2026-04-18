@@ -3657,13 +3657,57 @@ async function fetchLeaderboardRowsGame(){
   }
 }
 
+
+async function fetchLeaderboardRowsUnified(){
+  if(!window.mmSupabase) return [];
+  try{
+    const res = await window.mmSupabase
+      .from('leaderboard_public')
+      .select('*')
+      .order('net_worth', { ascending:false })
+      .limit(100);
+    if(!res.error && Array.isArray(res.data)) return res.data;
+  }catch(e){}
+
+  try{
+    const statsRes = await window.mmSupabase
+      .from('player_stats')
+      .select('*')
+      .order('net_worth', { ascending:false })
+      .limit(100);
+    if(statsRes.error || !Array.isArray(statsRes.data)) return [];
+    const statsRows = statsRes.data || [];
+
+    const profileRes = await window.mmSupabase
+      .from('profiles')
+      .select('id,username,display_name');
+
+    const profiles = Array.isArray(profileRes.data) ? profileRes.data : [];
+    const byId = new Map(profiles.map(p => [p.id, p]));
+
+    return statsRows.map(r => {
+      const p = byId.get(r.user_id) || {};
+      return {
+        username: p.username || 'unknown',
+        display_name: p.display_name || p.username || 'Unknown',
+        net_worth: r.net_worth || 0,
+        prestige: r.prestige || 0,
+        empire_tier: r.empire_tier || '-',
+        updated_at: r.updated_at || null
+      };
+    });
+  }catch(e){
+    return [];
+  }
+}
+
 async function loadLeaderboardSocial(){
+    const rows = await fetchLeaderboardRowsUnified();
+
     const mini = qs('#leaderMini');
     const modal = qs('#leaderboardModalBody');
     const onlineWrap = qs('#onlinePlayersGame');
     const onlineCount = qs('#onlineCountGame');
-
-    const rows = await fetchLeaderboardRowsGame();
 
     if(!rows.length){
       if(mini) mini.innerHTML = '<div class="layoutHint">No leaderboard data yet.</div>';
@@ -3671,48 +3715,86 @@ async function loadLeaderboardSocial(){
 
       const selfUsername = mmSocial?.profile?.username || '';
       const selfDisplay = mmSocial?.profile?.display_name || selfUsername;
-      if(onlineWrap && selfUsername){
-        onlineWrap.innerHTML = `<a class="leaderMiniRow livePlayerRow" href="./index.html?u=${encodeURIComponent(selfUsername)}"><div class="rankBubble">●</div><div><div style="font-weight:800">${selfDisplay} (You)</div><div class="layoutHint">@${selfUsername}</div></div><div style="text-align:right"><div style="font-weight:900">Online</div><div class="layoutHint">Waiting for cloud</div></div></a>`;
-        if(onlineCount) onlineCount.textContent = '(1)';
-      }else if(onlineWrap){
-        onlineWrap.innerHTML = '<div class="layoutHint">No players active right now.</div>';
-        if(onlineCount) onlineCount.textContent = '(0)';
+      if(onlineWrap){
+        if(selfUsername){
+          onlineWrap.innerHTML = `
+            <a class="leaderMiniRow livePlayerRow" href="./index.html?u=${encodeURIComponent(selfUsername)}">
+              <div class="rankBubble">●</div>
+              <div><div style="font-weight:800">${selfDisplay} (You)</div><div class="layoutHint">@${selfUsername}</div></div>
+              <div style="text-align:right"><div style="font-weight:900">Online</div><div class="layoutHint">Waiting for cloud</div></div>
+            </a>`;
+          if(onlineCount) onlineCount.textContent = '(1)';
+        }else{
+          onlineWrap.innerHTML = '<div class="layoutHint">No players active right now.</div>';
+          if(onlineCount) onlineCount.textContent = '(0)';
+        }
       }
       return;
     }
 
     mmSocial.leaderRows = rows;
-    renderRivalFromLeaderboard(rows);
+    if(typeof renderRivalFromLeaderboard === 'function'){
+      try{ renderRivalFromLeaderboard(rows); }catch(e){}
+    }
 
-    if(mini) mini.innerHTML = rows.slice(0,5).map((r,i)=>`<div class="leaderMiniRow"><div class="rankBubble">${i+1}</div><div><div style="font-weight:800">${r.display_name || r.username}</div><div class="layoutHint">@${r.username}</div></div><div style="text-align:right"><div style="font-weight:900">${formatMoney(r.net_worth)}</div><div class="layoutHint">${r.empire_tier || '-'}</div></div></div>`).join('') || '<div class="layoutHint">No players yet.</div>';
-    if(modal) modal.innerHTML = rows.map((r,i)=>`<tr><td>${i+1}</td><td>${r.display_name || r.username}</td><td>${formatMoney(r.net_worth)}</td><td>${r.prestige || 0}</td></tr>`).join('') || '<tr><td colspan="4">No players yet.</td></tr>';
+    if(mini){
+      mini.innerHTML = rows.slice(0,5).map((row, idx) => `
+        <div class="leaderMiniRow">
+          <div class="rankBubble">${idx + 1}</div>
+          <div>
+            <div style="font-weight:800">${row.display_name || row.username || "Unknown"}</div>
+            <div class="layoutHint">@${row.username || 'unknown'}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-weight:900">${formatMoney(row.net_worth)}</div>
+            <div class="layoutHint">${row.empire_tier || "-"}</div>
+          </div>
+        </div>`).join('') || '<div class="layoutHint">No players yet.</div>';
+    }
+
+    if(modal){
+      modal.innerHTML = rows.map((row, idx) => `
+        <tr>
+          <td>${idx + 1}</td>
+          <td>${row.display_name || row.username || "Unknown"}</td>
+          <td>${formatMoney(row.net_worth)}</td>
+          <td>${row.prestige || 0}</td>
+        </tr>`).join('') || '<tr><td colspan="4">No players yet.</td></tr>';
+    }
 
     if(onlineWrap){
       const now = Date.now();
-      let online = rows.filter(r=>{
-        const t = r.updated_at ? new Date(r.updated_at).getTime() : 0;
+      let online = rows.filter(row => {
+        const t = row.updated_at ? new Date(row.updated_at).getTime() : 0;
         return t && (now - t) <= 120000;
       }).slice(0,12);
 
       const selfUsername = mmSocial?.profile?.username || '';
       const selfDisplay = mmSocial?.profile?.display_name || selfUsername;
-      const selfNetWorth = (typeof netWorth === 'function') ? netWorth() : 0;
-      const selfTier = (typeof currentEmpireTier === 'function') ? currentEmpireTier().name : '-';
 
       if(selfUsername && !online.some(r => (r.username || '') === selfUsername)){
         online.unshift({
           username: selfUsername,
           display_name: selfDisplay,
-          net_worth: selfNetWorth,
-          empire_tier: selfTier,
+          empire_tier: 'Online',
+          net_worth: (typeof netWorth === 'function') ? netWorth() : 0,
           __self: true,
           updated_at: new Date().toISOString()
         });
       }
 
-      online = online.slice(0,12);
+      online = online.slice(0, 12);
 
-      onlineWrap.innerHTML = online.length ? online.map((r)=>`<a class="leaderMiniRow livePlayerRow" href="./index.html?u=${encodeURIComponent(r.username || '')}"><div class="rankBubble">●</div><div><div style="font-weight:800">${r.display_name || r.username}${r.__self ? ' (You)' : ''}</div><div class="layoutHint">@${r.username}</div></div><div style="text-align:right"><div style="font-weight:900">${r.__self ? 'Online' : formatMoney(r.net_worth)}</div><div class="layoutHint">${r.empire_tier || '-'}</div></div></a>`).join('') : '<div class="layoutHint">No players active right now.</div>';
+      onlineWrap.innerHTML = online.length
+        ? online.map(row => `
+            <a class="leaderMiniRow livePlayerRow" href="./index.html?u=${encodeURIComponent(row.username || "")}">
+              <div class="rankBubble">●</div>
+              <div><div style="font-weight:800">${row.display_name || row.username || "Unknown"}${row.__self ? " (You)" : ""}</div><div class="layoutHint">@${row.username || 'unknown'}</div></div>
+              <div style="text-align:right"><div style="font-weight:900">${row.__self ? "Online" : formatMoney(row.net_worth)}</div><div class="layoutHint">${row.empire_tier || "-"}</div></div>
+            </a>
+          `).join('')
+        : '<div class="layoutHint">No players active right now.</div>';
+
       if(onlineCount) onlineCount.textContent = `(${online.length})`;
     }
   }
