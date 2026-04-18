@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Market Magnate Login</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <style>
+    body{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:
+        radial-gradient(circle at top left, rgba(29,111,232,.16), transparent 26%),
+        radial-gradient(circle at top right, rgba(66,183,42,.10), transparent 20%),
+        linear-gradient(180deg,#dbe4ee 0%, #d2dce7 48%, #cad5e0 100%);
+      padding:24px;
+    }
+    .loginShell{
+      width:min(100%, 430px);
+      background:rgba(248,250,252,.92);
+      border:1px solid #d7dee7;
+      border-radius:11px;
+      padding:28px;
+      box-shadow:0 24px 60px rgba(15,23,42,.12);
+      backdrop-filter:blur(14px);
+    }
+    .loginTop{
+      display:flex;
+      justify-content:center;
+      margin-bottom:20px;
+    }
+    .loginMark{
+      width:58px;height:58px;border-radius:11px;
+      display:grid;place-items:center;
+      background:linear-gradient(135deg,#0f8bff,#1dc86a);
+      color:#fff;font-weight:900;font-size:1.1rem;
+      box-shadow:0 14px 30px rgba(24,119,242,.22);
+    }
+    .loginTitle{
+      text-align:center;
+      font-size:1.85rem;
+      font-weight:950;
+      line-height:1;
+      margin:0;
+    }
+    .loginSub{
+      text-align:center;
+      color:#667589;
+      margin:10px 0 22px;
+      line-height:1.5;
+      font-size:.95rem;
+    }
+    .loginStack{display:grid;gap:12px}
+    .loginActions{display:grid;gap:10px;margin-top:14px}
+    .loginActions button,.loginActions a{
+      width:100%;
+      justify-content:center;
+      text-decoration:none;
+    }
+    .loginMeta{
+      margin-top:16px;
+      padding-top:16px;
+      border-top:1px solid #e7edf4;
+      display:grid;
+      gap:8px;
+      color:#667589;
+      font-size:.9rem;
+    }
+    .leaderPeek{
+      margin-top:20px;
+      padding:14px;
+      border-radius:11px;
+      background:#eef4fb;
+      border:1px solid #dbe5f2;
+    }
+    .leaderPeek h3{
+      margin:0 0 10px;
+      font-size:.95rem;
+    }
+    .miniLead{display:grid;gap:8px}
+    .miniLeadRow{
+      display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
+      padding:10px 12px;border-radius:11px;background:#fff;border:1px solid var(--line);
+    }
+    .miniRank{
+      width:30px;height:30px;border-radius:9px;background:#edf3fb;display:grid;place-items:center;
+      font-weight:900;color:#2f537d;
+    }
+  
+/* pointer cursor */
+html, body, button, a, input, textarea, select { cursor:none !important; }
+.mmPointer{position:fixed;top:0;left:0;width:26px;height:26px;pointer-events:none;z-index:999999;transform:translate(-50%,-50%);}
+.mmPointer svg{width:100%;height:100%;filter:drop-shadow(0 4px 12px rgba(24,119,242,.35));}
+.mmPointer.hover svg{filter:drop-shadow(0 6px 18px rgba(66,183,42,.5));transform:scale(1.15);}
+.mmPointer.click{transform:translate(-50%,-50%) scale(.85);}
+@media (pointer:coarse){.mmPointer{display:none} html,body{cursor:auto !important;}}
+
+</style>
+</head>
+<body>
+  <main class="loginWrap"><section class="loginShell">
+    <div class="loginTop">
+      <div class="loginMark">MM</div>
+    </div>
+
+    <h1 class="loginTitle">Market Magnate</h1>
+    <p class="loginSub">Sign in to sync your save, manage your profile, and compete on the live leaderboard.</p>
+
+    <div class="loginStack">
+      <input id="authEmail" type="email" placeholder="Email" />
+      <input id="authPassword" type="password" placeholder="Password" />
+      <div class="usernameRow"><input id="authUsername" type="text" placeholder="Username for new accounts" /></div>
+    </div>
+
+    <div class="loginActions">
+      <button id="signInBtn">Sign in</button>
+      <button id="signUpBtn">Create account</button>
+      <button id="signOutBtn" class="secondary" hidden>Sign out</button>
+      <button id="playBtn" hidden>Play game</button>
+      <a class="buttonish" href="./game.html">Open game manually</a>
+    </div>
+
+    <p id="authMessage" class="muted" style="margin-top:14px;text-align:center">Not signed in</p>
+
+    
+        
+
+    <div class="loginMeta">
+      <div id="authStatus">Not signed in</div>
+      <div>Public profiles work with <code>?u=username</code></div>
+      
+    </div>
+  </section><aside class="loginBoard"><h2>Leaderboard</h2><p class="muted">Top traders right now</p><div class="tableWrap" style="max-height:520px;overflow:auto"><table><thead><tr><th>#</th><th>User</th><th>Net Worth</th></tr></thead><tbody id="signinLeaderboardBody"><tr><td colspan="3">Loading…</td></tr></tbody></table></div></aside>
+  <section class="leaderPeek" style="margin-top:0;min-height:100%;">
+    <h3 style="margin-top:0">Leaderboard</h3>
+    <div class="tableWrap" style="max-height:540px;overflow:auto">
+      <table>
+        <thead>
+          <tr><th>#</th><th>User</th><th>Net Worth</th><th>Empire</th></tr>
+        </thead>
+        <tbody id="signinLeaderboardBody"><tr><td colspan="4">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./config.js"></script>
+  <script src="./supabase-client.js"></script>
+  <script src="./social.js"></script>
+  
+  
+
+
+  <!-- hidden full leaderboard/profile containers for social.js -->
+  <div style="display:none">
+    <button id="syncBtn"></button><button id="loadBtn"></button>
+    <form id="profileForm"></form>
+    <input id="profileDisplayName" />
+    <textarea id="profileBio"></textarea>
+    <input id="profileFavoriteStock" />
+    <select id="profileTheme"></select>
+    <div id="profileMessage"></div>
+    <table><tbody id="leaderboardBody"><tr><td colspan="5">Loading…</td></tr></tbody></table>
+    <div id="publicProfileBody"></div>
+  </div>
+
+<script>
+(function(){
+  if(window.matchMedia('(pointer:coarse)').matches) return;
+  const ring = document.createElement('div');
+  ring.className = 'mmCursor';
+  const dot = document.createElement('div');
+  dot.className = 'mmCursorDot';
+  document.body.appendChild(ring);
+  document.body.appendChild(dot);
+  let x = innerWidth/2, y = innerHeight/2, rx = x, ry = y;
+  document.addEventListener('mousemove', e => { x = e.clientX; y = e.clientY; dot.style.left = x+'px'; dot.style.top = y+'px'; }, {passive:true});
+  document.addEventListener('mouseover', e => {
+    if(e.target.closest('button,a,.menuBtn,.stockItem,.shopCard,.avatarOpt,.bannerOpt,.cosmeticCard,input,textarea,select,.socialBtn')) ring.classList.add('hover');
+    else ring.classList.remove('hover');
+  }, {passive:true});
+  document.addEventListener('mousedown', ()=> ring.classList.add('click'), {passive:true});
+  document.addEventListener('mouseup', ()=> ring.classList.remove('click'), {passive:true});
+  function tick(){
+    rx += (x-rx)*0.22; ry += (y-ry)*0.22;
+    ring.style.left = rx+'px'; ring.style.top = ry+'px';
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+</script>
+
+
+<script>
+(function(){
+if(window.matchMedia('(pointer:coarse)').matches) return;
+const p=document.createElement('div');p.className='mmPointer';
+p.innerHTML=`<svg viewBox="0 0 24 24"><path d="M3 2L21 11L13 13L11 21L3 2Z" fill="#1877f2" stroke="white" stroke-width="1.2"/></svg>`;
+document.body.appendChild(p);
+let x=innerWidth/2,y=innerHeight/2,px=x,py=y;
+document.addEventListener('mousemove',e=>{x=e.clientX;y=e.clientY});
+document.addEventListener('mouseover',e=>{if(e.target.closest('button,a,.menuBtn,.stockItem,.shopCard,input'))p.classList.add('hover');else p.classList.remove('hover')});
+document.addEventListener('mousedown',()=>p.classList.add('click'));
+document.addEventListener('mouseup',()=>p.classList.remove('click'));
+(function loop(){px+=(x-px)*.2;py+=(y-py)*.2;p.style.left=px+'px';p.style.top=py+'px';requestAnimationFrame(loop)})();
+})();
+</script>
+
+</body>
+</html>
