@@ -3410,6 +3410,7 @@ async function purchaseCosmetic(type, key){
     else mmSocial.selectedBanner = key;
     applySocialProfileToUI(mmSocial.profile || {});
     renderAvatarGrid(); renderBannerGrid(); renderCosmeticStore();
+    setupLivePlayerDelegation();
     setupCosmeticDelegation();
     setupLivePlayerDelegation();
     if(typeof save === 'function') save(true);
@@ -3801,7 +3802,8 @@ async function loadLeaderboardSocial(){
 
       const selfUsername = mmSocial?.profile?.username || '';
       const selfDisplay = mmSocial?.profile?.display_name || selfUsername;
-      if(onlineWrap){
+      setupLivePlayerDelegation();
+    if(onlineWrap){
         if(selfUsername){
           onlineWrap.innerHTML = `
             <a class="leaderMiniRow livePlayerRow" href="./index.html?u=${encodeURIComponent(selfUsername)}">

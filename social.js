@@ -199,7 +199,23 @@ function renderOwnedAccountCosmetics(owned){
     }
   };
 
-  async function getUser() {
+  
+  let profileFormDirty = false;
+  let suppressProfileDirty = false;
+
+  function bindProfileDirtyTracking() {
+    const form = $("#profileForm");
+    if (!form || form.dataset.dirtyBound === "1") return;
+    form.dataset.dirtyBound = "1";
+    form.addEventListener("input", () => {
+      if (!suppressProfileDirty) profileFormDirty = true;
+    });
+    form.addEventListener("change", () => {
+      if (!suppressProfileDirty) profileFormDirty = true;
+    });
+  }
+
+async function getUser() {
     const { data, error } = await window.mmSupabase.auth.getUser();
     if (error) throw error;
     return data.user || null;
@@ -492,17 +508,25 @@ async function loadLeaderboard() {
   async function loadMyProfile() {
     const user = await getUser().catch(() => null);
     if (!user) return;
+    if (profileFormDirty) return;
+
     const { data, error } = await window.mmSupabase.from("profiles").select("*").eq("id", user.id).single();
     if (error || !data) return;
-    if (el.profileUsername()) el.profileUsername().value = data.username || "";
-    if (el.profileDisplayName()) el.profileDisplayName().value = data.display_name || "";
-    if (el.profileBio()) el.profileBio().value = data.bio || "";
-    if (el.profileFavoriteStock()) el.profileFavoriteStock().value = data.favorite_stock || "";
-    if (el.profileTheme()) el.profileTheme().value = data.profile_theme || "default";
-    selectedAccountAvatar = data.avatar_url || "💹";
-    selectedAccountBanner = data.banner_url || "default_banner";
-    const owned = await loadOwnedAccountCosmetics(user.id);
-    renderOwnedAccountCosmetics(owned);
+
+    suppressProfileDirty = true;
+    try {
+      if (el.profileUsername()) el.profileUsername().value = data.username || "";
+      if (el.profileDisplayName()) el.profileDisplayName().value = data.display_name || "";
+      if (el.profileBio()) el.profileBio().value = data.bio || "";
+      if (el.profileFavoriteStock()) el.profileFavoriteStock().value = data.favorite_stock || "";
+      if (el.profileTheme()) el.profileTheme().value = data.profile_theme || "default";
+      selectedAccountAvatar = data.avatar_url || "💹";
+      selectedAccountBanner = data.banner_url || "default_banner";
+      const owned = await loadOwnedAccountCosmetics(user.id);
+      renderOwnedAccountCosmetics(owned);
+    } finally {
+      suppressProfileDirty = false;
+    }
   }
 
   async function saveMyProfile(evt) {
@@ -530,6 +554,7 @@ async function loadLeaderboard() {
     const { error } = await window.mmSupabase.from("profiles").upsert(payload);
     if (error) return flash(el.profileMessage(), error.message, false);
 
+    profileFormDirty = false;
     flash(el.profileMessage(), "Profile saved.");
   }
 
