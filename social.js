@@ -399,17 +399,32 @@ function renderOwnedAccountCosmetics(owned){
     const onlineCount = $("#onlineCount");
     if (onlineWrap) {
       const now = Date.now();
-      const online = (data || []).filter(row => {
+      let online = (data || []).filter(row => {
         const t = row.updated_at ? new Date(row.updated_at).getTime() : 0;
         return t && (now - t) <= 120000;
       }).slice(0, 12);
+
+      try {
+        const selfProfile = JSON.parse(localStorage.getItem("MM_PROFILE_HINT") || "null");
+        if (selfProfile?.username && !online.some(r => (r.username || "") === selfProfile.username)) {
+          online.unshift({
+            username: selfProfile.username,
+            display_name: selfProfile.display_name || selfProfile.username,
+            empire_tier: "Online",
+            net_worth: 0,
+            __self: true
+          });
+        }
+      } catch (e) {}
+
+      online = online.slice(0, 12);
 
       onlineWrap.innerHTML = online.length
         ? online.map(row => `
             <a class="miniLeadRow livePlayerRow" href="./index.html?u=${encodeURIComponent(row.username || "")}">
               <div class="miniRank">●</div>
-              <div><div style="font-weight:900">${row.display_name || row.username || "Unknown"}</div><div class="muted" style="font-size:.8rem">${row.empire_tier || "-"}</div></div>
-              <div style="font-weight:900">${fmtMoney(row.net_worth)}</div>
+              <div><div style="font-weight:900">${row.display_name || row.username || "Unknown"}${row.__self ? " (You)" : ""}</div><div class="muted" style="font-size:.8rem">${row.empire_tier || "-"}</div></div>
+              <div style="font-weight:900">${row.__self ? "Online" : fmtMoney(row.net_worth)}</div>
             </a>
           `).join("")
         : '<div class="muted">No players active right now.</div>';
@@ -529,14 +544,14 @@ function renderOwnedAccountCosmetics(owned){
       const user = await getUser().catch(() => null);
       if (!user) return;
       await syncToCloud().catch(() => {});
-    }, 3000);
+    }, 2000);
 
     // Keep the leaderboard feeling live on the hub page.
     leaderboardRefreshTimer = setInterval(async () => {
       try {
         await loadLeaderboard();
       } catch (e) {}
-    }, 3000);
+    }, 2000);
 
     document.addEventListener('visibilitychange', async () => {
       if (!document.hidden) {

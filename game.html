@@ -3630,21 +3630,52 @@ async function loadLeaderboardSocial(){
     const {data,error} = await window.mmSupabase.from('leaderboard_public').select('*').order('net_worth',{ascending:false}).limit(25);
     const mini = qs('#leaderMini');
     const modal = qs('#leaderboardModalBody');
-    if(error){ if(mini) mini.innerHTML = '<div class="layoutHint">Failed to load leaderboard.</div>'; if(modal) modal.innerHTML = '<tr><td colspan="4">Failed to load leaderboard.</td></tr>'; return; }
+    if(error){
+      if(mini) mini.innerHTML = '<div class="layoutHint">Failed to load leaderboard.</div>';
+      if(modal) modal.innerHTML = '<tr><td colspan="4">Failed to load leaderboard.</td></tr>';
+      const onlineWrap = qs('#onlinePlayersGame');
+      const onlineCount = qs('#onlineCountGame');
+      if(onlineWrap && mmSocial?.profile?.username){
+        onlineWrap.innerHTML = `<a class="leaderMiniRow livePlayerRow" href="./index.html?u=${encodeURIComponent(mmSocial.profile.username)}"><div class="rankBubble">●</div><div><div style="font-weight:800">${mmSocial.profile.display_name || mmSocial.profile.username}</div><div class="layoutHint">@${mmSocial.profile.username}</div></div><div style="text-align:right"><div style="font-weight:900">You</div><div class="layoutHint">Online</div></div></a>`;
+        if(onlineCount) onlineCount.textContent = '(1)';
+      }
+      return;
+    }
+
     const rows = (data||[]);
     mmSocial.leaderRows = rows;
     renderRivalFromLeaderboard(rows);
+
     if(mini) mini.innerHTML = rows.slice(0,5).map((r,i)=>`<div class="leaderMiniRow"><div class="rankBubble">${i+1}</div><div><div style="font-weight:800">${r.display_name || r.username}</div><div class="layoutHint">@${r.username}</div></div><div style="text-align:right"><div style="font-weight:900">${formatMoney(r.net_worth)}</div><div class="layoutHint">${r.empire_tier || '-'}</div></div></div>`).join('') || '<div class="layoutHint">No players yet.</div>';
     if(modal) modal.innerHTML = rows.map((r,i)=>`<tr><td>${i+1}</td><td>${r.display_name || r.username}</td><td>${formatMoney(r.net_worth)}</td><td>${r.prestige || 0}</td></tr>`).join('') || '<tr><td colspan="4">No players yet.</td></tr>';
+
     const onlineWrap = qs('#onlinePlayersGame');
     const onlineCount = qs('#onlineCountGame');
     if(onlineWrap){
       const now = Date.now();
-      const online = rows.filter(r=>{
+      let online = rows.filter(r=>{
         const t = r.updated_at ? new Date(r.updated_at).getTime() : 0;
         return t && (now - t) <= 120000;
       }).slice(0,12);
-      onlineWrap.innerHTML = online.length ? online.map((r)=>`<a class="leaderMiniRow livePlayerRow" href="./index.html?u=${encodeURIComponent(r.username || '')}"><div class="rankBubble">●</div><div><div style="font-weight:800">${r.display_name || r.username}</div><div class="layoutHint">@${r.username}</div></div><div style="text-align:right"><div style="font-weight:900">${formatMoney(r.net_worth)}</div><div class="layoutHint">${r.empire_tier || '-'}</div></div></a>`).join('') : '<div class="layoutHint">No players active right now.</div>';
+
+      const selfUsername = mmSocial?.profile?.username || '';
+      const selfDisplay = mmSocial?.profile?.display_name || selfUsername;
+      const selfNetWorth = (typeof netWorth === 'function') ? netWorth() : 0;
+      const selfTier = (typeof currentEmpireTier === 'function') ? currentEmpireTier().name : '-';
+
+      if(selfUsername && !online.some(r => (r.username || '') === selfUsername)){
+        online.unshift({
+          username: selfUsername,
+          display_name: selfDisplay,
+          net_worth: selfNetWorth,
+          empire_tier: selfTier,
+          __self: true
+        });
+      }
+
+      online = online.slice(0,12);
+
+      onlineWrap.innerHTML = online.length ? online.map((r)=>`<a class="leaderMiniRow livePlayerRow" href="./index.html?u=${encodeURIComponent(r.username || '')}"><div class="rankBubble">●</div><div><div style="font-weight:800">${r.display_name || r.username}${r.__self ? ' (You)' : ''}</div><div class="layoutHint">@${r.username}</div></div><div style="text-align:right"><div style="font-weight:900">${r.__self ? 'Online' : formatMoney(r.net_worth)}</div><div class="layoutHint">${r.empire_tier || '-'}</div></div></a>`).join('') : '<div class="layoutHint">No players active right now.</div>';
       if(onlineCount) onlineCount.textContent = `(${online.length})`;
     }
   }
