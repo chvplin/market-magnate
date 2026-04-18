@@ -1861,6 +1861,7 @@ function niceCategory(name){
 }
 
 const game = {
+
   speedIndex: 1,
   speedLabel: "1x",
   cash:500,
@@ -1904,6 +1905,8 @@ const game = {
   loanDueAmount:0,
   loanPaidThisCycle:0
 };
+try{ window.game = game; }catch(e){}
+
 
 const topViewButtons = { topStocks:'stocks', topNews:'news', topUser:'user' };
 Object.entries(topViewButtons).forEach(([id,view])=>{ const el=document.getElementById(id); if(el) el.addEventListener('click',()=>switchView(view)); });
@@ -3076,7 +3079,8 @@ function refresh(){
 
 $('#buyBtn').addEventListener('click', ()=>{ playClickSound(); buyStock(); });
 $('#sellBtn').addEventListener('click', ()=>{ playClickSound(); sellStock(); });
-$('#saveBtn').addEventListener('click', async ()=>{ playClickSound(); save(true); try{ if(window.MMForceCloudSync) await window.MMForceCloudSync(); }catch(e){ console.warn('Cloud sync on save failed', e); } });
+$('#saveBtn').addEventListener('click', async ()=>{ playClickSound(); try{ window.game = game; }catch(e){}
+  save(true); try{ if(window.MMForceCloudSync) await window.MMForceCloudSync(); }catch(e){ console.warn('Cloud sync on save failed', e); } });
 $('#resetBtn').addEventListener('click', ()=>{ playClickSound(); reset(); });
 $('#prestigeBtn').addEventListener('click', ()=>{ playClickSound(); doPrestige(); });
 $('#collectBtn').addEventListener('click', ()=>{ playClickSound(); collectNewsBonus(); });
@@ -3344,34 +3348,36 @@ let mmSocial = { user:null, profile:null, selectedAvatar:'💹', selectedTheme:'
 
 async function purchaseCosmetic(type, key){
   const def = type==='avatar' ? getAvatarDef(key) : getBannerDef(key);
-  const ownedList = type==='avatar' ? mmSocial.ownedAvatarKeys : mmSocial.ownedBannerKeys;
+  const ownedList = type==='avatar' ? (mmSocial.ownedAvatarKeys || []) : (mmSocial.ownedBannerKeys || []);
 
   if(ownedList.includes(key)){
     if(type==='avatar') mmSocial.selectedAvatar = def.icon;
     else mmSocial.selectedBanner = key;
     applySocialProfileToUI(mmSocial.profile || {});
     renderAvatarGrid(); renderBannerGrid(); renderCosmeticStore();
+    setupCosmeticDelegation();
     if(typeof save === 'function') save(true);
     if(typeof saveSocialProfile === 'function'){ try { await saveSocialProfile(); } catch(e) {} }
     socialToast((type==='avatar'?'Avatar':'Banner') + ' selected.');
     return;
   }
 
-  const liveGame = (typeof window !== 'undefined' && window.game) ? window.game : (typeof game !== 'undefined' ? game : null);
+  const liveGame = (typeof window !== 'undefined' && window.game) ? window.game : null;
   if(!liveGame){ socialToast('Game state unavailable.', false); return; }
 
   const currentCash = Number(liveGame.cash ?? 0);
   const cost = Number(def?.cost ?? 0);
   if(!Number.isFinite(cost) || cost <= 0){ socialToast('Invalid item cost.', false); return; }
-  if(currentCash < cost){ socialToast('Not enough in-game cash.', false); return; }
+  if(!Number.isFinite(currentCash) || currentCash < cost){ socialToast('Not enough in-game cash.', false); return; }
 
   liveGame.cash = currentCash - cost;
+
   if(type==='avatar'){
     liveGame.ownedProfileAvatars = Array.isArray(liveGame.ownedProfileAvatars) ? liveGame.ownedProfileAvatars : ['default_avatar'];
     if(!liveGame.ownedProfileAvatars.includes(key)) liveGame.ownedProfileAvatars.push(key);
     mmSocial.ownedAvatarKeys = [...new Set(liveGame.ownedProfileAvatars)];
     mmSocial.selectedAvatar = def.icon;
-  } else {
+  }else{
     liveGame.ownedProfileBanners = Array.isArray(liveGame.ownedProfileBanners) ? liveGame.ownedProfileBanners : ['default_banner','profile_banner_gold','profile_banner_neon','profile_banner_midnight'];
     if(!liveGame.ownedProfileBanners.includes(key)) liveGame.ownedProfileBanners.push(key);
     mmSocial.ownedBannerKeys = [...new Set(liveGame.ownedProfileBanners)];
@@ -3384,23 +3390,21 @@ async function purchaseCosmetic(type, key){
   applySocialProfileToUI(mmSocial.profile || {});
   renderAvatarGrid(); renderBannerGrid(); renderCosmeticStore();
 
+  // best-effort account mirror
   try{
     if(window.mmSupabase){
       const user = await getUser();
       if(user){
-        const { error } = await window.mmSupabase.from('player_assets').insert({
+        await window.mmSupabase.from('player_assets').insert({
           user_id:user.id,
           category:type==='avatar' ? 'profile_avatar' : 'profile_banner',
           item_key:key,
           item_name:def.name
         });
-        if(error && !String(error.message || '').toLowerCase().includes('duplicate')){
-          console.warn('player_assets insert failed:', error.message || error);
-        }
       }
     }
   }catch(err){
-    console.warn('cosmetic persistence warning:', err?.message || err);
+    console.warn('cosmetic mirror warning:', err?.message || err);
   }
 
   if(typeof saveSocialProfile === 'function'){ try { await saveSocialProfile(); } catch(e) {} }
@@ -3451,24 +3455,36 @@ function renderThemeSelection(){
     qsa('.themeOpt').forEach(opt=>opt.classList.toggle('active', opt.dataset.theme===mmSocial.selectedTheme));
   }
   function applySocialProfileToUI(profile={}){
-    const displayName = profile.display_name || profile.username || 'Guest Trader';
-    const username = profile.username || 'guest';
-    const bio = profile.bio || 'Sign in through the Social Hub to personalize this profile.';
-    const favorite = profile.favorite_stock || '—';
-    const theme = mmSocial.selectedTheme || profile.profile_theme || 'default';
-    const avatar = mmSocial.selectedAvatar || profile.avatar_url || '💹';
-    const bannerKey = mmSocial.selectedBanner || profile.banner_url || 'default_banner';
+    let loginHint = null;
+    let profileHint = null;
+    try{ loginHint = JSON.parse(localStorage.getItem('MM_LAST_LOGIN') || 'null'); }catch(e){}
+    try{ profileHint = JSON.parse(localStorage.getItem('MM_PROFILE_HINT') || 'null'); }catch(e){}
+
+    const emailBase = mmSocial.user?.email || loginHint?.email || '';
+    const fallbackName = emailBase ? String(emailBase).split('@')[0] : 'Guest Trader';
+
+    const displayName = profile.display_name || profile.username || profileHint?.display_name || profileHint?.username || fallbackName;
+    const username = profile.username || profileHint?.username || fallbackName || 'guest';
+    const bio = profile.bio || profileHint?.bio || 'Sign in through the Social Hub to personalize this profile.';
+    const favorite = profile.favorite_stock || profileHint?.favorite_stock || '—';
+    const theme = mmSocial.selectedTheme || profile.profile_theme || profileHint?.profile_theme || 'default';
+    const avatar = mmSocial.selectedAvatar || profile.avatar_url || profileHint?.avatar_url || '💹';
+    const bannerKey = mmSocial.selectedBanner || profile.banner_url || profileHint?.banner_url || 'default_banner';
+
     mmSocial.selectedAvatar = avatar;
     mmSocial.selectedTheme = theme;
     mmSocial.selectedBanner = bannerKey;
+
     const banner = qs('#socialBanner'); if(banner){ const bd=getBannerDef(bannerKey); banner.className = 'socialBanner'; banner.style.background = bd.gradient; }
     const avatarEls = ['#socialAvatar','#socialChipAvatar']; avatarEls.forEach(sel=>{ const n=qs(sel); if(n) n.textContent = avatar; });
+
     const dn = qs('#socialDisplayName'); if(dn) dn.textContent = displayName;
     const un = qs('#socialUsername'); if(un) un.textContent = '@' + username;
     const bioEl = qs('#socialBio'); if(bioEl) bioEl.textContent = bio + (favorite && favorite!=='—' ? ` • Favorite: ${favorite}` : '');
     const chipName = qs('#socialChipName'); if(chipName) chipName.textContent = displayName;
-    const chipSub = qs('#socialChipSub'); if(chipSub) chipSub.textContent = profile.email || (mmSocial.user?.email || 'Offline');
+    const chipSub = qs('#socialChipSub'); if(chipSub) chipSub.textContent = profile.email || emailBase || 'Offline';
     const favPill = qs('#statusPill'); if(favPill && favorite && favorite !== '—') favPill.textContent = favorite;
+
     renderAvatarGrid(); renderThemeSelection(); renderBannerGrid();
   }
   async function getUser(){
@@ -3485,18 +3501,56 @@ function renderThemeSelection(){
   return null;
 }
   async function loadSocialProfile(){
-    if(!window.mmSupabase) return;
+    if(!window.mmSupabase){
+      applySocialProfileToUI({});
+      return;
+    }
+
     mmSocial.user = await getUser();
-    if(!mmSocial.user){ await loadOwnedCosmetics(); applySocialProfileToUI({}); renderCosmeticStore(); return; }
-    const {data, error} = await window.mmSupabase.from('profiles').select('*').eq('id', mmSocial.user.id).maybeSingle();
-    if(error){ console.warn(error); return; }
+
+    if(!mmSocial.user){
+      await loadOwnedCosmetics();
+      applySocialProfileToUI({});
+      renderCosmeticStore();
+      return;
+    }
+
+    let {data, error} = await window.mmSupabase.from('profiles').select('*').eq('id', mmSocial.user.id).maybeSingle();
+    if(error){
+      console.warn(error);
+      applySocialProfileToUI({});
+      return;
+    }
+
+    if(!data){
+      const emailBase = String(mmSocial.user.email || 'player').split('@')[0].replace(/[^a-zA-Z0-9_]/g,'').slice(0,24) || 'player';
+      const fallbackProfile = {
+        id: mmSocial.user.id,
+        username: emailBase,
+        display_name: emailBase,
+        bio: '',
+        favorite_stock: '',
+        profile_theme: 'default',
+        avatar_url: '💹',
+        banner_url: 'default_banner',
+        is_public: true
+      };
+      const created = await window.mmSupabase.from('profiles').upsert(fallbackProfile).select().maybeSingle();
+      data = created?.data || fallbackProfile;
+    }
+
     mmSocial.profile = Object.assign({}, data || {}, { email: mmSocial.user.email });
+    try{ localStorage.setItem('MM_PROFILE_HINT', JSON.stringify(mmSocial.profile)); }catch(e){}
+
     mmSocial.selectedAvatar = mmSocial.profile.avatar_url || '💹';
     mmSocial.selectedTheme = mmSocial.profile.profile_theme || 'default';
     mmSocial.selectedBanner = mmSocial.profile.banner_url || 'default_banner';
+
     await loadOwnedCosmetics();
     applySocialProfileToUI(mmSocial.profile);
     renderCosmeticStore();
+    setupCosmeticDelegation();
+
     const un = qs('#profileUsernameGame'); if(un) un.value = mmSocial.profile.username || '';
     const dn = qs('#profileDisplayNameGame'); if(dn) dn.value = mmSocial.profile.display_name || '';
     const bio = qs('#profileBioGame'); if(bio) bio.value = mmSocial.profile.bio || '';
@@ -3572,7 +3626,19 @@ async function loadLeaderboardSocial(){
   }
   function openModal(id){ const el=qs(id); if(el) el.classList.add('show'); }
   function closeModal(id){ const el=qs(id); if(el) el.classList.remove('show'); }
-  function bindSocialUI(){
+  
+function setupCosmeticDelegation(){
+  const grid = qs('#cosmeticStoreGrid');
+  if(!grid || grid.dataset.bound === '1') return;
+  grid.dataset.bound = '1';
+  grid.addEventListener('click', (e)=>{
+    const btn = e.target.closest('[data-cosmetic]');
+    if(!btn) return;
+    purchaseCosmetic(btn.dataset.type, btn.dataset.cosmetic);
+  });
+}
+
+function bindSocialUI(){
     qs('#editProfileBtn')?.addEventListener('click', ()=>openModal('#profileModalOverlay'));
     qs('#closeProfileModalBtn')?.addEventListener('click', ()=>closeModal('#profileModalOverlay'));
     qs('#saveProfileGameBtn')?.addEventListener('click', saveSocialProfile);
@@ -3610,7 +3676,7 @@ async function loadLeaderboardSocial(){
     }
 
     setInterval(syncStatsToCloud, 15000);
-    setInterval(loadLeaderboardSocial, 8000);
+    setInterval(loadLeaderboardSocial, 5000);
     setInterval(()=>{ if (typeof renderCosmeticStore === 'function') renderCosmeticStore(); }, 5000);
   }
   document.addEventListener('DOMContentLoaded', initSocialLayer);

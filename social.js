@@ -294,10 +294,16 @@ function renderOwnedAccountCosmetics(owned){
       flash(el.authMessage(), error.message, false);
       return;
     }
+
     try {
       const user = await getUser();
-      if (user) localStorage.setItem("MM_LAST_LOGIN", JSON.stringify({ email: user.email || "", id: user.id || "" }));
+      if (user) {
+        localStorage.setItem("MM_LAST_LOGIN", JSON.stringify({ email: user.email || "", id: user.id || "" }));
+        const prof = await window.mmSupabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+        if (prof?.data) localStorage.setItem("MM_PROFILE_HINT", JSON.stringify(prof.data));
+      }
     } catch (e) {}
+
     flash(el.authMessage(), "Signed in. Redirecting to game...");
     await refreshAuthUI();
     setTimeout(() => { window.location.href = "./game.html"; }, 500);
@@ -309,7 +315,7 @@ function renderOwnedAccountCosmetics(owned){
       flash(el.authMessage(), error.message, false);
       return;
     }
-    try { localStorage.removeItem(SAVE_KEY); localStorage.removeItem("MM_LAST_LOGIN"); } catch (e) {}
+    try { localStorage.removeItem(SAVE_KEY); localStorage.removeItem("MM_LAST_LOGIN"); localStorage.removeItem("MM_PROFILE_HINT"); } catch (e) {}
     flash(el.authMessage(), "Signed out.");
     await refreshAuthUI();
     setTimeout(() => { window.location.href = "./index.html"; }, 250);
