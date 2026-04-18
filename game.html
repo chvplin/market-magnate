@@ -1466,8 +1466,8 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
             <div class="metric"><div class="k">Credit Score</div><div class="v" id="creditScore">300</div></div>
             <div class="metric"><div class="k">Credit Limit</div><div class="v" id="creditLimit">$2,000</div></div>
             <div class="metric"><div class="k">Available Credit</div><div class="v" id="creditAvailable">$2,000</div></div>
-            <div class="metric"><div class="k">Next Due Day</div><div class="v" id="creditDueDay">8</div></div>
-            <div class="metric"><div class="k">Payment This Cycle</div><div class="v" id="creditPaid">$0</div></div>
+            <div class="metric"><div class="k">Next Due Day</div><div class="v" id="creditDueDay">100</div></div>
+            <div class="metric"><div class="k">Paid This Cycle</div><div class="v" id="creditPaid">$0</div></div>
           </div>
           <div class="metrics" style="margin-top:14px">
             <div class="metric"><div class="k">Current Debt</div><div class="v" id="financeDebt">$0</div></div>
@@ -1994,7 +1994,6 @@ function closeEventModal(result){
 }
 
 function marketTick(){
-  advanceGameDay();
   game.dayCount = Number(game.dayCount || 0) + 1;
   processCreditDay();
   let moodScore=0;
@@ -2386,10 +2385,11 @@ function renderQty(){
 }
 
 
-const CREDIT_LADDER = [2000,10000,25000,50000,100000,250000,500000,1000000,2500000,5000000,10000000,25000000,50000000,100000000,250000000,500000000,1000000000];
-const CREDIT_UNLOCK_STREAKS = [0,1,2,3,4,5,6,8,10,12,14,16,18,20,22,24,26];
+const CREDIT_LADDER = [10000,25000,50000,100000,250000,500000,1000000,2500000,5000000,10000000,25000000,50000000,100000000,250000000,500000000,1000000000];
+const CREDIT_UNLOCK_STREAKS = [0,0,1,2,3,4,5,6,8,10,12,14,16,18,20,24];
 
 function getCreditLimit(){
+  recalcCreditTier();
   const tier = Math.max(0, Math.min(CREDIT_LADDER.length-1, Number(game.creditTier||0)));
   return CREDIT_LADDER[tier];
 }
@@ -2401,34 +2401,35 @@ function recalcCreditTier(){
   for(let i=0;i<CREDIT_UNLOCK_STREAKS.length;i++){
     if((game.onTimePayments||0) >= CREDIT_UNLOCK_STREAKS[i]) tier = i;
   }
-  if((game.creditScore||300) < 400) tier = Math.min(tier, 1);
-  if((game.creditScore||300) < 500) tier = Math.min(tier, 4);
-  if((game.creditScore||300) < 600) tier = Math.min(tier, 8);
-  if((game.creditScore||300) < 700) tier = Math.min(tier, 12);
+  const score = Number(game.creditScore||300);
+  if(score < 450) tier = Math.min(tier, 2);
+  else if(score < 550) tier = Math.min(tier, 5);
+  else if(score < 650) tier = Math.min(tier, 8);
+  else if(score < 725) tier = Math.min(tier, 11);
   game.creditTier = Math.max(0, Math.min(CREDIT_LADDER.length-1, tier));
 }
 function startCreditCycle(){
-  game.loanCycleStartDay = game.dayCount;
-  game.loanDueDay = game.dayCount + 7;
+  game.loanCycleStartDay = Number(game.dayCount || 1);
+  game.loanDueDay = Number(game.dayCount || 1) + 100;
   game.loanPaidThisCycle = 0;
-  game.loanDueAmount = game.debt > 0 ? Math.max(250, game.debt * 0.04) : 0;
+  game.loanDueAmount = game.debt > 0 ? Math.max(100, game.debt * 0.01) : 0;
 }
 function processCreditDay(){
   if(game.debt <= 0){
     game.loanDueAmount = 0;
     game.loanPaidThisCycle = 0;
-    game.loanCycleStartDay = game.dayCount;
-    game.loanDueDay = game.dayCount + 7;
+    game.loanCycleStartDay = Number(game.dayCount || 1);
+    game.loanDueDay = Number(game.dayCount || 1) + 100;
     return;
   }
-  if(!game.loanDueDay || game.loanDueDay <= game.dayCount){
-    const paidEnough = (game.loanPaidThisCycle || 0) >= (game.loanDueAmount || 0);
+  if(!game.loanDueDay || game.loanDueDay <= Number(game.dayCount || 1)){
+    const paidEnough = Number(game.loanPaidThisCycle || 0) >= Number(game.loanDueAmount || 0);
     if(paidEnough){
-      game.creditScore = Math.min(850, (game.creditScore || 300) + 22);
+      game.creditScore = Math.min(850, (game.creditScore || 300) + 16);
       game.onTimePayments = (game.onTimePayments || 0) + 1;
       toast('On-time loan payment improved your credit', 'success');
     }else{
-      game.creditScore = Math.max(300, (game.creditScore || 300) - 36);
+      game.creditScore = Math.max(300, (game.creditScore || 300) - 18);
       game.missedPayments = (game.missedPayments || 0) + 1;
       game.onTimePayments = Math.max(0, (game.onTimePayments || 0) - 1);
       toast('Missed payment hurt your credit', 'warning');
@@ -2451,8 +2452,22 @@ function daysInMonth(month, year){
 function monthName(m){
   return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][Math.max(0,Math.min(11,(m||1)-1))];
 }
+function getCalendarFromDayCount(){
+  let dayCount = Math.max(1, Number(game.dayCount || 1));
+  let year = 2000, month = 1;
+  while(true){
+    const dim = daysInMonth(month, year);
+    if(dayCount <= dim) break;
+    dayCount -= dim;
+    month++;
+    if(month > 12){ month = 1; year++; }
+  }
+  return { day: dayCount, month, year };
+}
 function formatGameDate(){
-  return `${monthName(game.calendarMonth)} ${game.calendarDay}, ${game.calendarYear}`;
+  const c = getCalendarFromDayCount();
+  return `${monthName(c.month)} ${c.day}, ${c.year}`;
+} ${game.calendarDay}, ${game.calendarYear}`;
 }
 function advanceGameDay(){
   game.calendarDay++;
@@ -2512,8 +2527,8 @@ function takeLoan(amount){
   if(amount > available) return toast(`Loan denied. Available credit: ${fmt(available)}`, 'warning');
   game.cash += amount;
   game.debt += amount;
-  if(game.loanDueAmount <= 0) startCreditCycle();
-  game.loanDueAmount = Math.max(250, game.debt * 0.04);
+  if(!game.loanDueDay || game.loanDueDay <= Number(game.dayCount || 1)) startCreditCycle();
+  game.loanDueAmount = Math.max(Number(game.loanDueAmount || 0), Math.max(100, game.debt * 0.01));
   toast(`Loan taken +${fmt(amount)}`, 'notification');
   refresh();
 }
@@ -3229,6 +3244,7 @@ let mmSocial = { user:null, profile:null, selectedAvatar:'💹', selectedTheme:'
 
 
 
+
 async function purchaseCosmetic(type, key){
   const def = type==='avatar' ? getAvatarDef(key) : getBannerDef(key);
   const ownedList = type==='avatar' ? mmSocial.ownedAvatarKeys : mmSocial.ownedBannerKeys;
@@ -3249,18 +3265,10 @@ async function purchaseCosmetic(type, key){
 
   const currentCash = Number(liveGame.cash ?? 0);
   const cost = Number(def?.cost ?? 0);
-
-  if(!Number.isFinite(cost) || cost <= 0){
-    socialToast('Invalid item cost.', false);
-    return;
-  }
-  if(!Number.isFinite(currentCash) || currentCash < cost){
-    socialToast('Not enough in-game cash.', false);
-    return;
-  }
+  if(!Number.isFinite(cost) || cost <= 0){ socialToast('Invalid item cost.', false); return; }
+  if(currentCash < cost){ socialToast('Not enough in-game cash.', false); return; }
 
   liveGame.cash = currentCash - cost;
-
   if(type==='avatar'){
     liveGame.ownedProfileAvatars = Array.isArray(liveGame.ownedProfileAvatars) ? liveGame.ownedProfileAvatars : ['default_avatar'];
     if(!liveGame.ownedProfileAvatars.includes(key)) liveGame.ownedProfileAvatars.push(key);
@@ -3298,10 +3306,7 @@ async function purchaseCosmetic(type, key){
     console.warn('cosmetic persistence warning:', err?.message || err);
   }
 
-  if(typeof saveSocialProfile === 'function'){
-    try { await saveSocialProfile(); } catch(e) {}
-  }
-
+  if(typeof saveSocialProfile === 'function'){ try { await saveSocialProfile(); } catch(e) {} }
   socialToast(def.name + ' unlocked.');
 }
 
@@ -3462,7 +3467,7 @@ async function loadLeaderboardSocial(){
     qs('#editProfileBtn')?.addEventListener('click', ()=>openModal('#profileModalOverlay'));
     qs('#closeProfileModalBtn')?.addEventListener('click', ()=>closeModal('#profileModalOverlay'));
     qs('#saveProfileGameBtn')?.addEventListener('click', saveSocialProfile);
-    qs('#leaderboardBtn')?.addEventListener('click', ()=>openModal('#leaderboardModalOverlay'));
+    qs('#leaderboardBtn')?.addEventListener('click', async ()=>{ try{ await loadLeaderboardSocial(); }catch(e){} openModal('#leaderboardModalOverlay'); });
     qs('#closeLeaderboardModalBtn')?.addEventListener('click', ()=>closeModal('#leaderboardModalOverlay'));
     qs('#shareProfileBtn')?.addEventListener('click', shareProfile);
     qs('#shareEmpireBtn')?.addEventListener('click', shareProfile);
@@ -3487,7 +3492,7 @@ async function loadLeaderboardSocial(){
     await loadLeaderboardSocial();
     await syncStatsToCloud();
     setInterval(syncStatsToCloud, 15000);
-    setInterval(loadLeaderboardSocial, 15000);
+    setInterval(loadLeaderboardSocial, 8000);
     setInterval(()=>{ if (typeof renderCosmeticStore === 'function') renderCosmeticStore(); }, 5000);
   }
   document.addEventListener('DOMContentLoaded', initSocialLayer);
