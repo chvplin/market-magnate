@@ -182,12 +182,6 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
         </div>
       </section>
     </section>
-  
-      <section class="leaderPeek sectionCard" id="publicProfilePanel" style="display:none">
-        <h3>Player Profile</h3>
-        <div id="publicProfileBody"><div class="muted">Loading profile...</div></div>
-      </section>
-
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -199,17 +193,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 
 
   <!-- hidden full leaderboard/profile containers for social.js -->
-  <div style="display:none">
-    <button id="syncBtn"></button><button id="loadBtn"></button>
-    <form id="profileForm"></form>
-    <input id="profileDisplayName" />
-    <textarea id="profileBio"></textarea>
-    <input id="profileFavoriteStock" />
-    <select id="profileTheme"></select>
-    <div id="profileMessage"></div>
-    <table><tbody id="leaderboardBody"><tr><td colspan="5">Loading…</td></tr></tbody></table>
-    <div id="publicProfileBody"></div>
-  </div>
+  <div style="display:none"><button id="syncBtn"></button><button id="loadBtn"></button><table><tbody id="leaderboardBody"><tr><td colspan="5">Loading…</td></tr></tbody></table></div>
 
 
 

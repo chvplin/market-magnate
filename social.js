@@ -559,34 +559,70 @@ async function loadLeaderboard() {
   }
 
   async function loadPublicProfileByUsername(username) {
-    const { data, error } = await window.mmSupabase.from("leaderboard_public").select("*").eq("username", username).single();
-    if (error || !data) {
-      if (el.publicProfileBody()) el.publicProfileBody().innerHTML = "<p>Profile not found.</p>";
-      return;
-    }
-    if (el.publicProfileBody()) {
-      el.publicProfileBody().innerHTML = `
+    const body = el.publicProfileBody?.() || document.getElementById("publicProfileBody");
+    if (!body || !username) return;
+
+    body.innerHTML = '<div class="muted">Loading profile...</div>';
+
+    try {
+      const profRes = await window.mmSupabase
+        .from("profiles")
+        .select("id,username,display_name,bio,favorite_stock,profile_theme,avatar_url,banner_url")
+        .eq("username", username)
+        .maybeSingle();
+
+      const profile = profRes?.data || null;
+      if (!profile) {
+        body.innerHTML = "<p>Profile not found.</p>";
+        return;
+      }
+
+      let stats = null;
+      try {
+        const statsRes = await window.mmSupabase
+          .from("player_stats")
+          .select("*")
+          .eq("user_id", profile.id)
+          .maybeSingle();
+        stats = statsRes?.data || null;
+      } catch (e) {}
+
+      const bannerMap = {
+        default_banner: 'linear-gradient(135deg,#1877f2,#42b72a)',
+        profile_banner_gold: 'linear-gradient(135deg,#f6d365,#fda085)',
+        profile_banner_neon: 'linear-gradient(135deg,#7b2ff7,#00c6ff)',
+        profile_banner_midnight: 'linear-gradient(135deg,#0f172a,#1e3a8a)'
+      };
+      const banner = bannerMap[profile.banner_url] || 'linear-gradient(135deg,#1877f2,#42b72a)';
+      const avatar = profile.avatar_url || "💹";
+
+      body.innerHTML = `
         <div class="profileCard">
-          <div class="socialBanner theme-${data.profile_theme || "default"}" style="min-height:120px"></div>
-          <div style="padding:12px 0 0">
-            <h3 style="margin:0">${data.display_name || data.username}</h3>
-            <p style="margin:6px 0 10px">@${data.username}</p>
-            <p style="margin:0 0 12px">${data.bio || ""}</p>
-            <div class="statGrid">
-              <div class="statBox"><span>Net Worth</span><strong>${fmtMoney(data.net_worth)}</strong></div>
-              <div class="statBox"><span>Prestige</span><strong>${data.prestige || 0}</strong></div>
-              <div class="statBox"><span>Empire</span><strong>${data.empire_tier || "-"}</strong></div>
-              <div class="statBox"><span>Favorite Stock</span><strong>${data.favorite_stock || "-"}</strong></div>
+          <div style="min-height:120px;border-radius:14px;border:1px solid #d7dee7;background:${banner};margin-bottom:12px"></div>
+          <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">
+            <div style="width:58px;height:58px;border-radius:16px;border:2px solid #fff;background:#f3f4f6;display:grid;place-items:center;font-size:1.7rem;box-shadow:0 10px 24px rgba(0,0,0,.08)">${avatar}</div>
+            <div>
+              <h3 style="margin:0">${profile.display_name || profile.username}</h3>
+              <p style="margin:6px 0 0">@${profile.username}</p>
             </div>
           </div>
+          <p style="margin:0 0 12px">${profile.bio || ""}</p>
+          <div class="statGrid">
+            <div class="statBox"><span>Net Worth</span><strong>${fmtMoney(stats?.net_worth || 0)}</strong></div>
+            <div class="statBox"><span>Prestige</span><strong>${stats?.prestige || 0}</strong></div>
+            <div class="statBox"><span>Empire</span><strong>${stats?.empire_tier || "-"}</strong></div>
+            <div class="statBox"><span>Favorite Stock</span><strong>${profile.favorite_stock || "-"}</strong></div>
+          </div>
         </div>`;
+    } catch (e) {
+      body.innerHTML = "<p>Failed to load profile.</p>";
     }
   }
 
   async function maybeLoadProfileFromURL() {
     const params = new URLSearchParams(location.search);
     const username = params.get("u");
-    const panel = document.getElementById("publicProfilePanel");
+    const panel = document.getElementById("publicProfileCard") || document.getElementById("publicProfilePanel");
     if (username) {
       if (panel) panel.style.display = "";
       await loadPublicProfileByUsername(username);

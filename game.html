@@ -3411,6 +3411,7 @@ async function purchaseCosmetic(type, key){
     applySocialProfileToUI(mmSocial.profile || {});
     renderAvatarGrid(); renderBannerGrid(); renderCosmeticStore();
     setupLivePlayerDelegation();
+    setupLivePlayerDelegation();
     setupCosmeticDelegation();
     setupLivePlayerDelegation();
     if(typeof save === 'function') save(true);
@@ -3732,7 +3733,6 @@ async function fetchPublicProfileByUsernameGame(username){
       .select('id,username,display_name,bio,favorite_stock,profile_theme,avatar_url,banner_url')
       .eq('username', username)
       .maybeSingle();
-
     const profile = profRes?.data || null;
     if(!profile) return null;
 
@@ -3745,7 +3745,6 @@ async function fetchPublicProfileByUsernameGame(username){
         .maybeSingle();
       stats = statsRes?.data || null;
     }catch(e){}
-
     return { profile, stats };
   }catch(e){
     console.warn('fetchPublicProfileByUsernameGame failed:', e?.message || e);
@@ -3761,9 +3760,7 @@ function renderPlayerProfileCardGame(payload){
   }
   const p = payload.profile;
   const s = payload.stats || {};
-  const banner = (typeof getBannerDef === 'function')
-    ? getBannerDef(p.banner_url || 'default_banner')
-    : { gradient:'linear-gradient(135deg,#1877f2,#42b72a)' };
+  const banner = (typeof getBannerDef === 'function') ? getBannerDef(p.banner_url || 'default_banner') : {gradient:'linear-gradient(135deg,#1877f2,#42b72a)'};
   const avatar = p.avatar_url || '💹';
   body.innerHTML = `
     <div class="socialBanner" style="background:${banner.gradient};height:120px;border-radius:14px;border:1px solid var(--line);margin-bottom:12px;"></div>
@@ -3794,24 +3791,16 @@ async function openPlayerProfileGame(username){
   renderPlayerProfileCardGame(payload);
 }
 function setupLivePlayerDelegation(){
-  const wrap = qs('#onlinePlayersGame');
-  if(!wrap || wrap.dataset.bound === '1') return;
-  wrap.dataset.bound = '1';
-  wrap.addEventListener('click', (e)=>{
+  if(document.body?.dataset.liveProfileBound === '1') return;
+  document.body.dataset.liveProfileBound = '1';
+  document.body.addEventListener('click', (e)=>{
     const row = e.target.closest('.livePlayerRow');
     if(!row) return;
+    const username = row.dataset.username || '';
+    if(!username) return;
     e.preventDefault();
     e.stopPropagation();
-    const username = row.dataset.username || '';
-    if(username){
-      openPlayerProfileGame(username);
-      return;
-    }
-    const href = row.getAttribute('href') || '';
-    const m = href.match(/[?&]u=([^&]+)/);
-    if(m){
-      openPlayerProfileGame(decodeURIComponent(m[1]));
-    }
+    openPlayerProfileGame(username);
   });
 }
 
@@ -3822,6 +3811,7 @@ function bindSocialUI(){
     qs('#saveProfileGameBtn')?.addEventListener('click', saveSocialProfile);
     qs('#leaderboardBtn')?.addEventListener('click', async ()=>{ try{ loadLeaderboardSocial(); }catch(e){} openModal('#leaderboardModalOverlay'); });
     qs('#closeLeaderboardModalBtn')?.addEventListener('click', ()=>closeModal('#leaderboardModalOverlay'));
+    qs('#closePlayerProfileBtn')?.addEventListener('click', ()=>{ if(typeof closeModal==='function') closeModal('#playerProfileOverlay'); else qs('#playerProfileOverlay')?.classList.remove('show'); });
     qs('#shareProfileBtn')?.addEventListener('click', shareProfile);
     qs('#shareEmpireBtn')?.addEventListener('click', shareProfile);
     qs('#openHubBtn')?.addEventListener('click', ()=>location.href='./index.html');
