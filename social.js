@@ -520,14 +520,14 @@ function renderOwnedAccountCosmetics(owned){
       const user = await getUser().catch(() => null);
       if (!user) return;
       await syncToCloud().catch(() => {});
-    }, 20000);
+    }, 3000);
 
     // Keep the leaderboard feeling live on the hub page.
     leaderboardRefreshTimer = setInterval(async () => {
       try {
         await loadLeaderboard();
       } catch (e) {}
-    }, 10000);
+    }, 3000);
 
     document.addEventListener('visibilitychange', async () => {
       if (!document.hidden) {

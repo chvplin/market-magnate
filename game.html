@@ -2094,7 +2094,7 @@ function closeEventModal(result){
   refresh();
 }
 
-function marketTick(){
+async function marketTick(){
   game.dayCount = Number(game.dayCount || 0) + 1;
   processCreditDay();
   let moodScore=0;
@@ -3207,6 +3207,8 @@ setInterval(()=>{
       maybeTriggerGlobalEvent();
       game.nextGlobalAt = game.simNow + irand(90000,180000);
     }
+    try{ syncStatsToCloud(); }catch(e){}
+    try{ loadLeaderboardSocial(); }catch(e){}
   }
 
   refresh();
@@ -3671,7 +3673,7 @@ function bindSocialUI(){
     qs('#editProfileBtn')?.addEventListener('click', ()=>openModal('#profileModalOverlay'));
     qs('#closeProfileModalBtn')?.addEventListener('click', ()=>closeModal('#profileModalOverlay'));
     qs('#saveProfileGameBtn')?.addEventListener('click', saveSocialProfile);
-    qs('#leaderboardBtn')?.addEventListener('click', async ()=>{ try{ await loadLeaderboardSocial(); }catch(e){} openModal('#leaderboardModalOverlay'); });
+    qs('#leaderboardBtn')?.addEventListener('click', async ()=>{ try{ loadLeaderboardSocial(); }catch(e){} openModal('#leaderboardModalOverlay'); });
     qs('#closeLeaderboardModalBtn')?.addEventListener('click', ()=>closeModal('#leaderboardModalOverlay'));
     qs('#shareProfileBtn')?.addEventListener('click', shareProfile);
     qs('#shareEmpireBtn')?.addEventListener('click', shareProfile);
@@ -3704,8 +3706,8 @@ function bindSocialUI(){
       });
     }
 
-    setInterval(syncStatsToCloud, 15000);
-    setInterval(loadLeaderboardSocial, 5000);
+    setInterval(syncStatsToCloud, 2000);
+    setInterval(loadLeaderboardSocial, 2000);
     setInterval(()=>{ if (typeof renderCosmeticStore === 'function') renderCosmeticStore(); }, 5000);
   }
   document.addEventListener('DOMContentLoaded', initSocialLayer);
