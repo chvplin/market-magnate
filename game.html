@@ -1243,19 +1243,6 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 #playerProfileBodyGame .socialBanner{
   height:120px;border-radius:14px;border:1px solid var(--line);margin-bottom:12px;
 }
-#playerProfileBodyGame .playerHeader{
-  display:flex;gap:12px;align-items:center;margin-bottom:12px;
-}
-#playerProfileBodyGame .playerAvatar{
-  width:58px;height:58px;border-radius:16px;border:2px solid #fff;background:#f3f4f6;
-  display:grid;place-items:center;font-size:1.7rem;box-shadow:0 10px 24px rgba(0,0,0,.08);
-}
-#playerProfileBodyGame .playerStats{
-  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px;
-}
-#playerProfileBodyGame .playerStat{
-  background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:10px;
-}
 
 </style>
 
@@ -3411,10 +3398,7 @@ async function purchaseCosmetic(type, key){
     applySocialProfileToUI(mmSocial.profile || {});
     renderAvatarGrid(); renderBannerGrid(); renderCosmeticStore();
     setupLivePlayerDelegation();
-    setupLivePlayerDelegation();
-    setupLivePlayerDelegation();
     setupCosmeticDelegation();
-    setupLivePlayerDelegation();
     if(typeof save === 'function') save(true);
     if(typeof saveSocialProfile === 'function'){ try { await saveSocialProfile(); } catch(e) {} }
     socialToast((type==='avatar'?'Avatar':'Banner') + ' selected.');
@@ -3649,11 +3633,39 @@ async function saveSocialProfile(){
 }
 
 
+async function fetchLeaderboardRowsGame(){
+  if(!window.mmSupabase) return [];
+  // primary path
+  try{
+    const res = await window.mmSupabase.from('leaderboard_public').select('*').order('net_worth',{ascending:false}).limit(25);
+    if(!res.error && Array.isArray(res.data)) return res.data;
+  }catch(e){}
+  // fallback path for signed-in sessions
+  try{
+    const statsRes = await window.mmSupabase.from('player_stats').select('*').order('net_worth',{ascending:false}).limit(25);
+    if(statsRes.error || !Array.isArray(statsRes.data)) return [];
+    const statsRows = statsRes.data || [];
+    const profileRes = await window.mmSupabase.from('profiles').select('id,username,display_name');
+    const profiles = Array.isArray(profileRes.data) ? profileRes.data : [];
+    const byId = new Map(profiles.map(p => [p.id, p]));
+    return statsRows.map(r => {
+      const p = byId.get(r.user_id) || {};
+      return {
+        username: p.username || 'unknown',
+        display_name: p.display_name || p.username || 'Unknown',
+        net_worth: r.net_worth || 0,
+        prestige: r.prestige || 0,
+        empire_tier: r.empire_tier || '-',
+        updated_at: r.updated_at || null
+      };
+    });
+  }catch(e){
+    return [];
+  }
+}
 
 
-
-
-async function fetchLeaderboardRowsUnifiedGame(){
+async function fetchLeaderboardRowsUnified(){
   if(!window.mmSupabase) return [];
   try{
     const res = await window.mmSupabase
@@ -3676,6 +3688,7 @@ async function fetchLeaderboardRowsUnifiedGame(){
     const profileRes = await window.mmSupabase
       .from('profiles')
       .select('id,username,display_name');
+
     const profiles = Array.isArray(profileRes.data) ? profileRes.data : [];
     const byId = new Map(profiles.map(p => [p.id, p]));
 
@@ -3695,129 +3708,151 @@ async function fetchLeaderboardRowsUnifiedGame(){
   }
 }
 
-async function syncStatsToCloud(){
-  try{
-    if(!window.mmSupabase) return;
-    const user = await getUser();
-    if(!user) return;
-
-    const stats = getCurrentStats();
-    const nowIso = new Date().toISOString();
-
-    const statsRes = await window.mmSupabase
-      .from('player_stats')
-      .upsert(Object.assign({user_id:user.id, updated_at:nowIso}, stats));
-    if(statsRes?.error){
-      console.warn('player_stats sync failed:', statsRes.error.message || statsRes.error);
-    }
-
-    try{
-      await window.mmSupabase
-        .from('save_slots')
-        .upsert({ user_id:user.id, save_data:getCurrentSave(), updated_at:nowIso });
-    }catch(e){}
-
-  }catch(err){
-    console.warn('syncStatsToCloud failed:', err?.message || err);
-  }
-}
-
 async function loadLeaderboardSocial(){
-  const rows = await fetchLeaderboardRowsUnifiedGame();
+    const rows = await fetchLeaderboardRowsUnified();
 
-  const mini = qs('#leaderMini');
-  const modal = qs('#leaderboardModalBody');
-  const onlineWrap = qs('#onlinePlayersGame');
-  const onlineCount = qs('#onlineCountGame');
+    const mini = qs('#leaderMini');
+    const modal = qs('#leaderboardModalBody');
+    const onlineWrap = qs('#onlinePlayersGame');
+    const onlineCount = qs('#onlineCountGame');
 
-  if(!rows.length){
-    if(mini) mini.innerHTML = '<div class="layoutHint">No leaderboard data yet.</div>';
-    if(modal) modal.innerHTML = '<tr><td colspan="4">No leaderboard data yet.</td></tr>';
+    if(!rows.length){
+      if(mini) mini.innerHTML = '<div class="layoutHint">No leaderboard data yet.</div>';
+      if(modal) modal.innerHTML = '<tr><td colspan="4">No leaderboard data yet.</td></tr>';
 
-    const selfUsername = mmSocial?.profile?.username || '';
-    const selfDisplay = mmSocial?.profile?.display_name || selfUsername;
-    if(onlineWrap){
-      if(selfUsername){
-        onlineWrap.innerHTML = `
-          <a class="leaderMiniRow livePlayerRow" data-username="${selfUsername}" href="./index.html?u=${encodeURIComponent(selfUsername)}">
-            <div class="rankBubble">●</div>
-            <div><div style="font-weight:800">${selfDisplay} (You)</div><div class="layoutHint">@${selfUsername}</div></div>
-            <div style="text-align:right"><div style="font-weight:900">Online</div><div class="layoutHint">Waiting for cloud</div></div>
-          </a>`;
-        if(onlineCount) onlineCount.textContent = '(1)';
-      }else{
-        onlineWrap.innerHTML = '<div class="layoutHint">No players active right now.</div>';
-        if(onlineCount) onlineCount.textContent = '(0)';
+      const selfUsername = mmSocial?.profile?.username || '';
+      const selfDisplay = mmSocial?.profile?.display_name || selfUsername;
+      if(onlineWrap){
+        if(selfUsername){
+          onlineWrap.innerHTML = `
+            <a class="leaderMiniRow livePlayerRow" data-username="${selfUsername}" href="./index.html?u=${encodeURIComponent(selfUsername)}">
+              <div class="rankBubble">●</div>
+              <div><div style="font-weight:800">${selfDisplay} (You)</div><div class="layoutHint">@${selfUsername}</div></div>
+              <div style="text-align:right"><div style="font-weight:900">Online</div><div class="layoutHint">Waiting for cloud</div></div>
+            </a>`;
+          if(onlineCount) onlineCount.textContent = '(1)';
+        }else{
+          onlineWrap.innerHTML = '<div class="layoutHint">No players active right now.</div>';
+          if(onlineCount) onlineCount.textContent = '(0)';
+        }
       }
-    }
-    return;
-  }
-
-  mmSocial.leaderRows = rows;
-  if(typeof renderRivalFromLeaderboard === 'function'){
-    try{ renderRivalFromLeaderboard(rows); }catch(e){}
-  }
-
-  if(mini){
-    mini.innerHTML = rows.slice(0,5).map((row, idx) => `
-      <div class="leaderMiniRow">
-        <div class="rankBubble">${idx + 1}</div>
-        <div>
-          <div style="font-weight:800">${row.display_name || row.username || "Unknown"}</div>
-          <div class="layoutHint">@${row.username || 'unknown'}</div>
-        </div>
-        <div style="text-align:right">
-          <div style="font-weight:900">${formatMoney(row.net_worth)}</div>
-          <div class="layoutHint">${row.empire_tier || "-"}</div>
-        </div>
-      </div>`).join('') || '<div class="layoutHint">No players yet.</div>';
-  }
-
-  if(modal){
-    modal.innerHTML = rows.map((row, idx) => `
-      <tr>
-        <td>${idx + 1}</td>
-        <td>${row.display_name || row.username || "Unknown"}</td>
-        <td>${formatMoney(row.net_worth)}</td>
-        <td>${row.prestige || 0}</td>
-      </tr>`).join('') || '<tr><td colspan="4">No players yet.</td></tr>';
-  }
-
-  if(onlineWrap){
-    const now = Date.now();
-    let online = rows.filter(row => {
-      const t = row.updated_at ? new Date(row.updated_at).getTime() : 0;
-      return t && (now - t) <= 120000;
-    }).slice(0,12);
-
-    const selfUsername = mmSocial?.profile?.username || '';
-    const selfDisplay = mmSocial?.profile?.display_name || selfUsername;
-    if(selfUsername && !online.some(r => (r.username || '') === selfUsername)){
-      online.unshift({
-        username: selfUsername,
-        display_name: selfDisplay,
-        empire_tier: 'Online',
-        net_worth: (typeof netWorth === 'function') ? netWorth() : 0,
-        __self: true,
-        updated_at: new Date().toISOString()
-      });
+      return;
     }
 
-    online = online.slice(0, 12);
+    mmSocial.leaderRows = rows;
+    if(typeof renderRivalFromLeaderboard === 'function'){
+      try{ renderRivalFromLeaderboard(rows); }catch(e){}
+    }
 
-    onlineWrap.innerHTML = online.length
-      ? online.map(row => `
-          <a class="leaderMiniRow livePlayerRow" data-username="${row.username || ""}" href="./index.html?u=${encodeURIComponent(row.username || "")}">
-            <div class="rankBubble">●</div>
-            <div><div style="font-weight:800">${row.display_name || row.username || "Unknown"}${row.__self ? " (You)" : ""}</div><div class="layoutHint">@${row.username || 'unknown'}</div></div>
-            <div style="text-align:right"><div style="font-weight:900">${row.__self ? "Online" : formatMoney(row.net_worth)}</div><div class="layoutHint">${row.empire_tier || "-"}</div></div>
-          </a>
-        `).join('')
-      : '<div class="layoutHint">No players active right now.</div>';
+    if(mini){
+      mini.innerHTML = rows.slice(0,5).map((row, idx) => `
+        <div class="leaderMiniRow">
+          <div class="rankBubble">${idx + 1}</div>
+          <div>
+            <div style="font-weight:800">${row.display_name || row.username || "Unknown"}</div>
+            <div class="layoutHint">@${row.username || 'unknown'}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-weight:900">${formatMoney(row.net_worth)}</div>
+            <div class="layoutHint">${row.empire_tier || "-"}</div>
+          </div>
+        </div>`).join('') || '<div class="layoutHint">No players yet.</div>';
+    }
 
-    if(onlineCount) onlineCount.textContent = `(${online.length})`;
+    if(modal){
+      modal.innerHTML = rows.map((row, idx) => `
+        <tr>
+          <td>${idx + 1}</td>
+          <td>${row.display_name || row.username || "Unknown"}</td>
+          <td>${formatMoney(row.net_worth)}</td>
+          <td>${row.prestige || 0}</td>
+        </tr>`).join('') || '<tr><td colspan="4">No players yet.</td></tr>';
+    }
+
+    if(onlineWrap){
+      const now = Date.now();
+      let online = rows.filter(row => {
+        const t = row.updated_at ? new Date(row.updated_at).getTime() : 0;
+        return t && (now - t) <= 120000;
+      }).slice(0,12);
+
+      const selfUsername = mmSocial?.profile?.username || '';
+      const selfDisplay = mmSocial?.profile?.display_name || selfUsername;
+
+      if(selfUsername && !online.some(r => (r.username || '') === selfUsername)){
+        online.unshift({
+          username: selfUsername,
+          display_name: selfDisplay,
+          empire_tier: 'Online',
+          net_worth: (typeof netWorth === 'function') ? netWorth() : 0,
+          __self: true,
+          updated_at: new Date().toISOString()
+        });
+      }
+
+      online = online.slice(0, 12);
+
+      onlineWrap.innerHTML = online.length
+        ? online.map(row => `
+            <a class="leaderMiniRow livePlayerRow" data-username="${row.username || ""}" href="./index.html?u=${encodeURIComponent(row.username || "")}">
+              <div class="rankBubble">●</div>
+              <div><div style="font-weight:800">${row.display_name || row.username || "Unknown"}${row.__self ? " (You)" : ""}</div><div class="layoutHint">@${row.username || 'unknown'}</div></div>
+              <div style="text-align:right"><div style="font-weight:900">${row.__self ? "Online" : formatMoney(row.net_worth)}</div><div class="layoutHint">${row.empire_tier || "-"}</div></div>
+            </a>
+          `).join('')
+        : '<div class="layoutHint">No players active right now.</div>';
+
+      if(onlineCount) onlineCount.textContent = `(${online.length})`;
+    }
   }
+  async function syncStatsToCloud(){
+    try{
+      if(!window.mmSupabase) return;
+      const user = await getUser();
+      if(!user) return;
+
+      const stats = getCurrentStats();
+      const nowIso = new Date().toISOString();
+
+      const statsRes = await window.mmSupabase
+        .from('player_stats')
+        .upsert(Object.assign({user_id:user.id, updated_at:nowIso}, stats));
+      if(statsRes?.error){
+        console.warn('player_stats sync failed:', statsRes.error.message || statsRes.error);
+      }
+
+      try{
+        await window.mmSupabase
+          .from('save_slots')
+          .upsert({ user_id:user.id, save_data:getCurrentSave(), updated_at:nowIso });
+      }catch(e){}
+
+      try{
+        await loadLeaderboardSocial();
+      }catch(e){}
+    }catch(err){
+      console.warn('syncStatsToCloud failed:', err?.message || err);
+    }
+  }
+  async function shareProfile(){
+    if(!mmSocial.profile?.username){ socialToast('Create/sign in to a Social Hub account first.', false); return; }
+    const url = `${location.origin}${location.pathname.replace(/game\.html.*$/,'index.html')}?u=${encodeURIComponent(mmSocial.profile.username)}`;
+    try{ await navigator.clipboard.writeText(url); toast('Profile link copied','success'); }catch(e){ prompt('Copy this profile link:', url); }
+  }
+  function openModal(id){ const el=qs(id); if(el) el.classList.add('show'); }
+  function closeModal(id){ const el=qs(id); if(el) el.classList.remove('show'); }
+  
+function setupCosmeticDelegation(){
+  const grid = qs('#cosmeticStoreGrid');
+  if(!grid || grid.dataset.bound === '1') return;
+  grid.dataset.bound = '1';
+  grid.addEventListener('click', (e)=>{
+    const btn = e.target.closest('[data-cosmetic]');
+    if(!btn) return;
+    purchaseCosmetic(btn.dataset.type, btn.dataset.cosmetic);
+  });
 }
+
 
 async function fetchPublicProfileByUsernameGame(username){
   if(!window.mmSupabase || !username) return null;
