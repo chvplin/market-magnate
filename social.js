@@ -357,25 +357,81 @@ function renderOwnedAccountCosmetics(owned){
     window.MMGameAdapter.applyLoadedGame(data.save_data);
   }
 
-  async function loadLeaderboard() {
-    const { data, error } = await window.mmSupabase
-      .from("leaderboard_public")
-      .select("*")
-      .order("net_worth", { ascending: false })
-      .limit(100);
+  
+  async function fetchLeaderboardRowsIndex() {
+    // primary path
+    try {
+      const res = await window.mmSupabase
+        .from("leaderboard_public")
+        .select("*")
+        .order("net_worth", { ascending: false })
+        .limit(100);
+      if (!res.error && Array.isArray(res.data)) return res.data;
+    } catch (e) {}
 
-    if (error) {
+    // fallback path
+    try {
+      const statsRes = await window.mmSupabase
+        .from("player_stats")
+        .select("*")
+        .order("net_worth", { ascending: false })
+        .limit(100);
+      if (statsRes.error || !Array.isArray(statsRes.data)) return [];
+      const statsRows = statsRes.data || [];
+      const profileRes = await window.mmSupabase.from("profiles").select("id,username,display_name");
+      const profiles = Array.isArray(profileRes.data) ? profileRes.data : [];
+      const byId = new Map(profiles.map(p => [p.id, p]));
+      return statsRows.map(r => {
+        const p = byId.get(r.user_id) || {};
+        return {
+          username: p.username || "unknown",
+          display_name: p.display_name || p.username || "Unknown",
+          net_worth: r.net_worth || 0,
+          prestige: r.prestige || 0,
+          empire_tier: r.empire_tier || "-",
+          updated_at: r.updated_at || null
+        };
+      });
+    } catch (e) {
+      return [];
+    }
+  }
+
+async function loadLeaderboard() {
+    const data = await fetchLeaderboardRowsIndex();
+
+    if (!data.length) {
       leaderboardTargets().forEach(t => {
         const cols = t.id === 'signinLeaderboardBody' ? 3 : 5;
-        t.innerHTML = `<tr><td colspan="${cols}">Failed to load leaderboard.</td></tr>`;
+        t.innerHTML = `<tr><td colspan="${cols}">No leaderboard data yet.</td></tr>`;
       });
+
+      const onlineWrap = $("#onlinePlayersList");
+      const onlineCount = $("#onlineCount");
+      if (onlineWrap) {
+        try {
+          const selfProfile = JSON.parse(localStorage.getItem("MM_PROFILE_HINT") || "null");
+          if (selfProfile?.username) {
+            onlineWrap.innerHTML = `
+              <a class="miniLeadRow livePlayerRow" href="./index.html?u=${encodeURIComponent(selfProfile.username)}">
+                <div class="miniRank">●</div>
+                <div><div style="font-weight:900">${selfProfile.display_name || selfProfile.username} (You)</div><div class="muted" style="font-size:.8rem">Online</div></div>
+                <div style="font-weight:900">Online</div>
+              </a>`;
+            if (onlineCount) onlineCount.textContent = "(1)";
+            return;
+          }
+        } catch (e) {}
+        onlineWrap.innerHTML = '<div class="muted">No players active right now.</div>';
+        if (onlineCount) onlineCount.textContent = "(0)";
+      }
       return;
     }
 
     const fullRows = (data || []).map((row, idx) => `
       <tr>
         <td>${idx + 1}</td>
-        <td>${row.username || "Unknown"}</td>
+        <td>${row.display_name || row.username || "Unknown"}</td>
         <td>${fmtMoney(row.net_worth)}</td>
         <td>${row.prestige || 0}</td>
         <td>${row.empire_tier || "-"}</td>
@@ -384,7 +440,7 @@ function renderOwnedAccountCosmetics(owned){
     const signRows = (data || []).slice(0, 12).map((row, idx) => `
       <tr>
         <td>${idx + 1}</td>
-        <td>${row.username || "Unknown"}</td>
+        <td>${row.display_name || row.username || "Unknown"}</td>
         <td>${fmtMoney(row.net_worth)}</td>
       </tr>`).join("");
 
@@ -544,14 +600,14 @@ function renderOwnedAccountCosmetics(owned){
       const user = await getUser().catch(() => null);
       if (!user) return;
       await syncToCloud().catch(() => {});
-    }, 2000);
+    }, 1500);
 
     // Keep the leaderboard feeling live on the hub page.
     leaderboardRefreshTimer = setInterval(async () => {
       try {
         await loadLeaderboard();
       } catch (e) {}
-    }, 2000);
+    }, 1500);
 
     document.addEventListener('visibilitychange', async () => {
       if (!document.hidden) {

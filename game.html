@@ -3625,32 +3625,68 @@ async function saveSocialProfile(){
   qs('#profileModalOverlay')?.classList.remove('show');
 }
 
+
+async function fetchLeaderboardRowsGame(){
+  if(!window.mmSupabase) return [];
+  // primary path
+  try{
+    const res = await window.mmSupabase.from('leaderboard_public').select('*').order('net_worth',{ascending:false}).limit(25);
+    if(!res.error && Array.isArray(res.data)) return res.data;
+  }catch(e){}
+  // fallback path for signed-in sessions
+  try{
+    const statsRes = await window.mmSupabase.from('player_stats').select('*').order('net_worth',{ascending:false}).limit(25);
+    if(statsRes.error || !Array.isArray(statsRes.data)) return [];
+    const statsRows = statsRes.data || [];
+    const profileRes = await window.mmSupabase.from('profiles').select('id,username,display_name');
+    const profiles = Array.isArray(profileRes.data) ? profileRes.data : [];
+    const byId = new Map(profiles.map(p => [p.id, p]));
+    return statsRows.map(r => {
+      const p = byId.get(r.user_id) || {};
+      return {
+        username: p.username || 'unknown',
+        display_name: p.display_name || p.username || 'Unknown',
+        net_worth: r.net_worth || 0,
+        prestige: r.prestige || 0,
+        empire_tier: r.empire_tier || '-',
+        updated_at: r.updated_at || null
+      };
+    });
+  }catch(e){
+    return [];
+  }
+}
+
 async function loadLeaderboardSocial(){
-    if(!window.mmSupabase) return;
-    const {data,error} = await window.mmSupabase.from('leaderboard_public').select('*').order('net_worth',{ascending:false}).limit(25);
     const mini = qs('#leaderMini');
     const modal = qs('#leaderboardModalBody');
-    if(error){
-      if(mini) mini.innerHTML = '<div class="layoutHint">Failed to load leaderboard.</div>';
-      if(modal) modal.innerHTML = '<tr><td colspan="4">Failed to load leaderboard.</td></tr>';
-      const onlineWrap = qs('#onlinePlayersGame');
-      const onlineCount = qs('#onlineCountGame');
-      if(onlineWrap && mmSocial?.profile?.username){
-        onlineWrap.innerHTML = `<a class="leaderMiniRow livePlayerRow" href="./index.html?u=${encodeURIComponent(mmSocial.profile.username)}"><div class="rankBubble">●</div><div><div style="font-weight:800">${mmSocial.profile.display_name || mmSocial.profile.username}</div><div class="layoutHint">@${mmSocial.profile.username}</div></div><div style="text-align:right"><div style="font-weight:900">You</div><div class="layoutHint">Online</div></div></a>`;
+    const onlineWrap = qs('#onlinePlayersGame');
+    const onlineCount = qs('#onlineCountGame');
+
+    const rows = await fetchLeaderboardRowsGame();
+
+    if(!rows.length){
+      if(mini) mini.innerHTML = '<div class="layoutHint">No leaderboard data yet.</div>';
+      if(modal) modal.innerHTML = '<tr><td colspan="4">No leaderboard data yet.</td></tr>';
+
+      const selfUsername = mmSocial?.profile?.username || '';
+      const selfDisplay = mmSocial?.profile?.display_name || selfUsername;
+      if(onlineWrap && selfUsername){
+        onlineWrap.innerHTML = `<a class="leaderMiniRow livePlayerRow" href="./index.html?u=${encodeURIComponent(selfUsername)}"><div class="rankBubble">●</div><div><div style="font-weight:800">${selfDisplay} (You)</div><div class="layoutHint">@${selfUsername}</div></div><div style="text-align:right"><div style="font-weight:900">Online</div><div class="layoutHint">Waiting for cloud</div></div></a>`;
         if(onlineCount) onlineCount.textContent = '(1)';
+      }else if(onlineWrap){
+        onlineWrap.innerHTML = '<div class="layoutHint">No players active right now.</div>';
+        if(onlineCount) onlineCount.textContent = '(0)';
       }
       return;
     }
 
-    const rows = (data||[]);
     mmSocial.leaderRows = rows;
     renderRivalFromLeaderboard(rows);
 
     if(mini) mini.innerHTML = rows.slice(0,5).map((r,i)=>`<div class="leaderMiniRow"><div class="rankBubble">${i+1}</div><div><div style="font-weight:800">${r.display_name || r.username}</div><div class="layoutHint">@${r.username}</div></div><div style="text-align:right"><div style="font-weight:900">${formatMoney(r.net_worth)}</div><div class="layoutHint">${r.empire_tier || '-'}</div></div></div>`).join('') || '<div class="layoutHint">No players yet.</div>';
     if(modal) modal.innerHTML = rows.map((r,i)=>`<tr><td>${i+1}</td><td>${r.display_name || r.username}</td><td>${formatMoney(r.net_worth)}</td><td>${r.prestige || 0}</td></tr>`).join('') || '<tr><td colspan="4">No players yet.</td></tr>';
 
-    const onlineWrap = qs('#onlinePlayersGame');
-    const onlineCount = qs('#onlineCountGame');
     if(onlineWrap){
       const now = Date.now();
       let online = rows.filter(r=>{
@@ -3669,7 +3705,8 @@ async function loadLeaderboardSocial(){
           display_name: selfDisplay,
           net_worth: selfNetWorth,
           empire_tier: selfTier,
-          __self: true
+          __self: true,
+          updated_at: new Date().toISOString()
         });
       }
 
@@ -3684,15 +3721,26 @@ async function loadLeaderboardSocial(){
       if(!window.mmSupabase) return;
       const user = await getUser();
       if(!user) return;
+
       const stats = getCurrentStats();
-      const { error } = await window.mmSupabase
+      const nowIso = new Date().toISOString();
+
+      const statsRes = await window.mmSupabase
         .from('player_stats')
-        .upsert(Object.assign({user_id:user.id, updated_at:new Date().toISOString()}, stats));
-      if(error){
-        console.warn('player_stats sync failed:', error.message || error);
-        return;
+        .upsert(Object.assign({user_id:user.id, updated_at:nowIso}, stats));
+      if(statsRes?.error){
+        console.warn('player_stats sync failed:', statsRes.error.message || statsRes.error);
       }
-      await loadLeaderboardSocial();
+
+      try{
+        await window.mmSupabase
+          .from('save_slots')
+          .upsert({ user_id:user.id, save_data:getCurrentSave(), updated_at:nowIso });
+      }catch(e){}
+
+      try{
+        await loadLeaderboardSocial();
+      }catch(e){}
     }catch(err){
       console.warn('syncStatsToCloud failed:', err?.message || err);
     }
@@ -3753,8 +3801,8 @@ function bindSocialUI(){
       });
     }
 
-    setInterval(syncStatsToCloud, 2000);
-    setInterval(loadLeaderboardSocial, 2000);
+    setInterval(syncStatsToCloud, 1500);
+    setInterval(loadLeaderboardSocial, 1500);
     setInterval(()=>{ if (typeof renderCosmeticStore === 'function') renderCosmeticStore(); }, 5000);
   }
   document.addEventListener('DOMContentLoaded', initSocialLayer);
