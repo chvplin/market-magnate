@@ -3652,89 +3652,6 @@ async function saveSocialProfile(){
 
 
 
-function bindSocialUI(){
-    qs('#editProfileBtn')?.addEventListener('click', ()=>openModal('#profileModalOverlay'));
-    qs('#closeProfileModalBtn')?.addEventListener('click', ()=>closeModal('#profileModalOverlay'));
-    qs('#saveProfileGameBtn')?.addEventListener('click', saveSocialProfile);
-    qs('#leaderboardBtn')?.addEventListener('click', async ()=>{ try{ loadLeaderboardSocial(); }catch(e){} openModal('#leaderboardModalOverlay'); });
-    qs('#closeLeaderboardModalBtn')?.addEventListener('click', ()=>closeModal('#leaderboardModalOverlay'));
-    qs('#closePlayerProfileBtn')?.addEventListener('click', ()=>{ if(typeof closeModal==='function') closeModal('#playerProfileOverlay'); else qs('#playerProfileOverlay')?.classList.remove('show'); });
-    qs('#shareProfileBtn')?.addEventListener('click', shareProfile);
-    qs('#shareEmpireBtn')?.addEventListener('click', shareProfile);
-    qs('#openHubBtn')?.addEventListener('click', ()=>location.href='./index.html');
-    qsa('.themeOpt').forEach(opt=>opt.addEventListener('click', ()=>{ mmSocial.selectedTheme = opt.dataset.theme; renderThemeSelection(); applySocialProfileToUI(mmSocial.profile || {}); }));
-    qsa('#profileModalOverlay,#leaderboardModalOverlay').forEach(ov=>ov.addEventListener('click', (e)=>{ if(e.target===ov) ov.classList.remove('show'); }));
-  }
-  async function initSocialLayer(){
-    bindSocialUI();
-    renderAvatarGrid();
-    renderThemeSelection();
-    renderBannerGrid();
-    renderCosmeticStore();
-
-    await loadSocialProfile();
-    renderAvatarGrid();
-    renderBannerGrid();
-    renderCosmeticStore();
-
-    await loadLeaderboardSocial().catch(()=>{});
-    await syncStatsToCloud().catch(()=>{});
-
-    // Retry account hydration after initial page load in case auth session is still restoring.
-    setTimeout(async ()=>{ try{ await loadSocialProfile(); }catch(e){} }, 800);
-    setTimeout(async ()=>{ try{ await loadSocialProfile(); }catch(e){} }, 2200);
-
-    if(window.mmSupabase && window.mmSupabase.auth && window.mmSupabase.auth.onAuthStateChange){
-      window.mmSupabase.auth.onAuthStateChange(async ()=>{
-        try{ await loadSocialProfile(); }catch(e){}
-      });
-    }
-
-    setInterval(syncStatsToCloud, 1500);
-    setInterval(loadLeaderboardSocial, 1500);
-    setInterval(()=>{ if (typeof renderCosmeticStore === 'function') renderCosmeticStore(); }, 5000);
-  }
-  document.addEventListener('DOMContentLoaded', initSocialLayer);
-})();
-</script>
-
-
-
-
-
-
-
-
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  try{ syncNewsTicker(); }catch(e){}
-  const bar = document.getElementById('newsTickerBar');
-  const track = document.getElementById('newsTickerTrack');
-  if(bar && track){
-    bar.addEventListener('mouseenter', ()=>track.classList.add('paused'));
-    bar.addEventListener('mouseleave', ()=>track.classList.remove('paused'));
-  }
-});
-</script>
-
-<div class="modalOverlay" id="playerProfileOverlay">
-  <div class="modalCard" style="max-width:560px">
-    <div class="modalHead">
-      <div>
-        <div class="panelTitle">Player Profile</div>
-        <div class="panelSub">Public account details</div>
-      </div>
-      <button class="ghostBtn" id="closePlayerProfileBtn">Close</button>
-    </div>
-    <div id="playerProfileBodyGame" class="profileCard" style="margin-top:14px">
-      <div class="layoutHint">Loading profile...</div>
-    </div>
-  </div>
-</div>
-</body>
-</html>
 
 async function fetchLeaderboardRowsUnifiedGame(){
   if(!window.mmSupabase) return [];
@@ -3980,3 +3897,86 @@ function setupLivePlayerDelegation(){
   });
 }
 
+function bindSocialUI(){
+    qs('#editProfileBtn')?.addEventListener('click', ()=>openModal('#profileModalOverlay'));
+    qs('#closeProfileModalBtn')?.addEventListener('click', ()=>closeModal('#profileModalOverlay'));
+    qs('#saveProfileGameBtn')?.addEventListener('click', saveSocialProfile);
+    qs('#leaderboardBtn')?.addEventListener('click', async ()=>{ try{ loadLeaderboardSocial(); }catch(e){} openModal('#leaderboardModalOverlay'); });
+    qs('#closeLeaderboardModalBtn')?.addEventListener('click', ()=>closeModal('#leaderboardModalOverlay'));
+    qs('#closePlayerProfileBtn')?.addEventListener('click', ()=>{ if(typeof closeModal==='function') closeModal('#playerProfileOverlay'); else qs('#playerProfileOverlay')?.classList.remove('show'); });
+    qs('#shareProfileBtn')?.addEventListener('click', shareProfile);
+    qs('#shareEmpireBtn')?.addEventListener('click', shareProfile);
+    qs('#openHubBtn')?.addEventListener('click', ()=>location.href='./index.html');
+    qsa('.themeOpt').forEach(opt=>opt.addEventListener('click', ()=>{ mmSocial.selectedTheme = opt.dataset.theme; renderThemeSelection(); applySocialProfileToUI(mmSocial.profile || {}); }));
+    qsa('#profileModalOverlay,#leaderboardModalOverlay').forEach(ov=>ov.addEventListener('click', (e)=>{ if(e.target===ov) ov.classList.remove('show'); }));
+  }
+  async function initSocialLayer(){
+    bindSocialUI();
+    renderAvatarGrid();
+    renderThemeSelection();
+    renderBannerGrid();
+    renderCosmeticStore();
+
+    await loadSocialProfile();
+    renderAvatarGrid();
+    renderBannerGrid();
+    renderCosmeticStore();
+
+    await loadLeaderboardSocial().catch(()=>{});
+    await syncStatsToCloud().catch(()=>{});
+
+    // Retry account hydration after initial page load in case auth session is still restoring.
+    setTimeout(async ()=>{ try{ await loadSocialProfile(); }catch(e){} }, 800);
+    setTimeout(async ()=>{ try{ await loadSocialProfile(); }catch(e){} }, 2200);
+
+    if(window.mmSupabase && window.mmSupabase.auth && window.mmSupabase.auth.onAuthStateChange){
+      window.mmSupabase.auth.onAuthStateChange(async ()=>{
+        try{ await loadSocialProfile(); }catch(e){}
+      });
+    }
+
+    setInterval(syncStatsToCloud, 1500);
+    setInterval(loadLeaderboardSocial, 1500);
+    setInterval(()=>{ if (typeof renderCosmeticStore === 'function') renderCosmeticStore(); }, 5000);
+  }
+  document.addEventListener('DOMContentLoaded', initSocialLayer);
+})();
+</script>
+
+
+
+
+
+
+
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  try{ syncNewsTicker(); }catch(e){}
+  const bar = document.getElementById('newsTickerBar');
+  const track = document.getElementById('newsTickerTrack');
+  if(bar && track){
+    bar.addEventListener('mouseenter', ()=>track.classList.add('paused'));
+    bar.addEventListener('mouseleave', ()=>track.classList.remove('paused'));
+  }
+});
+</script>
+
+<div class="modalOverlay" id="playerProfileOverlay">
+  <div class="modalCard" style="max-width:560px">
+    <div class="modalHead">
+      <div>
+        <div class="panelTitle">Player Profile</div>
+        <div class="panelSub">Public account details</div>
+      </div>
+      <button class="ghostBtn" id="closePlayerProfileBtn">Close</button>
+    </div>
+    <div id="playerProfileBodyGame" class="profileCard" style="margin-top:14px">
+      <div class="layoutHint">Loading profile...</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
