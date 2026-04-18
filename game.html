@@ -2525,11 +2525,20 @@ function processCreditDay(){
     return;
   }
   if(!game.loanDueDay || game.loanDueDay <= Number(game.dayCount || 1)){
-    const paidEnough = Number(game.loanPaidThisCycle || 0) >= Number(game.loanDueAmount || 0) || game.debt <= 0;
+    const due = Number(game.loanDueAmount || 0);
+    const paid = Number(game.loanPaidThisCycle || 0);
+    const payRatio = due > 0 ? (paid / due) : 0;
+    const paidEnough = paid >= due || game.debt <= 0;
+
     if(paidEnough){
-      game.creditScore = Math.min(850, (game.creditScore || 300) + 30);
+      let boost = 30;
+      if(payRatio >= 1.0) boost = 70;
+      else if(payRatio >= 0.5) boost = 55;
+      else if(payRatio >= 0.25) boost = 45;
+      else if(payRatio >= 0.10) boost = 30;
+      game.creditScore = Math.min(850, (game.creditScore || 300) + boost);
       game.onTimePayments = (game.onTimePayments || 0) + 1;
-      toast('On-time payment boosted your credit', 'success');
+      toast(`On-time payment boosted your credit by ${boost}`, 'success');
     }else{
       game.creditScore = Math.max(300, (game.creditScore || 300) - 10);
       game.missedPayments = (game.missedPayments || 0) + 1;
