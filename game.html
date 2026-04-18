@@ -1164,6 +1164,80 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 }
 
 .shopTab.disabled{opacity:.45;filter:saturate(.7);cursor:not-allowed}
+
+.newsTickerBar{
+  position:sticky;
+  top:var(--topbar-h,72px);
+  z-index:45;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 14px;
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(90deg,#fff7ed,#ffffff 40%,#eff6ff);
+  overflow:hidden;
+}
+.newsTickerLabel{
+  flex:0 0 auto;
+  font-size:.78rem;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:#b91c1c;
+  background:#fee2e2;
+  border:1px solid #fecaca;
+  border-radius:10px;
+  padding:6px 10px;
+}
+.newsTickerViewport{
+  position:relative;
+  min-width:0;
+  flex:1 1 auto;
+  overflow:hidden;
+  white-space:nowrap;
+}
+.newsTickerTrack{
+  display:inline-flex;
+  align-items:center;
+  gap:48px;
+  will-change:transform;
+  animation:mmTickerScroll 26s linear infinite;
+}
+.newsTickerTrack.paused{
+  animation-play-state:paused;
+}
+.newsTickerItem{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  font-size:.92rem;
+  color:#1f2937;
+  font-weight:700;
+  white-space:nowrap;
+}
+.newsTickerItem::before{
+  content:"●";
+  color:#ef4444;
+  font-size:.78rem;
+}
+@keyframes mmTickerScroll{
+  0%{ transform:translateX(100%); }
+  100%{ transform:translateX(-100%); }
+}
+@media (max-width: 700px){
+  .newsTickerBar{
+    padding:7px 10px;
+    gap:8px;
+  }
+  .newsTickerLabel{
+    font-size:.7rem;
+    padding:5px 8px;
+  }
+  .newsTickerItem{
+    font-size:.82rem;
+  }
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1916,6 +1990,29 @@ function eventAffectsStock(s){
   if(e.sectors.includes('*')) return true;
   return e.sectors.includes(s.sector);
 }
+
+function syncNewsTicker(){
+  const track = document.getElementById('newsTickerTrack');
+  if(!track) return;
+  const items = (game.news || []).slice(0, 8);
+  const fallback = ['Markets opening...', 'Watch the tape and trade carefully.'];
+  const headlines = items.length
+    ? items.map(n => {
+        const txt = String(n?.title || n?.text || n?.headline || '').trim();
+        return txt || 'New market movement reported.';
+      })
+    : fallback;
+
+  // duplicate the list so the ticker feels continuous
+  const doubled = [...headlines, ...headlines];
+  track.innerHTML = doubled.map(h => `<span class="newsTickerItem">${h}</span>`).join('');
+  track.classList.remove('paused');
+
+  // adjust speed a bit based on amount of content
+  const duration = Math.max(18, Math.min(42, headlines.join(' ').length / 5));
+  track.style.animationDuration = `${duration}s`;
+}
+
 function makeNews(initial=false){
   const s = game.stocks[irand(0,game.stocks.length-1)];
   const positive = Math.random() > 0.47;
@@ -2680,6 +2777,7 @@ function renderItems(kind){
 }
 
 function renderNews(){
+  syncNewsTicker();
   const wrap=$('#newsFeed'); wrap.innerHTML='';
   if(!game.news.length){ wrap.innerHTML='<div class="panelSub">No news yet.</div>'; return; }
   game.news.forEach(n=>{
@@ -2971,7 +3069,7 @@ function updateHud(){
 }
 
 function refresh(){
-  updateHud(); renderMenu(); renderStocks(); renderShopTabs('shopping'); renderShopTabs('business'); renderItems('shopping'); renderItems('business'); renderNews(); renderNewsDock(); renderUser(); renderFinance(); renderEmpire(); renderRail(); renderMobileNav(); renderMobileTrade();
+  updateHud(); renderMenu(); renderStocks(); renderShopTabs('shopping'); renderShopTabs('business'); renderItems('shopping'); renderItems('business'); renderNews(); renderNewsDock(); syncNewsTicker(); renderUser(); renderFinance(); renderEmpire(); renderRail(); renderMobileNav(); renderMobileTrade();
   const input = $('#globalSearch');
   if(input && document.activeElement === input && input.value.trim()) renderSearchResults(input.value);
 }
@@ -3373,7 +3471,19 @@ function renderThemeSelection(){
     const favPill = qs('#statusPill'); if(favPill && favorite && favorite !== '—') favPill.textContent = favorite;
     renderAvatarGrid(); renderThemeSelection(); renderBannerGrid();
   }
-  async function getUser(){ if(!window.mmSupabase) return null; const {data} = await window.mmSupabase.auth.getUser(); return data?.user || null; }
+  async function getUser(){
+  if(!window.mmSupabase) return null;
+  try{
+    const userRes = await window.mmSupabase.auth.getUser();
+    const directUser = userRes?.data?.user || null;
+    if(directUser) return directUser;
+  }catch(e){}
+  try{
+    const sessRes = await window.mmSupabase.auth.getSession();
+    return sessRes?.data?.session?.user || null;
+  }catch(e){}
+  return null;
+} = await window.mmSupabase.auth.getUser(); return data?.user || null; }
   async function loadSocialProfile(){
     if(!window.mmSupabase) return;
     mmSocial.user = await getUser();
@@ -3480,16 +3590,25 @@ async function loadLeaderboardSocial(){
     renderThemeSelection();
     renderBannerGrid();
     renderCosmeticStore();
-    if (typeof renderBannerGrid === 'function') renderBannerGrid();
-    if (typeof renderCosmeticStore === 'function') renderCosmeticStore();
+
     await loadSocialProfile();
     renderAvatarGrid();
     renderBannerGrid();
     renderCosmeticStore();
-    if (typeof renderBannerGrid === 'function') renderBannerGrid();
-    if (typeof renderCosmeticStore === 'function') renderCosmeticStore();
-    await loadLeaderboardSocial();
-    await syncStatsToCloud();
+
+    await loadLeaderboardSocial().catch(()=>{});
+    await syncStatsToCloud().catch(()=>{});
+
+    // Retry account hydration after initial page load in case auth session is still restoring.
+    setTimeout(async ()=>{ try{ await loadSocialProfile(); }catch(e){} }, 800);
+    setTimeout(async ()=>{ try{ await loadSocialProfile(); }catch(e){} }, 2200);
+
+    if(window.mmSupabase && window.mmSupabase.auth && window.mmSupabase.auth.onAuthStateChange){
+      window.mmSupabase.auth.onAuthStateChange(async ()=>{
+        try{ await loadSocialProfile(); }catch(e){}
+      });
+    }
+
     setInterval(syncStatsToCloud, 15000);
     setInterval(loadLeaderboardSocial, 8000);
     setInterval(()=>{ if (typeof renderCosmeticStore === 'function') renderCosmeticStore(); }, 5000);
@@ -3507,5 +3626,16 @@ async function loadLeaderboardSocial(){
 
 
 
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  try{ syncNewsTicker(); }catch(e){}
+  const bar = document.getElementById('newsTickerBar');
+  const track = document.getElementById('newsTickerTrack');
+  if(bar && track){
+    bar.addEventListener('mouseenter', ()=>track.classList.add('paused'));
+    bar.addEventListener('mouseleave', ()=>track.classList.remove('paused'));
+  }
+});
+</script>
 </body>
 </html>
