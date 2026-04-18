@@ -294,6 +294,10 @@ function renderOwnedAccountCosmetics(owned){
       flash(el.authMessage(), error.message, false);
       return;
     }
+    try {
+      const user = await getUser();
+      if (user) localStorage.setItem("MM_LAST_LOGIN", JSON.stringify({ email: user.email || "", id: user.id || "" }));
+    } catch (e) {}
     flash(el.authMessage(), "Signed in. Redirecting to game...");
     await refreshAuthUI();
     setTimeout(() => { window.location.href = "./game.html"; }, 500);
@@ -305,7 +309,7 @@ function renderOwnedAccountCosmetics(owned){
       flash(el.authMessage(), error.message, false);
       return;
     }
-    try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+    try { localStorage.removeItem(SAVE_KEY); localStorage.removeItem("MM_LAST_LOGIN"); } catch (e) {}
     flash(el.authMessage(), "Signed out.");
     await refreshAuthUI();
     setTimeout(() => { window.location.href = "./index.html"; }, 250);
