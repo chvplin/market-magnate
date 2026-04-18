@@ -1238,6 +1238,25 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   }
 }
 
+
+.livePlayerRow{cursor:pointer}
+#playerProfileBodyGame .socialBanner{
+  height:120px;border-radius:14px;border:1px solid var(--line);margin-bottom:12px;
+}
+#playerProfileBodyGame .playerHeader{
+  display:flex;gap:12px;align-items:center;margin-bottom:12px;
+}
+#playerProfileBodyGame .playerAvatar{
+  width:58px;height:58px;border-radius:16px;border:2px solid #fff;background:#f3f4f6;
+  display:grid;place-items:center;font-size:1.7rem;box-shadow:0 10px 24px rgba(0,0,0,.08);
+}
+#playerProfileBodyGame .playerStats{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px;
+}
+#playerProfileBodyGame .playerStat{
+  background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:10px;
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -3392,6 +3411,7 @@ async function purchaseCosmetic(type, key){
     applySocialProfileToUI(mmSocial.profile || {});
     renderAvatarGrid(); renderBannerGrid(); renderCosmeticStore();
     setupCosmeticDelegation();
+    setupLivePlayerDelegation();
     if(typeof save === 'function') save(true);
     if(typeof saveSocialProfile === 'function'){ try { await saveSocialProfile(); } catch(e) {} }
     socialToast((type==='avatar'?'Avatar':'Banner') + ' selected.');
@@ -3701,6 +3721,72 @@ async function fetchLeaderboardRowsUnified(){
   }
 }
 
+
+async function fetchPublicProfileByUsernameGame(username){
+  if(!window.mmSupabase || !username) return null;
+  try{
+    const profRes = await window.mmSupabase
+      .from('profiles')
+      .select('id,username,display_name,bio,favorite_stock,profile_theme,avatar_url,banner_url')
+      .eq('username', username)
+      .maybeSingle();
+    const profile = profRes?.data || null;
+    if(!profile) return null;
+
+    let stats = null;
+    try{
+      const statsRes = await window.mmSupabase
+        .from('player_stats')
+        .select('*')
+        .eq('user_id', profile.id)
+        .maybeSingle();
+      stats = statsRes?.data || null;
+    }catch(e){}
+
+    return { profile, stats };
+  }catch(e){
+    return null;
+  }
+}
+function renderPlayerProfileCardGame(payload){
+  const body = qs('#playerProfileBodyGame');
+  if(!body) return;
+  if(!payload || !payload.profile){
+    body.innerHTML = '<div class="layoutHint">Profile not found.</div>';
+    return;
+  }
+  const p = payload.profile;
+  const s = payload.stats || {};
+  const banner = (typeof getBannerDef === 'function') ? getBannerDef(p.banner_url || 'default_banner') : {gradient:'linear-gradient(135deg,#1877f2,#42b72a)'};
+  const avatar = p.avatar_url || '💹';
+  body.innerHTML = `
+    <div class="socialBanner" style="background:${banner.gradient}"></div>
+    <div class="playerHeader">
+      <div class="playerAvatar">${avatar}</div>
+      <div>
+        <div style="font-weight:900;font-size:1.15rem">${p.display_name || p.username || 'Unknown'}</div>
+        <div class="layoutHint">@${p.username || 'unknown'}</div>
+      </div>
+    </div>
+    <div style="line-height:1.5">${p.bio || 'No bio yet.'}</div>
+    <div class="layoutHint" style="margin-top:8px">Favorite stock: <b>${p.favorite_stock || '—'}</b></div>
+    <div class="playerStats">
+      <div class="playerStat"><div class="layoutHint">Net Worth</div><div style="font-weight:900;margin-top:4px">${typeof formatMoney==='function' ? formatMoney(s.net_worth || 0) : '$0'}</div></div>
+      <div class="playerStat"><div class="layoutHint">Prestige</div><div style="font-weight:900;margin-top:4px">${s.prestige || 0}</div></div>
+      <div class="playerStat"><div class="layoutHint">Empire</div><div style="font-weight:900;margin-top:4px">${s.empire_tier || '-'}</div></div>
+    </div>
+  `;
+}
+async function openPlayerProfileGame(username){
+  const overlay = qs('#playerProfileOverlay');
+  if(!overlay) return;
+  openModal('#playerProfileOverlay');
+  const body = qs('#playerProfileBodyGame');
+  if(body) body.innerHTML = '<div class="layoutHint">Loading profile...</div>';
+  const payload = await fetchPublicProfileByUsernameGame(username);
+  renderPlayerProfileCardGame(payload);
+}
+
 async function loadLeaderboardSocial(){
     const rows = await fetchLeaderboardRowsUnified();
 
@@ -3846,6 +3932,23 @@ function setupCosmeticDelegation(){
   });
 }
 
+
+function setupLivePlayerDelegation(){
+  const wrap = qs('#onlinePlayersGame');
+  if(!wrap || wrap.dataset.bound === '1') return;
+  wrap.dataset.bound = '1';
+  wrap.addEventListener('click', (e)=>{
+    const row = e.target.closest('.livePlayerRow');
+    if(!row) return;
+    const href = row.getAttribute('href') || '';
+    const m = href.match(/[?&]u=([^&]+)/);
+    if(m){
+      e.preventDefault();
+      openPlayerProfileGame(decodeURIComponent(m[1]));
+    }
+  });
+}
+
 function bindSocialUI(){
     qs('#editProfileBtn')?.addEventListener('click', ()=>openModal('#profileModalOverlay'));
     qs('#closeProfileModalBtn')?.addEventListener('click', ()=>closeModal('#profileModalOverlay'));
@@ -3911,5 +4014,20 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 });
 </script>
+
+<div class="modalOverlay" id="playerProfileOverlay">
+  <div class="modalCard" style="max-width:560px">
+    <div class="modalHead">
+      <div>
+        <div class="panelTitle">Player Profile</div>
+        <div class="panelSub">Public account details</div>
+      </div>
+      <button class="ghostBtn" id="closePlayerProfileBtn">Close</button>
+    </div>
+    <div id="playerProfileBodyGame" class="profileCard" style="margin-top:14px">
+      <div class="layoutHint">Loading profile...</div>
+    </div>
+  </div>
+</div>
 </body>
 </html>

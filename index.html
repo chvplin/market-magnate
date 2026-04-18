@@ -136,7 +136,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
     </section>
 
     <section class="loginSide">
-      <section class="leaderPeek sectionCard">
+      <section class="leaderPeek sectionCard" style="margin-top:0">
         <h3>Account Details</h3>
         <form id="profileForm" class="loginStack">
           <input id="profileUsername" type="text" placeholder="Username" />
@@ -162,6 +162,8 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
           <div id="profileMessage" class="muted"></div>
         </form>
       </section>
+
+      <section class="leaderPeek sectionCard" id="publicProfileCard" style="display:none;margin-top:0"><h3>Player Profile</h3><div id="publicProfileBody"></div></section>
 
       <section class="leaderPeek sectionCard">
         <h3>Online Players <span id="onlineCount" class="muted" style="font-weight:700"></span></h3>
