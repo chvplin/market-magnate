@@ -1834,6 +1834,192 @@ img,svg image{
   display:none !important;
 }
 
+
+/* ===== v62 DIRECT GAME.HTML HARD OVERRIDE: KILL LIGHT UI ===== */
+*{
+  background-image:none !important;
+}
+
+/* Main surfaces */
+body,
+.mainWrap,
+.appShell,
+.layout,
+.page,
+.contentWrap{
+  background:#0b0f17 !important;
+  color:#eef3fb !important;
+}
+
+/* Main cards and rails */
+.heroCard,
+.profileCard,
+.railCard,
+.card,
+.panel,
+.shopCard,
+.socialCard,
+.metric,
+.statBox,
+.feedCard,
+.modalCard,
+.sectionCard,
+.leaderPeek,
+.stockRow,
+.watchlistRow,
+.newsCard,
+.loanCard,
+#stockDetailCard,
+#stockTradeCard,
+#portfolioCard,
+#overviewPanel,
+#assetsPanel,
+#newsPanel,
+#identityPanel,
+#statusPanel,
+#residencePanel,
+#badgePanel,
+#empirePanel,
+#leaderMini,
+#onlinePlayersGame,
+#watchlist,
+#playerProfileBodyGame,
+#publicProfileBody .profileCard,
+#leaderboardModalOverlay .modalCard,
+#profileModalOverlay .modalCard,
+#playerProfileOverlay .modalCard{
+  background:#111826 !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+  color:#eef3fb !important;
+}
+
+/* Nested bright boxes inside the cards */
+.heroCard > div,
+.profileCard > div,
+.railCard > div,
+.card > div,
+.panel > div,
+.shopCard > div,
+.socialCard > div,
+.metric,
+.statBox,
+.grid > div,
+.flex > div,
+#overviewPanel > div,
+#assetsPanel > div,
+#newsPanel > div,
+#identityPanel > div,
+#statusPanel > div,
+#residencePanel > div,
+#badgePanel > div,
+#empirePanel > div,
+#stockDetailCard > div,
+#stockTradeCard > div,
+#portfolioCard > div{
+  background:#151f2f !important;
+  color:#eef3fb !important;
+  border-color:rgba(255,255,255,.08) !important;
+}
+
+/* Top bar and ticker */
+.topbar{
+  background:rgba(10,14,22,.92) !important;
+  border-bottom:1px solid rgba(255,255,255,.08) !important;
+}
+.newsTickerBar{
+  background:linear-gradient(90deg, rgba(212,169,40,.14), rgba(10,14,22,.96) 24%, rgba(10,14,22,.98)) !important;
+}
+.topbar *,
+.newsTickerBar *{
+  color:#eef3fb !important;
+}
+
+/* Inputs */
+input, textarea, select{
+  background:#0b1119 !important;
+  color:#eef3fb !important;
+  border:1px solid #2a374a !important;
+}
+
+/* Buttons */
+button,
+.buttonish,
+.buySmall,
+.actionBtn,
+.primaryBtn,
+.shopTab.active,
+.menuBtn.active,
+.mobileNavBtn.active{
+  background:linear-gradient(180deg,#f2cf66,#d4a928) !important;
+  color:#17120a !important;
+  border:1px solid #8d6f18 !important;
+}
+button.secondary,
+.ghostBtn,
+.shopTab,
+.menuBtn:not(.active),
+.mobileNavBtn:not(.active){
+  background:#182233 !important;
+  color:#eef3fb !important;
+  border:1px solid #2a374a !important;
+}
+
+/* Text cleanup */
+.layoutHint,
+.muted,
+.k,
+.panelSub,
+.feedSub,
+.subtle,
+.menuText span{
+  color:#93a0b3 !important;
+}
+h1,h2,h3,h4,h5,h6,b,strong,.panelTitle,.railTitle,.heroTitle,.v{
+  color:#eef3fb !important;
+}
+
+/* Notifications / toasts */
+.toast,
+.notification,
+#toast,
+.notice,
+.alert{
+  background:#111826 !important;
+  color:#eef3fb !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+}
+
+/* Tables */
+table, th, td, tr{
+  background:transparent !important;
+  color:#eef3fb !important;
+  border-color:rgba(255,255,255,.08) !important;
+}
+
+/* Force override hardcoded inline light backgrounds */
+[style*="background:#fff"],
+[style*="background: #fff"],
+[style*="background:#ffffff"],
+[style*="background: #ffffff"],
+[style*="background-color:#fff"],
+[style*="background-color: #fff"],
+[style*="background-color:#ffffff"],
+[style*="background-color: #ffffff"],
+[style*="background:#f7f9fc"],
+[style*="background: #f7f9fc"],
+[style*="background:#f8fafc"],
+[style*="background: #f8fafc"],
+[style*="background:#eef2f6"],
+[style*="background: #eef2f6"],
+[style*="background-color:#f7f9fc"],
+[style*="background-color:#f8fafc"],
+[style*="background-color:#eef2f6"]{
+  background:#111826 !important;
+  background-color:#111826 !important;
+  color:#eef3fb !important;
+  border-color:rgba(255,255,255,.08) !important;
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
