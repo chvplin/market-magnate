@@ -374,18 +374,6 @@ body{
 }
 
 
-/* v61 force dark remaining surfaces */
-:root{
-  --bg:#090d14 !important;
-  --bg2:#0d131d !important;
-  --panel:#111826 !important;
-  --panel2:#151f2f !important;
-  --panel3:#0f1724 !important;
-  --line:#253144 !important;
-  --text:#eef3fb !important;
-  --muted:#93a0b3 !important;
-}
-
 /* page + top */
 html,body{
   background:
@@ -601,3 +589,222 @@ img,svg image{
 .decorativeGraph,.graphCard img,.graphImage,.placeholderGraph,.chartDecor,.ambientImage{
   display:none !important;
 }
+
+
+/* ===== v63 STYLES.CSS AUTHORITY: GAME DARK THEME ===== */
+:root{
+  --bg:#090d14 !important;
+  --bg2:#0d131d !important;
+  --panel:#111826 !important;
+  --panel2:#151f2f !important;
+  --panel3:#0f1724 !important;
+  --line:#253144 !important;
+  --text:#eef3fb !important;
+  --muted:#93a0b3 !important;
+  --gold:#d4a928 !important;
+  --gold2:#f2cf66 !important;
+}
+
+/* page */
+html,body{
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--themeTint, rgba(212,169,40,.06)) 65%, transparent), transparent 34%),
+    linear-gradient(180deg,#090d14 0%, #0d131d 45%, #101724 100%) !important;
+  color:var(--text) !important;
+}
+body,
+.mainWrap,
+.appShell,
+.layout,
+.page,
+.contentWrap{
+  background-color:#0b0f17 !important;
+  color:#eef3fb !important;
+}
+
+/* top */
+.topbar{
+  background:rgba(10,14,22,.92) !important;
+  border-bottom:1px solid rgba(255,255,255,.08) !important;
+  box-shadow:0 12px 28px rgba(0,0,0,.28) !important;
+}
+.newsTickerBar{
+  background:linear-gradient(90deg, rgba(212,169,40,.14), rgba(10,14,22,.96) 24%, rgba(10,14,22,.98)) !important;
+}
+.topbar *, .newsTickerBar *{
+  color:#eef3fb !important;
+}
+.searchWrap,
+.searchBar,
+.searchBar input,
+.searchInput{
+  background:transparent !important;
+}
+.searchBar,
+.searchInput,
+.topbar input{
+  background:#0b1119 !important;
+  border:1px solid #253144 !important;
+  color:#f2f7ff !important;
+}
+
+/* all surfaces */
+.heroCard,
+.profileCard,
+.railCard,
+.card,
+.panel,
+.shopCard,
+.socialCard,
+.metric,
+.statBox,
+.feedCard,
+.modalCard,
+.sectionCard,
+.leaderPeek,
+.stockRow,
+.watchlistRow,
+.newsCard,
+.loanCard,
+#stockDetailCard,
+#stockTradeCard,
+#portfolioCard,
+#overviewPanel,
+#assetsPanel,
+#newsPanel,
+#identityPanel,
+#statusPanel,
+#residencePanel,
+#badgePanel,
+#empirePanel,
+#leaderMini,
+#onlinePlayersGame,
+#watchlist,
+#playerProfileBodyGame,
+#publicProfileBody .profileCard,
+#leaderboardModalOverlay .modalCard,
+#profileModalOverlay .modalCard,
+#playerProfileOverlay .modalCard,
+#eventModal .modalCard,
+#lifeEventModal .modalCard{
+  background:#111826 !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+  color:#eef3fb !important;
+}
+
+/* inner boxes causing the washed look */
+.heroCard > div,
+.profileCard > div,
+.railCard > div,
+.card > div,
+.panel > div,
+.shopCard > div,
+.socialCard > div,
+.metric,
+.statBox,
+.grid > div,
+.flex > div,
+#overviewPanel > div,
+#assetsPanel > div,
+#newsPanel > div,
+#identityPanel > div,
+#statusPanel > div,
+#residencePanel > div,
+#badgePanel > div,
+#empirePanel > div,
+#stockDetailCard > div,
+#stockTradeCard > div,
+#portfolioCard > div{
+  background:#151f2f !important;
+  color:#eef3fb !important;
+  border-color:rgba(255,255,255,.08) !important;
+}
+
+/* buttons */
+button,
+.buttonish,
+.buySmall,
+.actionBtn,
+.primaryBtn,
+.shopTab.active,
+.menuBtn.active,
+.mobileNavBtn.active{
+  background:linear-gradient(180deg,#f2cf66,#d4a928) !important;
+  color:#17120a !important;
+  border:1px solid #8d6f18 !important;
+}
+button.secondary,
+.ghostBtn,
+.shopTab,
+.menuBtn:not(.active),
+.mobileNavBtn:not(.active){
+  background:#182233 !important;
+  color:#eef3fb !important;
+  border:1px solid #2a374a !important;
+}
+
+/* text */
+.layoutHint,
+.muted,
+.k,
+.panelSub,
+.feedSub,
+.subtle,
+.menuText span{
+  color:#93a0b3 !important;
+}
+h1,h2,h3,h4,h5,h6,b,strong,.panelTitle,.railTitle,.heroTitle,.v{
+  color:#eef3fb !important;
+}
+
+/* inputs */
+input, textarea, select{
+  background:#0b1119 !important;
+  color:#eef3fb !important;
+  border:1px solid #2a374a !important;
+}
+
+/* notifications */
+.toast,
+.notification,
+#toast,
+.notice,
+.alert,
+.newsToast,
+.marketToast{
+  background:#111826 !important;
+  color:#eef3fb !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+}
+
+/* tables */
+table, th, td, tr{
+  background:transparent !important;
+  color:#eef3fb !important;
+  border-color:rgba(255,255,255,.08) !important;
+}
+
+/* force common inline light backgrounds dark */
+[style*="background:#fff"],
+[style*="background: #fff"],
+[style*="background:#ffffff"],
+[style*="background: #ffffff"],
+[style*="background-color:#fff"],
+[style*="background-color: #fff"],
+[style*="background-color:#ffffff"],
+[style*="background-color: #ffffff"],
+[style*="background:#f7f9fc"],
+[style*="background: #f7f9fc"],
+[style*="background:#f8fafc"],
+[style*="background: #f8fafc"],
+[style*="background:#eef2f6"],
+[style*="background: #eef2f6"],
+[style*="background-color:#f7f9fc"],
+[style*="background-color:#f8fafc"],
+[style*="background-color:#eef2f6"]{
+  background:#111826 !important;
+  background-color:#111826 !important;
+  color:#eef3fb !important;
+  border-color:rgba(255,255,255,.08) !important;
+}
+
