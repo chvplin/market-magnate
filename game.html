@@ -4475,5 +4475,176 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 
 
+
+<div id="playerQuickViewOverlay" class="playerQuickViewOverlay" aria-hidden="true">
+  <div class="playerQuickViewCard" role="dialog" aria-modal="true" aria-label="Player profile">
+    <button id="closePlayerQuickView" class="playerQuickViewClose" aria-label="Close player profile">×</button>
+    <div id="playerQuickViewBody" class="playerQuickViewBody">
+      <div class="playerQuickViewLoading">Loading profile…</div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+(function(){
+  const q = (s) => document.querySelector(s);
+
+  function fmtMoneySafe(n){
+    const val = Number(n || 0);
+    if (typeof formatMoney === 'function') return formatMoney(val);
+    if (Math.abs(val) >= 1e12) return '$' + (val/1e12).toFixed(2).replace(/\.00$/,'') + 'T';
+    if (Math.abs(val) >= 1e9) return '$' + (val/1e9).toFixed(2).replace(/\.00$/,'') + 'B';
+    if (Math.abs(val) >= 1e6) return '$' + (val/1e6).toFixed(2).replace(/\.00$/,'') + 'M';
+    if (Math.abs(val) >= 1e3) return '$' + (val/1e3).toFixed(1).replace(/\.0$/,'') + 'K';
+    return '$' + Math.round(val).toLocaleString();
+  }
+
+  function openPlayerQuickView(){
+    const overlay = q('#playerQuickViewOverlay');
+    if (!overlay) return;
+    overlay.classList.add('is-open');
+    overlay.setAttribute('aria-hidden', 'false');
+  }
+
+  function closePlayerQuickView(){
+    const overlay = q('#playerQuickViewOverlay');
+    if (!overlay) return;
+    overlay.classList.remove('is-open');
+    overlay.setAttribute('aria-hidden', 'true');
+  }
+
+  function getBannerGradient(key){
+    const simple = {
+      default_banner:'linear-gradient(135deg,#1877f2,#42b72a)',
+      profile_banner_gold:'linear-gradient(135deg,#f6d365,#fda085)',
+      profile_banner_neon:'linear-gradient(135deg,#7b2ff7,#00c6ff)',
+      profile_banner_midnight:'linear-gradient(135deg,#0f172a,#1e3a8a)'
+    };
+    if (typeof getBannerDef === 'function') {
+      try{
+        const d = getBannerDef(key || 'default_banner');
+        if (d && d.gradient) return d.gradient;
+      }catch(e){}
+    }
+    return simple[key] || simple.default_banner;
+  }
+
+  async function fetchPlayerQuickView(username){
+    if (!window.mmSupabase || !username) return null;
+    try{
+      const profRes = await window.mmSupabase
+        .from('profiles')
+        .select('id,username,display_name,bio,favorite_stock,profile_theme,avatar_url,banner_url')
+        .eq('username', username)
+        .maybeSingle();
+      const profile = profRes?.data || null;
+      if (!profile) return null;
+
+      let stats = null;
+      try{
+        const statsRes = await window.mmSupabase
+          .from('player_stats')
+          .select('*')
+          .eq('user_id', profile.id)
+          .maybeSingle();
+        stats = statsRes?.data || null;
+      }catch(e){}
+      return { profile, stats };
+    }catch(e){
+      return null;
+    }
+  }
+
+  function renderPlayerQuickView(payload){
+    const body = q('#playerQuickViewBody');
+    if (!body) return;
+    if (!payload || !payload.profile){
+      body.innerHTML = '<div class="playerQuickViewEmpty">Profile not found.</div>';
+      return;
+    }
+    const p = payload.profile;
+    const s = payload.stats || {};
+    const banner = getBannerGradient(p.banner_url || 'default_banner');
+    const avatar = p.avatar_url || '💹';
+    body.innerHTML = `
+      <div class="playerQuickViewBanner" style="background:${banner}"></div>
+      <div class="playerQuickViewHeader">
+        <div class="playerQuickViewAvatar">${avatar}</div>
+        <div>
+          <div class="playerQuickViewName">${p.display_name || p.username || 'Unknown'}</div>
+          <div class="playerQuickViewHandle">@${p.username || 'unknown'}</div>
+        </div>
+      </div>
+      <div class="playerQuickViewBio">${p.bio || 'No bio yet.'}</div>
+      <div class="playerQuickViewBio"><span class="playerQuickViewSubtle">Favorite stock:</span> <b>${p.favorite_stock || '—'}</b></div>
+      <div class="playerQuickViewStats">
+        <div class="playerQuickViewStat">
+          <div class="playerQuickViewStatLabel">Net Worth</div>
+          <div class="playerQuickViewStatValue">${fmtMoneySafe(s.net_worth || 0)}</div>
+        </div>
+        <div class="playerQuickViewStat">
+          <div class="playerQuickViewStatLabel">Prestige</div>
+          <div class="playerQuickViewStatValue">${s.prestige || 0}</div>
+        </div>
+        <div class="playerQuickViewStat">
+          <div class="playerQuickViewStatLabel">Empire</div>
+          <div class="playerQuickViewStatValue">${s.empire_tier || '-'}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  async function handlePlayerQuickView(username){
+    const body = q('#playerQuickViewBody');
+    if (!body) return;
+    body.innerHTML = '<div class="playerQuickViewLoading">Loading profile…</div>';
+    openPlayerQuickView();
+    const payload = await fetchPlayerQuickView(username);
+    renderPlayerQuickView(payload);
+  }
+
+  function bindPlayerQuickView(){
+    if (document.body.dataset.playerQuickViewBound === '1') return;
+    document.body.dataset.playerQuickViewBound = '1';
+
+    document.body.addEventListener('click', (e) => {
+      const closeBtn = e.target.closest('#closePlayerQuickView');
+      if (closeBtn){
+        e.preventDefault();
+        closePlayerQuickView();
+        return;
+      }
+
+      const overlay = e.target.closest('#playerQuickViewOverlay');
+      if (overlay && e.target === overlay){
+        closePlayerQuickView();
+        return;
+      }
+
+      const row = e.target.closest('.livePlayerRow');
+      if (!row) return;
+
+      const username = row.dataset.username || '';
+      if (!username) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      handlePlayerQuickView(username);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closePlayerQuickView();
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindPlayerQuickView, { once:true });
+  } else {
+    bindPlayerQuickView();
+  }
+})();
+</script>
+
 </body>
 </html>

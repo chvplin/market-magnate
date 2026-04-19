@@ -356,3 +356,126 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   margin-top:6px !important;
 }
 
+
+
+/* v70 game online player quick profile popup */
+.playerQuickViewOverlay{
+  position:fixed;
+  inset:0;
+  z-index:99998;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  background:rgba(5,8,13,.62);
+  backdrop-filter:blur(6px);
+}
+.playerQuickViewOverlay.is-open{
+  display:flex;
+}
+.playerQuickViewCard{
+  position:relative;
+  width:min(100%, 620px);
+  max-height:min(88vh, 860px);
+  overflow:auto;
+  border-radius:24px;
+  background:linear-gradient(180deg, rgba(17,24,38,.98), rgba(11,17,26,.99));
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 28px 70px rgba(0,0,0,.42);
+  padding:22px;
+  color:#eef3fb;
+}
+.playerQuickViewClose{
+  position:absolute;
+  top:14px;
+  right:14px;
+  width:40px;
+  height:40px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.08);
+  background:#182233;
+  color:#eef3fb;
+  font-size:1.4rem;
+  line-height:1;
+  cursor:pointer;
+}
+.playerQuickViewClose:hover{
+  background:#223047;
+}
+.playerQuickViewBanner{
+  min-height:122px;
+  border-radius:18px;
+  border:1px solid rgba(255,255,255,.08);
+  margin-bottom:16px;
+  background:linear-gradient(135deg,#1877f2,#42b72a);
+  box-shadow:0 16px 34px rgba(0,0,0,.22);
+}
+.playerQuickViewHeader{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-bottom:12px;
+}
+.playerQuickViewAvatar{
+  width:64px;
+  height:64px;
+  border-radius:18px;
+  display:grid;
+  place-items:center;
+  font-size:1.9rem;
+  background:#182233;
+  border:2px solid rgba(255,255,255,.92);
+  box-shadow:0 10px 26px rgba(0,0,0,.24);
+  flex:0 0 auto;
+}
+.playerQuickViewName{
+  font-size:1.25rem;
+  font-weight:900;
+  color:#f7fbff;
+}
+.playerQuickViewHandle{
+  color:#93a0b3;
+  margin-top:4px;
+}
+.playerQuickViewBio{
+  color:#d6e0ef;
+  line-height:1.55;
+  margin-top:10px;
+}
+.playerQuickViewSubtle{
+  color:#93a0b3;
+}
+.playerQuickViewStats{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  margin-top:16px;
+}
+.playerQuickViewStat{
+  background:#151f2f;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  padding:12px;
+}
+.playerQuickViewStatLabel{
+  color:#93a0b3;
+  font-size:.75rem;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+.playerQuickViewStatValue{
+  margin-top:8px;
+  font-weight:900;
+  color:#f7fbff;
+}
+.playerQuickViewLoading,
+.playerQuickViewEmpty{
+  color:#93a0b3;
+  padding:26px 4px 8px;
+}
+@media (max-width:700px){
+  .playerQuickViewOverlay{padding:14px;}
+  .playerQuickViewCard{padding:18px;border-radius:20px;}
+  .playerQuickViewStats{grid-template-columns:1fr 1fr;}
+}
+
