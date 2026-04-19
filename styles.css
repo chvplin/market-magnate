@@ -808,3 +808,116 @@ table, th, td, tr{
   border-color:rgba(255,255,255,.08) !important;
 }
 
+
+/* ===== v64 targeted fix: hero / empire preview washed surfaces ===== */
+.hero,
+.heroLeft,
+.heroArt,
+.empirePreview,
+.empirePreviewInner,
+.empirePreviewCard,
+.empirePreviewMiniGrid,
+.empireMini,
+.empirePreviewFooter,
+.heroGrid,
+.heroCard{
+  background-image:none !important;
+  box-shadow:none;
+}
+
+.hero{
+  background:transparent !important;
+}
+
+.heroLeft{
+  background:transparent !important;
+}
+
+.heroArt,
+.empirePreview{
+  background:
+    radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--themeTint, rgba(212,169,40,.07)) 70%, transparent), transparent 30%),
+    linear-gradient(180deg, rgba(15,22,33,.98), rgba(11,17,26,.98)) !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+  color:var(--text) !important;
+}
+
+.empirePreviewInner{
+  background:transparent !important;
+  border:none !important;
+}
+
+.empirePreviewCard,
+.empireMini,
+.heroCard{
+  background:linear-gradient(180deg, rgba(19,28,42,.98), rgba(13,20,31,.98)) !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+  color:var(--text) !important;
+}
+
+.heroCard .label,
+.empirePreviewLabel,
+.empirePreviewSub,
+.empirePreviewFooter{
+  color:var(--muted) !important;
+}
+
+.heroCard .value,
+.empirePreviewValue{
+  color:var(--text) !important;
+}
+
+/* Kill the pale glows and replace with subtle gold/dark glows */
+.glow,
+.g1,
+.g2{
+  background:
+    radial-gradient(circle, rgba(212,169,40,.16) 0%, rgba(212,169,40,.06) 35%, rgba(212,169,40,0) 70%) !important;
+  filter:blur(34px) !important;
+  opacity:.55 !important;
+  mix-blend-mode:screen;
+}
+
+/* Pills / action buttons in hero should match theme too */
+.pillRow,
+.pill{
+  background:transparent !important;
+}
+.pill{
+  border:1px solid rgba(255,255,255,.08) !important;
+  background:linear-gradient(180deg, rgba(19,28,42,.98), rgba(13,20,31,.98)) !important;
+  color:var(--text) !important;
+}
+.pill b{
+  color:#f7fbff !important;
+}
+
+.heroTitle,
+.heroText{
+  color:var(--text) !important;
+}
+.heroText{
+  color:var(--muted) !important;
+}
+
+.cta{
+  background:linear-gradient(180deg,#f2cf66,#d4a928) !important;
+  color:#17120a !important;
+  border:1px solid #8d6f18 !important;
+}
+.ctaAlt{
+  background:#182233 !important;
+  color:#eef3fb !important;
+  border:1px solid #2a374a !important;
+}
+
+/* If any inline light backgrounds are attached to these exact elements, kill them */
+.heroArt[style*="background"],
+.empirePreview[style*="background"],
+.empirePreviewCard[style*="background"],
+.empireMini[style*="background"],
+.heroCard[style*="background"]{
+  background:#111826 !important;
+  background-image:none !important;
+}
+
