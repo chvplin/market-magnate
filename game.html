@@ -4088,83 +4088,15 @@ function setupCosmeticDelegation(){
 }
 
 
-async function fetchPublicProfileByUsernameGame(username){
-  if(!window.mmSupabase || !username) return null;
-  try{
-    const profRes = await window.mmSupabase
-      .from('profiles')
-      .select('id,username,display_name,bio,favorite_stock,profile_theme,avatar_url,banner_url')
-      .eq('username', username)
-      .maybeSingle();
-    const profile = profRes?.data || null;
-    if(!profile) return null;
-
-    let stats = null;
-    try{
-      const statsRes = await window.mmSupabase
-        .from('player_stats')
-        .select('*')
-        .eq('user_id', profile.id)
-        .maybeSingle();
-      stats = statsRes?.data || null;
-    }catch(e){}
-    return { profile, stats };
-  }catch(e){
-    return null;
-  }
-}
-function renderPlayerProfileCardGame(payload){
-  const body = qs('#playerProfileBodyGame');
-  if(!body) return;
-  if(!payload || !payload.profile){
-    body.innerHTML = '<div class="layoutHint">Profile not found.</div>';
-    return;
-  }
-  const p = payload.profile;
-  const s = payload.stats || {};
-  const banner = (typeof getBannerDef === 'function') ? getBannerDef(p.banner_url || 'default_banner') : {gradient:'linear-gradient(135deg,#1877f2,#42b72a)'};
-  const avatar = p.avatar_url || '💹';
-  body.innerHTML = `
-    <div class="socialBanner" style="background:${banner.gradient};height:120px;border-radius:14px;border:1px solid var(--line);margin-bottom:12px;"></div>
-    <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;">
-      <div style="width:58px;height:58px;border-radius:16px;border:2px solid #fff;background:#f3f4f6;display:grid;place-items:center;font-size:1.7rem;box-shadow:0 10px 24px rgba(0,0,0,.08)">${avatar}</div>
-      <div>
-        <div style="font-weight:900;font-size:1.15rem">${p.display_name || p.username || 'Unknown'}</div>
-        <div class="layoutHint">@${p.username || 'unknown'}</div>
-      </div>
-    </div>
-    <div style="line-height:1.5">${p.bio || 'No bio yet.'}</div>
-    <div class="layoutHint" style="margin-top:8px">Favorite stock: <b>${p.favorite_stock || '—'}</b></div>
-    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px;">
-      <div style="background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:10px"><div class="layoutHint">Net Worth</div><div style="font-weight:900;margin-top:4px">${typeof formatMoney==='function' ? formatMoney(s.net_worth || 0) : '$0'}</div></div>
-      <div style="background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:10px"><div class="layoutHint">Prestige</div><div style="font-weight:900;margin-top:4px">${s.prestige || 0}</div></div>
-      <div style="background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:10px"><div class="layoutHint">Empire</div><div style="font-weight:900;margin-top:4px">${s.empire_tier || '-'}</div></div>
-    </div>
-  `;
-}
+async function fetchPublicProfileByUsernameGame(username){ return null; }
+function renderPlayerProfileCardGame(payload){ return; }
 async function openPlayerProfileGame(username){
-  const overlay = qs('#playerProfileOverlay');
-  const body = qs('#playerProfileBodyGame');
-  if(!overlay || !body) return;
-  if(typeof openModal === 'function') openModal('#playerProfileOverlay');
-  else overlay.classList.add('show');
-  body.innerHTML = '<div class="layoutHint">Loading profile...</div>';
-  const payload = await fetchPublicProfileByUsernameGame(username);
-  renderPlayerProfileCardGame(payload);
+  if (typeof handlePlayerQuickView === 'function') {
+    return handlePlayerQuickView(username);
+  }
+  return;
 }
-function setupLivePlayerDelegation(){
-  if(document.body?.dataset.liveProfileBound === '1') return;
-  document.body.dataset.liveProfileBound = '1';
-  document.body.addEventListener('click', (e)=>{
-    const row = e.target.closest('.livePlayerRow');
-    if(!row) return;
-    const username = row.dataset.username || '';
-    if(!username) return;
-    e.preventDefault();
-    e.stopPropagation();
-    openPlayerProfileGame(username);
-  });
-}
+function setupLivePlayerDelegation(){ return; }
 
 function bindSocialUI(){
     qs('#editProfileBtn')?.addEventListener('click', ()=>openModal('#profileModalOverlay'));
@@ -4172,7 +4104,7 @@ function bindSocialUI(){
     qs('#saveProfileGameBtn')?.addEventListener('click', saveSocialProfile);
     qs('#leaderboardBtn')?.addEventListener('click', async ()=>{ try{ loadLeaderboardSocial(); }catch(e){} openModal('#leaderboardModalOverlay'); });
     qs('#closeLeaderboardModalBtn')?.addEventListener('click', ()=>closeModal('#leaderboardModalOverlay'));
-    qs('#closePlayerProfileBtn')?.addEventListener('click', ()=>{ if(typeof closeModal==='function') closeModal('#playerProfileOverlay'); else qs('#playerProfileOverlay')?.classList.remove('show'); });
+    
     qs('#shareProfileBtn')?.addEventListener('click', shareProfile);
     qs('#shareEmpireBtn')?.addEventListener('click', shareProfile);
     qs('#openHubBtn')?.addEventListener('click', ()=>location.href='./index.html');
@@ -4232,15 +4164,7 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 });
 </script>
-
-<div class="modalOverlay" id="playerProfileOverlay">
-  <div class="modalCard" style="max-width:560px">
-    <div class="modalHead">
-      <div>
-        <div class="panelTitle">Player Profile</div>
-        <div class="panelSub">Public account details</div>
-      </div>
-      <button class="ghostBtn" id="closePlayerProfileBtn">Close</button>
+<button class="ghostBtn" id="closePlayerProfileBtn">Close</button>
     </div>
     <div id="playerProfileBodyGame" class="profileCard" style="margin-top:14px">
       <div class="layoutHint">Loading profile...</div>
@@ -4768,6 +4692,163 @@ document.addEventListener('DOMContentLoaded', function(){
     const payload = await fetchPlayerQuickView(username);
     renderPlayerQuickView(payload);
   }
+
+  function bindPlayerQuickView(){
+    if (!document.body || document.body.dataset.playerQuickViewBound === '1') return;
+    document.body.dataset.playerQuickViewBound = '1';
+
+    document.body.addEventListener('click', (e) => {
+      const closeBtn = e.target.closest('#closePlayerQuickView');
+      if (closeBtn){
+        e.preventDefault();
+        closePlayerQuickView();
+        return;
+      }
+
+      const backdrop = e.target.closest('.playerQuickViewBackdrop');
+      if (backdrop){
+        e.preventDefault();
+        closePlayerQuickView();
+        return;
+      }
+
+      const row = e.target.closest('.livePlayerRow');
+      if (!row) return;
+
+      const username = row.dataset.username || '';
+      if (!username) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      handlePlayerQuickView(username);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closePlayerQuickView();
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindPlayerQuickView, { once:true });
+  } else {
+    bindPlayerQuickView();
+  }
+})();
+</script>
+
+
+<script>
+(function(){
+  const q = (s) => document.querySelector(s);
+
+  function fmtMoneySafe(n){
+    const val = Number(n || 0);
+    if (typeof formatMoney === 'function') return formatMoney(val);
+    if (Math.abs(val) >= 1e12) return '$' + (val/1e12).toFixed(2).replace(/\.00$/,'') + 'T';
+    if (Math.abs(val) >= 1e9) return '$' + (val/1e9).toFixed(2).replace(/\.00$/,'') + 'B';
+    if (Math.abs(val) >= 1e6) return '$' + (val/1e6).toFixed(2).replace(/\.00$/,'') + 'M';
+    if (Math.abs(val) >= 1e3) return '$' + (val/1e3).toFixed(1).replace(/\.0$/,'') + 'K';
+    return '$' + Math.round(val).toLocaleString();
+  }
+
+  function getBannerGradient(key){
+    const simple = {
+      default_banner:'linear-gradient(135deg,#1877f2,#42b72a)',
+      profile_banner_gold:'linear-gradient(135deg,#f6d365,#fda085)',
+      profile_banner_neon:'linear-gradient(135deg,#7b2ff7,#00c6ff)',
+      profile_banner_midnight:'linear-gradient(135deg,#0f172a,#1e3a8a)'
+    };
+    if (typeof getBannerDef === 'function') {
+      try{
+        const d = getBannerDef(key || 'default_banner');
+        if (d && d.gradient) return d.gradient;
+      }catch(e){}
+    }
+    return simple[key] || simple.default_banner;
+  }
+
+  function openPlayerQuickView(){
+    const overlay = q('#playerQuickViewOverlay');
+    if (!overlay) return;
+    overlay.classList.add('is-open');
+    overlay.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closePlayerQuickView(){
+    const overlay = q('#playerQuickViewOverlay');
+    if (!overlay) return;
+    overlay.classList.remove('is-open');
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  async function fetchPlayerQuickView(username){
+    if (!window.mmSupabase || !username) return null;
+    try{
+      const profRes = await window.mmSupabase
+        .from('profiles')
+        .select('id,username,display_name,bio,favorite_stock,profile_theme,avatar_url,banner_url')
+        .eq('username', username)
+        .maybeSingle();
+      const profile = profRes?.data || null;
+      if (!profile) return null;
+
+      let stats = null;
+      try{
+        const statsRes = await window.mmSupabase
+          .from('player_stats')
+          .select('*')
+          .eq('user_id', profile.id)
+          .maybeSingle();
+        stats = statsRes?.data || null;
+      }catch(e){}
+      return { profile, stats };
+    }catch(e){
+      return null;
+    }
+  }
+
+  function renderPlayerQuickView(payload){
+    const body = q('#playerQuickViewBody');
+    if (!body) return;
+    if (!payload || !payload.profile){
+      body.innerHTML = '<div class="playerQuickViewEmpty">Profile not found.</div>';
+      return;
+    }
+    const p = payload.profile;
+    const s = payload.stats || {};
+    const banner = getBannerGradient(p.banner_url || 'default_banner');
+    const avatar = p.avatar_url || '💹';
+    body.innerHTML = `
+      <div class="playerQuickViewBanner" style="background:${banner}"></div>
+      <div class="playerQuickViewHeader">
+        <div class="playerQuickViewAvatar">${avatar}</div>
+        <div>
+          <div class="playerQuickViewName">${p.display_name || p.username || 'Unknown'}</div>
+          <div class="playerQuickViewHandle">@${p.username || 'unknown'}</div>
+        </div>
+      </div>
+      <div class="playerQuickViewBio">${p.bio || 'No bio yet.'}</div>
+      <div class="playerQuickViewBio"><span class="playerQuickViewSubtle">Favorite stock:</span> <b>${p.favorite_stock || '—'}</b></div>
+      <div class="playerQuickViewStats">
+        <div class="playerQuickViewStat"><div class="playerQuickViewStatLabel">Net Worth</div><div class="playerQuickViewStatValue">${fmtMoneySafe(s.net_worth || 0)}</div></div>
+        <div class="playerQuickViewStat"><div class="playerQuickViewStatLabel">Prestige</div><div class="playerQuickViewStatValue">${s.prestige || 0}</div></div>
+        <div class="playerQuickViewStat"><div class="playerQuickViewStatLabel">Empire</div><div class="playerQuickViewStatValue">${s.empire_tier || '-'}</div></div>
+      </div>
+    `;
+  }
+
+  async function handlePlayerQuickView(username){
+    const body = q('#playerQuickViewBody');
+    if (!body) return;
+    body.innerHTML = '<div class="playerQuickViewLoading">Loading profile…</div>';
+    openPlayerQuickView();
+    const payload = await fetchPlayerQuickView(username);
+    renderPlayerQuickView(payload);
+  }
+
+  window.handlePlayerQuickView = handlePlayerQuickView;
 
   function bindPlayerQuickView(){
     if (!document.body || document.body.dataset.playerQuickViewBound === '1') return;
