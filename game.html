@@ -3254,6 +3254,23 @@ function mmSpectatorToast(msg){
   }catch(e){}
   mmPushArenaFeed('spectator', msg);
 }
+/** Shared-world public activity row (optional table `shared_activity_feed` — see shared_world_schema.sql). */
+async function mmInsertSharedActivityFeed(activityType, text, meta){
+  if(!mmSharedMarketConfigured() || !window.mmSupabase) return;
+  try{
+    const { data: auth } = await window.mmSupabase.auth.getUser();
+    const user = auth && auth.user;
+    if(!user || !user.id) return;
+    const un = (window.mmSocial && window.mmSocial.profile && window.mmSocial.profile.username) || 'player';
+    await window.mmSupabase.from('shared_activity_feed').insert({
+      user_id: user.id,
+      username: un,
+      activity_type: String(activityType || 'info').slice(0, 64),
+      text: String(text || '').slice(0, 280),
+      metadata_json: meta && typeof meta === 'object' ? meta : {}
+    });
+  }catch(e){}
+}
 function mmDiffNetFromActivity(rows){
   const prev = window.__mmPrevNetByUser || (window.__mmPrevNetByUser = Object.create(null));
   const out = [];
@@ -3278,6 +3295,12 @@ function mmDiffNetFromActivity(rows){
 function mmSharedMarketConfigured(){
   try{
     return !!(window.MM_CONFIG && window.MM_CONFIG.SHARED_STOCK_MARKET && window.mmSupabase && typeof window.mmSupabase.from === 'function');
+  }catch(e){ return false; }
+}
+/** When true, hourly sim_gen bumps come only from Supabase Edge `shared-market-tick` (see supabase/functions). */
+function mmEdgeAuthorityActive(){
+  try{
+    return !!(mmSharedMarketConfigured() && window.MM_CONFIG && window.MM_CONFIG.USE_EDGE_MARKET_AUTHORITY);
   }catch(e){ return false; }
 }
 /** Deterministic PRNG stream for one market tick; all clients use the same sim_gen → same tape. */
@@ -3377,6 +3400,8 @@ function mmBuildSharedMarketPayloadBody(genForPayload){
     ticksUntilNextNews: Number.isFinite(game.ticksUntilNextNews) ? Math.max(0, Math.floor(game.ticksUntilNextNews)) : 24,
     _nextBonusGen: typeof game._nextBonusGen === 'number' && Number.isFinite(game._nextBonusGen) ? game._nextBonusGen : null,
     _nextGlobalGen: typeof game._nextGlobalGen === 'number' && Number.isFinite(game._nextGlobalGen) ? game._nextGlobalGen : null,
+    _mmPulseAnnouncedSlot: game._mmPulseAnnouncedSlot != null ? game._mmPulseAnnouncedSlot : null,
+    dayAdvanced: !!game._mmTickDayAdvanced,
     stocks: game.stocks.map(mmSharedStockWire)
   };
 }
@@ -3399,6 +3424,7 @@ async function mmDoSharedMarketWrite(opts){
     uid = u && u.data && u.data.user && u.data.user.id;
   }catch(e){}
   if(!uid) return;
+  if(bumpGen && mmEdgeAuthorityActive()) return;
   const prevGen = Number.isFinite(Number(game._sharedSimGen)) ? Number(game._sharedSimGen) : 0;
   const nextGen = bumpGen ? prevGen + 1 : prevGen;
   const tickBig = Date.now();
@@ -3498,7 +3524,15 @@ function mmMergeResetPreservedMarket(){
 }
 function mmApplySharedMarketPayload(payload){
   if(!payload || !Array.isArray(game.stocks)) return;
-  if(typeof payload.dayCount === 'number' && Number.isFinite(payload.dayCount)) game.dayCount = payload.dayCount;
+  const __prevDayForCredit = Number(game.dayCount || 1);
+  const __targetDay = typeof payload.dayCount === 'number' && Number.isFinite(payload.dayCount) ? Math.floor(payload.dayCount) : __prevDayForCredit;
+  if(mmSharedMarketConfigured() && __targetDay > __prevDayForCredit){
+    for(let d = __prevDayForCredit + 1; d <= __targetDay; d++){
+      game.dayCount = d;
+      try{ processCreditDay(); }catch(e){}
+    }
+  }
+  game.dayCount = __targetDay;
   if(typeof payload.simHourOfDay === 'number' && Number.isFinite(payload.simHourOfDay)){
     game.simHourOfDay = Math.floor(
       Math.max(0, Math.min(SIM_HOURS_PER_CAL_DAY - 1, payload.simHourOfDay))
@@ -3520,6 +3554,9 @@ function mmApplySharedMarketPayload(payload){
   }
   if(payload._nextGlobalGen != null && Number.isFinite(Number(payload._nextGlobalGen))){
     game._nextGlobalGen = Number(payload._nextGlobalGen);
+  }
+  if(payload._mmPulseAnnouncedSlot != null && Number.isFinite(Number(payload._mmPulseAnnouncedSlot))){
+    game._mmPulseAnnouncedSlot = Number(payload._mmPulseAnnouncedSlot);
   }
   if(mmSharedMarketConfigured()){
     const pg = typeof payload.gen === 'number' && Number.isFinite(payload.gen) ? Number(payload.gen) : null;
@@ -3606,6 +3643,8 @@ async function marketTick(){
     await mmPullSharedMarketBeforeTick(sharedOn ? { force: true } : {});
   }catch(e){}
   if(sharedOn && !uid) return;
+  if(sharedOn && mmEdgeAuthorityActive()) return;
+  if(sharedOn && uid && !mmEdgeAuthorityActive()) game._mmTickDayAdvanced = false;
   const rng = sharedOn ? mmCreateSharedRng(Number(game._sharedSimGen) || 0) : null;
   const rRand = rng ? (a, b)=>rng.rand(a, b) : rand;
   const rRandn = rng ? ()=>rng.randn() : randn;
@@ -3617,7 +3656,9 @@ async function marketTick(){
     game.simHourOfDay = 0;
     isNewDayStart = true;
     game.dayCount = Number(game.dayCount || 1) + 1;
-    processCreditDay();
+    if(!sharedOn) processCreditDay();
+    else if(sharedOn && !mmEdgeAuthorityActive()) processCreditDay();
+    if(sharedOn && uid && !mmEdgeAuthorityActive()) game._mmTickDayAdvanced = !!isNewDayStart;
   }
   const t = (Number(game.dayCount || 1) - 1) * SIM_HOURS_PER_CAL_DAY + Number(game.simHourOfDay || 0);
   const _h = 1 / SIM_HOURS_PER_CAL_DAY;
@@ -3870,7 +3911,7 @@ async function marketTick(){
   }
   game.mood = moodScore > 0.06 ? 'Euphoric' : moodScore < -0.06 ? 'Capitulation' : moodScore > 0.02 ? 'Risk-On' : moodScore < -0.02 ? 'Shaky' : 'Balanced';
   game._sessionMktEwma = sessionMktEwmaPrev * 0.84 + sessionMkt * 0.16;
-  if(sharedOn && uid){
+  if(sharedOn && uid && !mmEdgeAuthorityActive()){
     const g0 = Number(game._sharedSimGen) || 0;
     const metaRng = mmCreateSharedRng((g0 >>> 0) ^ 0xb7e15163);
     if(game._nextBonusGen == null || !Number.isFinite(game._nextBonusGen)){
@@ -3954,6 +3995,7 @@ function buyStock(){
     mmPushArenaFeed('trade', `You bought ~${fmt(cost)} ${s.symbol}`);
   }
   if(cost >= 380000) mmSpectatorToast(`Big buy: ${fmt(cost)} ${s.symbol} — everyone watches the tape`);
+  if(cost >= 380000) void mmInsertSharedActivityFeed('trade_buy', `Bought ~${fmt(cost)} ${s.symbol}`, { symbol: s.symbol, qty, notional: cost });
   toast(`Bought ${fmtNum(qty)} ${s.symbol}`, 'success');
   refresh();
 }
@@ -3991,6 +4033,7 @@ function sellStock(){
   mmApplyTradeMicroPrice(s, value, 'sell');
   if(value >= 160000) mmPushArenaFeed('trade', `You sold ~${fmt(value)} ${s.symbol}`);
   if(value >= 380000) mmSpectatorToast(`Size sell: ${fmt(value)} ${s.symbol} — liquidity test`);
+  if(value >= 380000) void mmInsertSharedActivityFeed('trade_sell', `Sold ~${fmt(value)} ${s.symbol}`, { symbol: s.symbol, qty, notional: value });
   toast(`Sold ${fmtNum(qty)} ${s.symbol}`, 'success');
   refresh();
 }
@@ -4062,6 +4105,9 @@ function save(show=true){
       delete src._nextBonusGen;
       delete src._nextGlobalGen;
       delete src._mmWallNextLifeAt;
+      delete src._mmLocalNextOppAt;
+      delete src._mmTickDayAdvanced;
+      delete src.dayAdvanced;
       delete src.ticksUntilNextNews;
       delete src.dayCount;
       delete src.simHourOfDay;
@@ -6470,6 +6516,13 @@ setInterval(async ()=>{
       mmProcessLifeEventWall();
       game._mmWallNextLifeAt = Date.now() + irand(120000, 480000);
     }
+    if(mmEdgeAuthorityActive()){
+      if(!game._mmLocalNextOppAt) game._mmLocalNextOppAt = Date.now() + irand(15000, 60000);
+      if(Date.now() >= game._mmLocalNextOppAt){
+        triggerOpportunity();
+        game._mmLocalNextOppAt = Date.now() + irand(15000, 60000);
+      }
+    }
   }
   try{ syncStatsToCloud(); }catch(e){}
   try{ loadLeaderboardSocial(); }catch(e){}
@@ -7249,6 +7302,15 @@ async function loadLeaderboardSocial(){
       if(statsRes?.error){
         console.warn('player_stats sync failed:', statsRes.error.message || statsRes.error);
       }
+
+      try{
+        const un = (mmSocial.profile && mmSocial.profile.username) ? String(mmSocial.profile.username) : '';
+        const dn = (mmSocial.profile && mmSocial.profile.display_name) ? String(mmSocial.profile.display_name) : un;
+        await window.mmSupabase.from('online_presence').upsert(
+          { user_id: user.id, username: un, display_name: dn, last_seen: nowIso, updated_at: nowIso },
+          { onConflict: 'user_id' }
+        );
+      }catch(e){}
 
       try{
         await window.mmSupabase
