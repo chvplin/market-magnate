@@ -4770,7 +4770,7 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 
   function bindPlayerQuickView(){
-    if (document.body.dataset.playerQuickViewBound === '1') return;
+    if (!document.body || document.body.dataset.playerQuickViewBound === '1') return;
     document.body.dataset.playerQuickViewBound = '1';
 
     document.body.addEventListener('click', (e) => {

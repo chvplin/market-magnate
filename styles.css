@@ -480,6 +480,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 }
 
 
+
 /* v71 detached player quick-view modal */
 .playerQuickViewOverlay{
   position:fixed;
@@ -610,8 +611,3 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   color:#93a0b3;
   padding:30px 4px 8px;
 }
-@media (max-width:700px){
-  .playerQuickViewCard{ width:min(94vw, 640px); padding:18px; border-radius:20px; }
-  .playerQuickViewStats{ grid-template-columns:1fr 1fr; }
-}
-
