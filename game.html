@@ -2077,6 +2077,11 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
     <div id="rivalPressureRail"></div>
     <div class="arenaSubTitle">Tape</div>
     <div id="liveActivityFeed" class="liveFeedList"></div>
+    <div class="arenaSubTitle">Chat</div>
+    <div id="arenaChatRow" style="display:flex;gap:6px;margin-bottom:8px;align-items:center">
+      <input id="arenaChatInput" type="text" maxlength="200" placeholder="Message everyone…" autocomplete="off" style="flex:1;padding:8px 10px;border-radius:10px;border:1px solid var(--line);font:inherit" />
+      <button type="button" class="shopTab" id="arenaChatSend">Send</button>
+    </div>
     <div class="arenaSubTitle">Quick ping</div>
     <div id="reactionDock" class="arenaReactionRow"></div>
     <div class="arenaSubTitle">Sprint & firm</div>
@@ -2648,6 +2653,14 @@ const fmt = n => {
 const fmtNum = n => new Intl.NumberFormat('en-US',{maximumFractionDigits:n>=100?0:2}).format(n);
 const SIM_HOURS_PER_CAL_DAY = 24;
 const MARKET_TICK_MS = 3000;
+/** Shared-market clients derive `game.simNow` from this epoch + `sim_gen` so every player sees the same clock. */
+const MM_SHARED_SIM_T0 = 1704067200000;
+function mmWallSimNowFromGen(gen){
+  return MM_SHARED_SIM_T0 + (Number(gen) || 0) * MARKET_TICK_MS;
+}
+function mmRngIrand(rng, a, b){
+  return Math.floor(rng.rand(a, b + 1 - 1e-9));
+}
 const pct = n => (n>=0?'+':'') + (n*100).toFixed(2) + '%';
 const stageDefs = [
   {name:'Bedroom Trader', worth:0},
@@ -2912,7 +2925,6 @@ function checkBankruptcy(){
   if(__bankruptcyActive) return;
   if(!shouldForceBankruptcy()) return;
   __bankruptcyActive = true;
-  game.paused = true;
   try{ game.activeEvent = null; }catch(e){}
   try{ document.getElementById('eventOverlay')?.classList.remove('show'); }catch(e){}
   const ov = document.getElementById('bankruptcyOverlay');
@@ -3013,7 +3025,8 @@ function showNewsFlashChyron(message){
 }
 
 
-function maybeTriggerGlobalEvent(){
+function maybeTriggerGlobalEvent(rng){
+  const rIr = rng && rng.rand ? (a, b)=>mmRngIrand(rng, a, b) : irand;
   const defs = [
     {title:'Tech Boom', desc:'Tech and software names catch fire for a minute.', sectors:['Technology','Software','Cybersecurity','Speculative Tech'], drift:0.018, vol:0.012, duration:70},
     {title:'Flash Crash', desc:'A nasty risk-off wave hits almost everything.', sectors:['*'], drift:-0.026, vol:0.02, duration:55},
@@ -3022,10 +3035,10 @@ function maybeTriggerGlobalEvent(){
     {title:'Energy Shock', desc:'Energy and logistics get violently repriced.', sectors:['Energy','Logistics'], drift:0.02, vol:0.018, duration:75},
     {title:'Short Squeeze', desc:'One crowded short turns into a vertical spike.', sectors:['*single*'], drift:0.04, vol:0.03, duration:35}
   ];
-  const d = defs[irand(0, defs.length-1)];
+  const d = defs[rIr(0, defs.length - 1)];
   const event = Object.assign({}, d, {ticks:d.duration});
   if(d.sectors[0] === '*single*'){
-    const target = game.stocks[irand(0, game.stocks.length-1)];
+    const target = game.stocks[rIr(0, game.stocks.length - 1)];
     event.symbol = target.symbol;
     event.title = `${target.symbol} Short Squeeze`;
     event.desc = `${target.symbol} is ripping as shorts get crushed.`;
@@ -3063,10 +3076,13 @@ function syncNewsTicker(){
   track.style.animationDuration = `${duration}s`;
 }
 
-function makeNews(initial=false){
-  const s = game.stocks[irand(0,game.stocks.length-1)];
-  const positive = Math.random() > 0.47;
-  const buyerMillions = positive ? rand(0.08, Math.max(0.25, s.participants/220000)) : rand(0.04, Math.max(0.18, s.participants/300000));
+function makeNews(initial=false, rng=null){
+  const rR = rng && rng.rand ? ((a, b)=>rng.rand(a, b)) : rand;
+  const rIr = rng && rng.rand ? (a, b)=>mmRngIrand(rng, a, b) : irand;
+  const rCh = rng && rng.chance ? (p)=>rng.chance(p) : (p)=>Math.random() < p;
+  const s = game.stocks[rIr(0, game.stocks.length - 1)];
+  const positive = rCh(0.53);
+  const buyerMillions = positive ? rR(0.08, Math.max(0.25, s.participants / 220000)) : rR(0.04, Math.max(0.18, s.participants / 300000));
   const templatesPos = [
     `${s.name} posts a surprise beat and ${buyerMillions.toFixed(2)}M buyers rush in.`,
     `Retail hype explodes around ${s.symbol} as forums pile on.`,
@@ -3081,19 +3097,29 @@ function makeNews(initial=false){
     `${s.symbol} stumbles after a weak forecast and momentum flips red.`,
     `Concern spreads around ${s.name} and sellers lean heavily on the tape.`
   ];
-  const effects = positive ? rand(0.015,0.06) : -rand(0.015,0.07);
-  const volBoost = rand(0.006,0.022);
-  const effectHours = irand(8, 28);
-  const headlineWallSec = irand(14, 48);
+  const effects = positive ? rR(0.015, 0.06) : -rR(0.015, 0.07);
+  const volBoost = rR(0.006, 0.022);
+  const effectHours = rIr(8, 28);
+  const headlineWallSec = rIr(14, 48);
   s.newsEffect += effects;
   s.newsVol += volBoost;
   s.newsTicks = Math.max(s.newsTicks, effectHours);
-  s.hype += positive ? rand(0.16,0.65) : -rand(0.18,0.75);
-  s.sentiment = clamp(s.sentiment + effects*2.2, -1.2, 1.2);
-  const fundamentalShift = positive ? rand(0.01,0.05) : -rand(0.01,0.06);
+  s.hype += positive ? rR(0.16, 0.65) : -rR(0.18, 0.75);
+  s.sentiment = clamp(s.sentiment + effects * 2.2, -1.2, 1.2);
+  const fundamentalShift = positive ? rR(0.01, 0.05) : -rR(0.01, 0.06);
   s.fairValue = clamp(s.fairValue * (1 + fundamentalShift), s.floorPrice, s.ceilingPrice * 0.92);
   const crowdFlow = Math.round((buyerMillions*1000000) * (positive ? 1 : -1));
-  const card = {id:Date.now()+Math.random(), tone:positive?'Bullish':'Bearish', text:(positive?templatesPos:templatesNeg)[irand(0,4)], ticker:s.symbol, expires:headlineWallSec, effect:effects, vol:volBoost, crowd: crowdFlow};
+  const nid = rng ? (Number(game._sharedSimGen) || 0) * 1000000 + rIr(1, 899999) : Date.now() + Math.random();
+  const card = {
+    id: nid,
+    tone: positive ? 'Bullish' : 'Bearish',
+    text: (positive ? templatesPos : templatesNeg)[rIr(0, 4)],
+    ticker: s.symbol,
+    expires: headlineWallSec,
+    effect: effects,
+    vol: volBoost,
+    crowd: crowdFlow
+  };
   if(!Array.isArray(game.newsArchive)) game.newsArchive = [];
   const wallTime = Date.now();
   game.newsArchive.unshift(Object.assign({}, card, { wallTime, simDay: Number(game.dayCount) || 1 }));
@@ -3105,16 +3131,44 @@ function makeNews(initial=false){
   if(!initial && mmSharedMarketConfigured()) mmQueueSharedTapePush();
 }
 
-function triggerOpportunity(){
-  const base = Math.max(150, netWorth() * rand(0.0015,0.006));
-  const gain = base * (1 + game.network + game.tradeBonus*2.2);
+function triggerOpportunity(rng){
+  const rR = rng && rng.rand ? ((a, b)=>rng.rand(a, b)) : rand;
+  const base = Math.max(150, netWorth() * rR(0.0015, 0.006));
+  const gain = base * (1 + game.network + game.tradeBonus * 2.2);
   game.cash += gain;
   game.totalEarned += gain;
   addXP(12);
   toast(`Market opportunity +${fmt(gain)}`, 'success');
 }
 
+function mmProcessLifeEventWall(){
+  if(__bankruptcyActive) return;
+  const good = Math.random() > 0.52;
+  const events = good
+    ? [
+        {icon:'🏆', title:'Referral Bonus', text:'A wealthy friend sends you a warm intro that turns into easy money.', apply(){ const amt=Math.max(500, netWorth()*rand(0.001,0.0045)); game.cash+=amt; game.totalEarned+=amt; addXP(16); return `Referral bonus +${fmt(amt)}`; }, alt(){ addXP(5); return 'You politely pass on the referral.'; }},
+        {icon:'📈', title:'Lucky Exit', text:'You accidentally sell a small side holding near the top.', apply(){ const amt=Math.max(300, netWorth()*rand(0.0008,0.003)); game.cash+=amt; game.totalEarned+=amt; return `Lucky exit +${fmt(amt)}`; }, alt(){ return 'You hold and nothing special happens.'; }},
+        {icon:'🎉', title:'Paid Appearance', text:'A finance podcast offers to pay for a guest segment.', apply(){ const amt=Math.max(750, netWorth()*rand(0.0012,0.004)); game.cash+=amt; game.totalEarned+=amt; game.network+=0.01; return `Appearance fee +${fmt(amt)}`; }, alt(){ return 'You skip the appearance.'; }}
+      ]
+    : [
+        {icon:'🛞', title:'Your Tire Popped', text:'A blown tire hits at the worst possible time.', apply(){ const amt=Math.max(250, netWorth()*rand(0.0005,0.0015)); game.cash=Math.max(0,game.cash-amt); return `Repair bill -${fmt(amt)}`; }, alt(){ const amt=Math.max(100, netWorth()*rand(0.0002,0.0006)); game.cash=Math.max(0,game.cash-amt); return `Temporary patch -${fmt(amt)}`; }},
+        {icon:'💻', title:'Laptop Crash', text:'Your main machine dies during market hours.', apply(){ const amt=Math.max(600, netWorth()*rand(0.0009,0.0025)); game.cash=Math.max(0,game.cash-amt); return `Emergency replacement -${fmt(amt)}`; }, alt(){ const amt=Math.max(120, netWorth()*rand(0.0003,0.0009)); game.cash=Math.max(0,game.cash-amt); return `Cloud workaround -${fmt(amt)} (tape stays synced)`; }},
+        {icon:'🧾', title:'Tax Surprise', text:'A boring notice arrives with expensive consequences.', apply(){ const amt=Math.max(900, netWorth()*rand(0.001,0.0032)); game.cash=Math.max(0,game.cash-amt); return `Taxes paid -${fmt(amt)}`; }, alt(){ addXP(-2); return 'You delay it and hope for the best.'; }}
+      ];
+  const event = events[irand(0, events.length - 1)];
+  const pickApply = Math.random() > 0.45;
+  const res = pickApply ? (event.apply ? event.apply() : '') : (event.alt ? event.alt() : '');
+  try{
+    toast(`${event.icon || '💬'} ${event.title}: ${res}`, /-/.test(String(res)) ? 'warning' : 'success');
+  }catch(e){}
+  try{
+    mmPushArenaFeed('life', `${event.title} — ${res}`);
+  }catch(e){}
+  refresh();
+}
+
 function processLifeEvent(){
+  if(mmSharedMarketConfigured()) return;
   const good = Math.random() > 0.52;
   const events = good ? [
     {icon:'🏆', title:'Referral Bonus', text:'A wealthy friend sends you a warm intro that turns into easy money.', apply(){ const amt=Math.max(500, netWorth()*rand(0.001,0.0045)); game.cash+=amt; game.totalEarned+=amt; addXP(16); return `Referral bonus +${fmt(amt)}`; }, alt(){ addXP(5); return 'You politely pass on the referral.'; }},
@@ -3130,7 +3184,6 @@ function processLifeEvent(){
 
 function showEventModal(event){
   if(__bankruptcyActive) return;
-  game.paused = true;
   game.activeEvent = event;
   $('#eventIcon').textContent = event.icon || '⚠️';
   $('#eventTitle').textContent = event.title;
@@ -3141,7 +3194,6 @@ function showEventModal(event){
 
 function closeEventModal(result){
   $('#eventOverlay').classList.remove('show');
-  if(!__bankruptcyActive) game.paused = false;
   game.activeEvent = null;
   if(result) toast(result, /-/.test(result) ? 'warning' : 'success');
   refresh();
@@ -3322,6 +3374,9 @@ function mmBuildSharedMarketPayloadBody(genForPayload){
       sprint: game.arenaSprint && typeof game.arenaSprint === 'object' ? game.arenaSprint : null,
       contract: game.arenaContract && typeof game.arenaContract === 'object' ? game.arenaContract : null
     },
+    ticksUntilNextNews: Number.isFinite(game.ticksUntilNextNews) ? Math.max(0, Math.floor(game.ticksUntilNextNews)) : 24,
+    _nextBonusGen: typeof game._nextBonusGen === 'number' && Number.isFinite(game._nextBonusGen) ? game._nextBonusGen : null,
+    _nextGlobalGen: typeof game._nextGlobalGen === 'number' && Number.isFinite(game._nextGlobalGen) ? game._nextGlobalGen : null,
     stocks: game.stocks.map(mmSharedStockWire)
   };
 }
@@ -3457,7 +3512,19 @@ function mmApplySharedMarketPayload(payload){
   if(typeof payload.newsBonusPool === 'number' && Number.isFinite(payload.newsBonusPool)) game.newsBonusPool = payload.newsBonusPool;
   if(Array.isArray(payload.news)) game.news = payload.news.slice(0, 24);
   if(Array.isArray(payload.newsArchive)) game.newsArchive = payload.newsArchive.slice(0, 300);
+  if(typeof payload.ticksUntilNextNews === 'number' && Number.isFinite(payload.ticksUntilNextNews)){
+    game.ticksUntilNextNews = Math.max(0, Math.floor(payload.ticksUntilNextNews));
+  }
+  if(payload._nextBonusGen != null && Number.isFinite(Number(payload._nextBonusGen))){
+    game._nextBonusGen = Number(payload._nextBonusGen);
+  }
+  if(payload._nextGlobalGen != null && Number.isFinite(Number(payload._nextGlobalGen))){
+    game._nextGlobalGen = Number(payload._nextGlobalGen);
+  }
   if(mmSharedMarketConfigured()){
+    const pg = typeof payload.gen === 'number' && Number.isFinite(payload.gen) ? Number(payload.gen) : null;
+    const gClock = pg != null ? pg : Number(game._sharedSimGen) || 0;
+    game.simNow = mmWallSimNowFromGen(gClock);
     if(payload.arena && typeof payload.arena === 'object'){
       const a = payload.arena;
       game._arenaFeed = Array.isArray(a.feed) ? a.feed.slice(0, 48) : [];
@@ -3536,7 +3603,7 @@ async function marketTick(){
     }catch(e){}
   }
   try{
-    await mmPullSharedMarketBeforeTick(sharedOn && !uid ? { force: true } : {});
+    await mmPullSharedMarketBeforeTick(sharedOn ? { force: true } : {});
   }catch(e){}
   if(sharedOn && !uid) return;
   const rng = sharedOn ? mmCreateSharedRng(Number(game._sharedSimGen) || 0) : null;
@@ -3803,6 +3870,30 @@ async function marketTick(){
   }
   game.mood = moodScore > 0.06 ? 'Euphoric' : moodScore < -0.06 ? 'Capitulation' : moodScore > 0.02 ? 'Risk-On' : moodScore < -0.02 ? 'Shaky' : 'Balanced';
   game._sessionMktEwma = sessionMktEwmaPrev * 0.84 + sessionMkt * 0.16;
+  if(sharedOn && uid){
+    const g0 = Number(game._sharedSimGen) || 0;
+    const metaRng = mmCreateSharedRng((g0 >>> 0) ^ 0xb7e15163);
+    if(game._nextBonusGen == null || !Number.isFinite(game._nextBonusGen)){
+      game._nextBonusGen = g0 + mmRngIrand(metaRng, 8, 40);
+    }
+    if(g0 >= game._nextBonusGen){
+      triggerOpportunity(metaRng);
+      game._nextBonusGen = g0 + mmRngIrand(metaRng, 12, 55);
+    }
+    if(game._nextGlobalGen == null || !Number.isFinite(game._nextGlobalGen)){
+      game._nextGlobalGen = g0 + mmRngIrand(metaRng, 15, 80);
+    }
+    if(g0 >= game._nextGlobalGen){
+      maybeTriggerGlobalEvent(metaRng);
+      game._nextGlobalGen = g0 + mmRngIrand(metaRng, 20, 120);
+    }
+    const newsRng = mmCreateSharedRng((g0 >>> 0) ^ 0xdeadbeef);
+    game.ticksUntilNextNews = (Number.isFinite(game.ticksUntilNextNews) ? game.ticksUntilNextNews : 24) - 1;
+    if(game.ticksUntilNextNews <= 0){
+      makeNews(false, newsRng);
+      game.ticksUntilNextNews = mmRngIrand(newsRng, 18, 48);
+    }
+  }
   try{ await mmPushSharedMarketAfterTick(); }catch(e){}
 }
 
@@ -3968,6 +4059,10 @@ function save(show=true){
       delete src._sectorShock;
       delete src._sessionMktEwma;
       delete src._sharedSimGen;
+      delete src._nextBonusGen;
+      delete src._nextGlobalGen;
+      delete src._mmWallNextLifeAt;
+      delete src.ticksUntilNextNews;
       delete src.dayCount;
       delete src.simHourOfDay;
       const strip = [
@@ -4663,25 +4758,70 @@ function mmSaveFirmTag(){
   }catch(e){}
   renderArenaRail();
 }
+function mmAppendArenaPingRow(row, opts){
+  if(!row || row.id == null) return;
+  const bulk = !!(opts && opts.bulk);
+  window.__mmArenaPingSeen = window.__mmArenaPingSeen || new Set();
+  const sid = String(row.id);
+  if(!bulk){
+    if(window.__mmArenaPingSeen.has(sid)) return;
+    window.__mmArenaPingSeen.add(sid);
+  }else{
+    window.__mmArenaPingSeen.add(sid);
+  }
+  const buf = window.__mmArenaPingBuffer || (window.__mmArenaPingBuffer = []);
+  const t = row.created_at ? new Date(row.created_at).getTime() : Date.now();
+  const un = escapeHtml(String(row.username || 'player'));
+  const txt = escapeHtml(String(row.payload || ''));
+  const kind = String(row.kind || 'react');
+  const prefix = kind === 'chat' ? `${un}: ` : `${un} · `;
+  buf.unshift({ id: row.id, t, html: prefix + txt });
+  while(buf.length > 40) buf.pop();
+  if(!bulk && typeof window.mmRefreshLive === 'function') window.mmRefreshLive();
+}
+async function mmSendArenaChat(){
+  const inp = document.getElementById('arenaChatInput');
+  const raw = (inp && inp.value ? inp.value : '').trim();
+  if(!raw) return toast('Type a message first', 'warning');
+  if(!window.mmSupabase) return toast('Sign in to chat', 'warning');
+  try{
+    const { data: auth } = await window.mmSupabase.auth.getUser();
+    const user = auth && auth.user;
+    if(!user || !user.id) return toast('Sign in to chat', 'warning');
+    const un = (window.mmSocial && window.mmSocial.profile && window.mmSocial.profile.username) || 'player';
+    const { error } = await window.mmSupabase.from('arena_ping').insert({
+      user_id: user.id,
+      username: un,
+      payload: raw.slice(0, 200),
+      kind: 'chat'
+    });
+    if(error) return toast('Chat send failed', 'warning');
+    if(inp) inp.value = '';
+  }catch(e){
+    toast('Chat send failed', 'warning');
+  }
+}
 async function mmSendQuickReaction(code){
   const map = { fire: '🔥', rip: '💀', lol: '😂', eyes: '👀', gg: 'GG' };
   const label = (map[code] || code || '').trim();
-  mmPushArenaFeed('react', 'You: ' + label);
+  let posted = false;
   try{
     if(window.mmSupabase){
       const { data: auth } = await window.mmSupabase.auth.getUser();
       const user = auth && auth.user;
       if(user && user.id){
         const un = (window.mmSocial && window.mmSocial.profile && window.mmSocial.profile.username) || 'player';
-        await window.mmSupabase.from('arena_ping').insert({
+        const { error } = await window.mmSupabase.from('arena_ping').insert({
           user_id: user.id,
           username: un,
           payload: label,
           kind: 'react'
         });
+        posted = !error;
       }
     }
   }catch(e){}
+  if(!posted) mmPushArenaFeed('react', 'You: ' + label);
 }
 function renderArenaRail(){
   mmArenaEnsureGameFields();
@@ -4707,6 +4847,7 @@ function renderArenaRail(){
     const diffLines = window.__mmLastActivityDiffLines || [];
     diffLines.forEach(d => merged.push({ t: d.t, html: escapeHtml(d.text) }));
     (game._arenaFeed || []).forEach(l => merged.push({ t: l.t, html: escapeHtml(l.text) }));
+    (window.__mmArenaPingBuffer || []).forEach(l => merged.push({ t: l.t, html: l.html }));
     merged.sort((a, b) => b.t - a.t);
     feedEl.innerHTML = merged.slice(0, 18).length
       ? merged
@@ -4738,6 +4879,20 @@ function renderArenaRail(){
       sp && sp.start
         ? `Live sprint · <b>${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}</b> left`
         : 'No sprint running';
+  }
+  const chatSend = document.getElementById('arenaChatSend');
+  if(chatSend && !chatSend.dataset.mmBound){
+    chatSend.dataset.mmBound = '1';
+    chatSend.addEventListener('click', ()=>{ void mmSendArenaChat(); });
+  }
+  const chatInp = document.getElementById('arenaChatInput');
+  if(chatInp && !chatInp.dataset.mmBound){
+    chatInp.dataset.mmBound = '1';
+    chatInp.addEventListener('keydown', ev=>{
+      if(ev.key !== 'Enter') return;
+      ev.preventDefault();
+      void mmSendArenaChat();
+    });
   }
   const firmInp = document.getElementById('firmTagInput');
   if(firmInp && document.activeElement !== firmInp){
@@ -6052,11 +6207,8 @@ function updateHud(){
 function refresh(){
   bindCasinoOnce();
   try{ checkBankruptcy(); }catch(e){}
-  if(__bankruptcyActive){
-    try{ updateHud(); }catch(e){}
-    return;
-  }
-  updateHud(); renderMenu(); renderStocks(); renderShopTabs('shopping'); renderShopTabs('business'); renderItems('shopping'); renderItems('business'); renderNews(); renderNewsDock(); syncNewsTicker(); renderUser(); renderFinance(); renderEmpire(); renderCasino(); renderRail(); renderMobileNav(); renderMobileTrade();
+  updateHud();
+  renderMenu(); renderStocks(); renderShopTabs('shopping'); renderShopTabs('business'); renderItems('shopping'); renderItems('business'); renderNews(); renderNewsDock(); syncNewsTicker(); renderUser(); renderFinance(); renderEmpire(); renderCasino(); renderRail(); renderMobileNav(); renderMobileTrade();
   const input = $('#globalSearch');
   if(input && document.activeElement === input && input.value.trim()) renderSearchResults(input.value);
 }
@@ -6066,10 +6218,6 @@ let __mmLastShopPatchMs = 0;
 function refreshLive(){
   bindCasinoOnce();
   try{ checkBankruptcy(); }catch(e){}
-  if(__bankruptcyActive){
-    try{ updateHud(); }catch(e){}
-    return;
-  }
   updateHud();
   renderMenu();
   bindStockQtyDelegationOnce();
@@ -6271,49 +6419,63 @@ setInterval(async ()=>{
   if(realDt < 0) realDt = 250;
   if(realDt > 3000) realDt = 3000;
 
-  if(!game.paused){
-    const speed = getSpeed().mult;
-    const simDt = realDt * speed;
+  const sharedOn = mmSharedMarketConfigured();
+  const speed = getSpeed().mult;
+  const simDt = realDt * speed;
+  if(!sharedOn){
     game.simNow = (typeof game.simNow === 'number' ? game.simNow : realNow) + simDt;
+  }
 
-    __marketAccum += simDt;
-    __newsDecayAccum += simDt;
+  const accumAdd = sharedOn ? realDt : simDt;
+  __marketAccum += accumAdd;
+  __newsDecayAccum += accumAdd;
 
-    while(__marketAccum >= MARKET_TICK_MS){
-      try{ await marketTick(); }catch(err){ console.warn('marketTick', err); }
-      passiveTick();
-      __marketAccum -= MARKET_TICK_MS;
+  while(__marketAccum >= MARKET_TICK_MS){
+    try{ await marketTick(); }catch(err){ console.warn('marketTick', err); }
+    passiveTick();
+    __marketAccum -= MARKET_TICK_MS;
+    if(!sharedOn){
       game.ticksUntilNextNews = (Number.isFinite(game.ticksUntilNextNews) ? game.ticksUntilNextNews : irand(18, 48)) - 1;
       if(game.ticksUntilNextNews <= 0){
         makeNews();
         game.ticksUntilNextNews = irand(18, 48);
       }
     }
+  }
 
-    while(__newsDecayAccum >= 1000){
-      game.news.forEach(n=>n.expires=Math.max(0,n.expires-1));
-      game.news = game.news.filter(n=>n.expires>0);
-      __newsDecayAccum -= 1000;
+  while(__newsDecayAccum >= 1000){
+    if(!sharedOn){
+      game.news.forEach(n=> (n.expires = Math.max(0, n.expires - 1)));
+      game.news = game.news.filter(n=> n.expires > 0);
     }
+    __newsDecayAccum -= 1000;
+  }
 
+  if(!sharedOn){
     if(game.simNow >= game.nextBonusAt){
       triggerOpportunity();
-      game.nextBonusAt = game.simNow + irand(15000,60000);
+      game.nextBonusAt = game.simNow + irand(15000, 60000);
     }
     if(game.simNow >= game.nextLifeAt){
       processLifeEvent();
-      game.nextLifeAt = game.simNow + irand(60000,300000);
+      game.nextLifeAt = game.simNow + irand(60000, 300000);
     }
     if(game.simNow >= game.nextGlobalAt){
       maybeTriggerGlobalEvent();
-      game.nextGlobalAt = game.simNow + irand(45000,120000);
+      game.nextGlobalAt = game.simNow + irand(45000, 120000);
     }
-    try{ syncStatsToCloud(); }catch(e){}
-    try{ loadLeaderboardSocial(); }catch(e){}
+  }else{
+    if(!game._mmWallNextLifeAt) game._mmWallNextLifeAt = Date.now() + irand(90000, 360000);
+    if(Date.now() >= game._mmWallNextLifeAt){
+      mmProcessLifeEventWall();
+      game._mmWallNextLifeAt = Date.now() + irand(120000, 480000);
+    }
   }
+  try{ syncStatsToCloud(); }catch(e){}
+  try{ loadLeaderboardSocial(); }catch(e){}
 
   refreshLive();
-  if(Date.now()-game.lastSaved>25000) save(false);
+  if(Date.now() - game.lastSaved > 25000) save(false);
 }, 250);
 
 (function mmInitSharedMarketChannel(){
@@ -6342,6 +6504,49 @@ setInterval(async ()=>{
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
   else bind();
   setTimeout(bind, 900);
+})();
+
+(function mmInitArenaPingChannel(){
+  async function prime(){
+    if(typeof mmSharedMarketConfigured !== 'function' || !mmSharedMarketConfigured()) return;
+    if(!window.mmSupabase || typeof window.mmSupabase.from !== 'function') return;
+    try{
+      const res = await window.mmSupabase
+        .from('arena_ping')
+        .select('id,username,payload,kind,created_at')
+        .order('created_at', { ascending: false })
+        .limit(28);
+      if(res.error || !Array.isArray(res.data)) return;
+      window.__mmArenaPingBuffer = [];
+      window.__mmArenaPingSeen = new Set();
+      const rows = res.data.slice().reverse();
+      for(const r of rows) mmAppendArenaPingRow(r, { bulk: true });
+      if(typeof window.mmRefreshLive === 'function') window.mmRefreshLive();
+    }catch(e){}
+  }
+  function bind(){
+    if(window.__mmArenaPingChanBound) return;
+    if(typeof mmSharedMarketConfigured !== 'function' || !mmSharedMarketConfigured()) return;
+    if(!window.mmSupabase || typeof window.mmSupabase.channel !== 'function') return;
+    window.__mmArenaPingChanBound = true;
+    void prime();
+    window.mmSupabase
+      .channel('mm-arena-ping-v1')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'arena_ping' },
+        payload=>{
+          try{
+            const row = payload.new;
+            if(row) mmAppendArenaPingRow(row);
+          }catch(e){}
+        }
+      )
+      .subscribe();
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
+  else bind();
+  setTimeout(bind, 1200);
 })();
 
 })();
