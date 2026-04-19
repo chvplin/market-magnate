@@ -1306,6 +1306,167 @@ table,th,td{color:var(--text) !important;border-color:var(--line) !important;}
 a{color:#ffd761;}
 #publicProfileBody .profileCard,#playerProfileBodyGame{background:var(--panel) !important;border-color:var(--line) !important;}
 
+
+/* v58 refined dark gold game theme */
+:root{
+  --bg:#090d14;
+  --bg2:#0d121b;
+  --bg3:#121a27;
+  --panel:#111826;
+  --panel2:#151f2f;
+  --panel3:#0f1724;
+  --line:#243042;
+  --text:#eef3fb;
+  --muted:#93a0b3;
+  --blue:#d4a928;
+  --cyan:#d4a928;
+  --yellow:#f0c54c;
+  --gold:#d4a928;
+  --gold2:#f2cf66;
+  --shadow:0 18px 40px rgba(0,0,0,.34);
+}
+html,body{
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--themeTint, rgba(212,169,40,.18)) 75%, transparent), transparent 34%),
+    radial-gradient(circle at top right, rgba(212,169,40,.06), transparent 26%),
+    linear-gradient(180deg,#090d14 0%, #0c1119 44%, #101723 100%) !important;
+  color:var(--text) !important;
+}
+body::before{
+  background:
+    radial-gradient(circle at 15% 10%, color-mix(in srgb, var(--themeTint, rgba(212,169,40,.08)) 80%, transparent), transparent 28%),
+    radial-gradient(circle at 85% 12%, rgba(212,169,40,.08), transparent 22%),
+    linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)) !important;
+  opacity:1 !important;
+}
+.topbar{
+  background:rgba(8,12,19,.86) !important;
+  border-bottom:1px solid rgba(255,255,255,.08) !important;
+  backdrop-filter:blur(14px) !important;
+  box-shadow:0 12px 28px rgba(0,0,0,.24) !important;
+}
+.topbar, .topbar *{ color:var(--text) !important; }
+.topbar .pill, #datePill{
+  background:#141d2a !important;
+  border:1px solid #2a374a !important;
+  color:#f5f8fe !important;
+}
+.newsTickerBar{
+  background:
+    linear-gradient(90deg, rgba(212,169,40,.18), rgba(15,20,31,.96) 20%, rgba(15,20,31,.98) 100%) !important;
+  border-bottom:1px solid rgba(255,255,255,.06) !important;
+}
+.newsTickerLabel{
+  background:linear-gradient(180deg,#5f4a16,#3f3210) !important;
+  color:#ffe390 !important;
+  border-color:#8a6d1f !important;
+}
+.newsTickerItem{ color:#f4f7fb !important; }
+
+.mainWrap,.layout,.page,.appShell,.contentWrap{ background:transparent !important; }
+
+.railCard,.profileCard,.heroCard,.feedCard,.card,.modalCard,.lifeModal,.eventCard,.panel,.shopCard,.socialCard,.leaderPeek,.sectionCard,.loginCard,.metric,.statBox,.miniLeadRow,.leaderMiniRow,.ownedAssetCard{
+  background:linear-gradient(180deg, rgba(18,25,37,.96), rgba(14,20,30,.96)) !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+  color:var(--text) !important;
+  box-shadow:var(--shadow) !important;
+}
+.profileCard,.heroCard,.railCard,.card,.shopCard,.panel,.modalCard{
+  border-radius:18px !important;
+}
+.panelTitle,.railTitle,.heroTitle,.menuText b,.v,strong,b,h1,h2,h3,h4,h5,h6{ color:#f6f9ff !important; }
+.panelSub,.layoutHint,.muted,.k,.menuText span,.feedSub,.subtle,.miniLeadRow .muted{ color:var(--muted) !important; }
+
+input,textarea,select{
+  background:#0b1119 !important;
+  color:#f3f7fe !important;
+  border:1px solid #243042 !important;
+  border-radius:12px !important;
+}
+input::placeholder,textarea::placeholder{ color:#73839a !important; }
+
+button,.buttonish,.buySmall,.shopTab.active,.actionBtn,.primaryBtn,.menuBtn.active,.mobileNavBtn.active{
+  background:linear-gradient(180deg, var(--gold2), var(--gold)) !important;
+  border:1px solid #8d6f18 !important;
+  color:#17120a !important;
+  box-shadow:0 10px 24px rgba(212,169,40,.18) !important;
+}
+button:hover,.buttonish:hover,.buySmall:hover,.shopTab.active:hover{
+  filter:brightness(1.05);
+}
+button.secondary,.ghostBtn,.shopTab,.menuBtn,.mobileNavBtn,.invAvatarBtn,.invBannerBtn{
+  background:linear-gradient(180deg, #182233, #121a28) !important;
+  border:1px solid #2a374a !important;
+  color:var(--text) !important;
+  box-shadow:none !important;
+}
+button:disabled,.shopTab.disabled,.buySmall.owned{
+  opacity:.72;
+}
+.menuIcon,.rankBubble,.miniRank,.loginMark,.cosmeticIcon{
+  background:linear-gradient(180deg, var(--gold2), var(--gold)) !important;
+  color:#17120a !important;
+  box-shadow:0 10px 22px rgba(212,169,40,.18) !important;
+}
+.sidebar .menuBtn,.feedMini .menuBtn{
+  border-radius:16px !important;
+}
+.sidebar .menuBtn.active,.feedMini .menuBtn.active{
+  outline:none !important;
+}
+.sidebar .menuBtn:not(.active), .feedMini .menuBtn:not(.active){
+  background:linear-gradient(180deg, rgba(20,28,40,.95), rgba(14,20,30,.95)) !important;
+}
+table,th,td{
+  color:#edf2fa !important;
+  border-color:rgba(255,255,255,.08) !important;
+}
+th{ color:#b8c4d6 !important; }
+
+#leaderMini .leaderMiniRow, #onlinePlayersGame .leaderMiniRow, .miniLeadRow{
+  background:rgba(20,29,43,.94) !important;
+  border:1px solid rgba(255,255,255,.07) !important;
+  border-radius:14px !important;
+  margin-bottom:8px !important;
+}
+#leaderMini .leaderMiniRow:hover, #onlinePlayersGame .leaderMiniRow:hover, .miniLeadRow:hover{
+  background:rgba(26,37,53,.98) !important;
+}
+
+.heroCard{
+  position:relative;
+  overflow:hidden;
+}
+.heroCard::after{
+  content:"";
+  position:absolute;
+  inset:auto -10% -20% -10%;
+  height:65%;
+  background:
+    radial-gradient(circle at 20% 30%, color-mix(in srgb, var(--themeTint, rgba(212,169,40,.12)) 80%, transparent), transparent 30%),
+    linear-gradient(180deg, rgba(212,169,40,.05), transparent);
+  pointer-events:none;
+}
+#socialBanner,.socialBanner{
+  border:1px solid rgba(255,255,255,.08) !important;
+  box-shadow:0 16px 34px rgba(0,0,0,.22) !important;
+}
+.avatarOpt,.bannerOpt,.themeOpt,.invAvatarBtn,.invBannerBtn{
+  border-radius:14px !important;
+}
+
+.cosmeticCard,.shopItem,.assetCard{
+  background:linear-gradient(180deg, rgba(18,25,37,.96), rgba(13,19,29,.96)) !important;
+  border-color:rgba(255,255,255,.08) !important;
+}
+.watchlistRow,.stockRow,.newsCard,.loanCard{
+  background:rgba(18,25,37,.88) !important;
+  border-color:rgba(255,255,255,.08) !important;
+}
+
+.livePlayerRow{ cursor:pointer; text-decoration:none !important; color:inherit !important; }
+a{ color:#ffd76d; }
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -4079,34 +4240,36 @@ document.addEventListener('DOMContentLoaded', function(){
 <script>
 (function(){
   const tintMap = {
-    'Tiny Apartment':'rgba(120,140,170,.16)',
-    'Starter':'rgba(120,140,170,.16)',
-    'Suburban House':'rgba(120,180,130,.16)',
-    'Luxury Condo':'rgba(120,170,220,.16)',
-    'Beach House':'rgba(80,190,200,.16)',
-    'Mountain Lodge':'rgba(130,170,130,.16)',
-    'Island Villa':'rgba(255,170,120,.16)',
-    'Sky Palace Penthouse':'rgba(210,170,255,.18)',
-    'Private Island Cabin':'rgba(90,200,170,.18)'
+    'Tiny Apartment':'rgba(116,142,180,.12)',
+    'Starter':'rgba(116,142,180,.12)',
+    'Suburban House':'rgba(104,176,112,.14)',
+    'Luxury Condo':'rgba(94,148,214,.14)',
+    'Beach House':'rgba(74,185,207,.14)',
+    'Mountain Lodge':'rgba(110,150,110,.14)',
+    'Island Villa':'rgba(233,150,96,.15)',
+    'Sky Palace Penthouse':'rgba(190,136,255,.16)',
+    'Private Island Cabin':'rgba(63,188,156,.16)',
+    'Skyscraper Headquarters':'rgba(212,169,40,.15)'
   };
+  function detectThemeLabel(){
+    const selectors = ['#empireTitle','#empireTier','#houseName','#residenceName'];
+    for(const sel of selectors){
+      const el = document.querySelector(sel);
+      if(el && el.textContent.trim()) return el.textContent.trim();
+    }
+    const txt = document.body.innerText || '';
+    const m = txt.match(/Tiny Apartment|Suburban House|Luxury Condo|Beach House|Mountain Lodge|Island Villa|Sky Palace Penthouse|Private Island Cabin|Skyscraper Headquarters|Starter/);
+    return m ? m[0] : '';
+  }
   function applyHouseThemeTint(){
-    try{
-      const empireEl = document.querySelector('#empireTitle, #empireTier, #houseName');
-      const fallbackText = document.body.innerText || '';
-      let label = '';
-      if(empireEl) label = empireEl.textContent || '';
-      if(!label){
-        const m = fallbackText.match(/Tiny Apartment|Suburban House|Luxury Condo|Beach House|Mountain Lodge|Island Villa|Sky Palace Penthouse|Private Island Cabin|Starter/);
-        if(m) label = m[0];
-      }
-      let tint = 'rgba(212,169,40,.12)';
-      Object.keys(tintMap).forEach(k=>{ if(label.includes(k)) tint = tintMap[k]; });
-      document.documentElement.style.setProperty('--themeTint', tint);
-    }catch(e){}
+    const label = detectThemeLabel();
+    let tint = 'rgba(212,169,40,.12)';
+    Object.keys(tintMap).forEach(k=>{ if(label.includes(k)) tint = tintMap[k]; });
+    document.documentElement.style.setProperty('--themeTint', tint);
   }
   window.applyHouseThemeTint = applyHouseThemeTint;
   document.addEventListener('DOMContentLoaded', applyHouseThemeTint);
-  setInterval(applyHouseThemeTint, 1500);
+  setInterval(applyHouseThemeTint, 1200);
 })();
 </script>
 

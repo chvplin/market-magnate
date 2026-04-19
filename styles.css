@@ -345,3 +345,20 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 }
 body{background:var(--bg);color:var(--text);}
 button,.buttonish{background:linear-gradient(180deg,var(--gold-2),var(--gold));color:#17130a;border-color:#9d7e1b;}
+
+/* v58 refined theme backup */
+:root{
+  --bg:#090d14;
+  --panel:#121927;
+  --text:#eef3fb;
+  --muted:#94a0b2;
+  --line:#253144;
+  --gold:#d4a928;
+  --gold2:#f2cf66;
+}
+body{background:var(--bg);color:var(--text);}
+button,.buttonish{
+  background:linear-gradient(180deg,var(--gold2),var(--gold));
+  color:#17120a;
+  border-color:#8d6f18;
+}

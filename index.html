@@ -142,6 +142,94 @@ button.secondary{background:#1a2230 !important;color:var(--text) !important;bord
 table,th,td{color:var(--text) !important;border-color:var(--line) !important;}
 a{color:#ffd761;}
 
+
+/* v58 refined dark gold index theme */
+:root{
+  --bg:#090d14;
+  --panel:#121927;
+  --panel2:#172133;
+  --text:#eef3fb;
+  --muted:#94a0b2;
+  --line:#253144;
+  --gold:#d4a928;
+  --gold2:#f2cf66;
+}
+html,body{
+  background:
+    radial-gradient(circle at top left, rgba(212,169,40,.14), transparent 26%),
+    radial-gradient(circle at top right, rgba(212,169,40,.07), transparent 20%),
+    linear-gradient(180deg,#090d14 0%, #0d131d 46%, #101724 100%) !important;
+  color:var(--text) !important;
+}
+body{
+  align-items:flex-start !important;
+  justify-content:center !important;
+  padding:34px 18px 40px !important;
+}
+.loginBoard{
+  width:min(100%, 1120px) !important;
+  display:grid !important;
+  grid-template-columns:minmax(360px, 430px) minmax(0, 1fr) !important;
+  gap:18px !important;
+  align-items:start !important;
+}
+.loginCard,.sectionCard,.leaderPeek,.profileCard,.tableWrap,.miniLeadRow{
+  background:linear-gradient(180deg, rgba(18,25,37,.96), rgba(14,20,30,.96)) !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+  color:var(--text) !important;
+  box-shadow:0 20px 44px rgba(0,0,0,.34) !important;
+}
+.loginCard,.sectionCard,.leaderPeek{ border-radius:20px !important; }
+.loginTop{ margin-bottom:18px !important; }
+.loginMark{
+  width:54px !important; height:54px !important; border-radius:14px !important;
+  background:linear-gradient(180deg,var(--gold2),var(--gold)) !important;
+  color:#17120a !important;
+  box-shadow:0 12px 24px rgba(212,169,40,.22) !important;
+}
+.loginTitle{ color:#f7f9fd !important; font-size:2rem !important; }
+.loginSub,.muted,#authStatus,.loginMeta,.loginMeta *{ color:var(--muted) !important; }
+.sectionCard h3,.leaderPeek h3,strong,b{ color:#f4f7fc !important; }
+
+input,textarea,select{
+  background:#0b1119 !important;
+  color:#f2f7ff !important;
+  border:1px solid #253144 !important;
+  border-radius:12px !important;
+}
+input::placeholder,textarea::placeholder{ color:#76859a !important; }
+
+button,.buttonish{
+  background:linear-gradient(180deg,var(--gold2),var(--gold)) !important;
+  color:#17120a !important;
+  border:1px solid #8d6f18 !important;
+  box-shadow:0 10px 22px rgba(212,169,40,.18) !important;
+}
+button.secondary{
+  background:linear-gradient(180deg,#182233,#121a28) !important;
+  border:1px solid #2a374a !important;
+  color:var(--text) !important;
+  box-shadow:none !important;
+}
+.ownedInventory .invAvatarBtn,.ownedBannerInventory .invBannerBtn,.miniLeadRow{
+  background:linear-gradient(180deg, rgba(20,29,43,.96), rgba(15,22,33,.96)) !important;
+  border-color:rgba(255,255,255,.07) !important;
+  color:var(--text) !important;
+}
+.miniLeadRow{
+  border-radius:14px !important;
+}
+.miniLeadRow:hover{ background:rgba(26,37,53,.98) !important; }
+.tableWrap table, table, th, td{
+  color:#edf2fa !important;
+  border-color:rgba(255,255,255,.08) !important;
+}
+a{ color:#ffd76d; }
+
+@media (max-width: 980px){
+  .loginBoard{ grid-template-columns:1fr !important; }
+}
+
 </style>
 
 </head>
@@ -164,9 +252,7 @@ a{color:#ffd761;}
         <button id="signInBtn">Sign in</button>
         <button id="signUpBtn">Create account</button>
         <button id="signOutBtn" class="secondary" hidden>Sign out</button>
-        <button id="playBtn" hidden>Play game</button>
-        <a class="buttonish" href="./game.html">Open game manually</a>
-      </div>
+</div>
 
       <p id="authMessage" class="muted" style="margin-top:14px;text-align:center">Not signed in</p>
       <div class="loginMeta">
