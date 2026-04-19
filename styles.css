@@ -1,7 +1,7 @@
 
 :root{
   --bg:#eef2f6;
-  --panel:#111826fff;
+  --panel:#ffffff;
   --line:#d7dee7;
   --ink:#152334;
   --muted:#667589;
@@ -10,7 +10,7 @@
 }
 *{box-sizing:border-box}
 body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:var(--bg);}
-.topbar{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 16px;background:rgba(17,24,38,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
+.topbar{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 16px;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);}
 .brand{font-weight:900;letter-spacing:.02em}
 .page{max-width:1180px;margin:0 auto;padding:20px;display:grid;grid-template-columns:1.1fr .9fr;gap:18px;}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 12px 30px rgba(26,43,66,.06);}
@@ -18,9 +18,9 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Sego
 .stack{display:grid;gap:18px}
 .actions,.row{display:flex;gap:10px;flex-wrap:wrap}
 input,select,textarea,button,a{font:inherit}
-input,select,textarea{width:100%;padding:12px 13px;border-radius:12px;border:1px solid var(--line);background:#111826;}
+input,select,textarea{width:100%;padding:12px 13px;border-radius:12px;border:1px solid var(--line);background:#fff;}
 textarea{min-height:110px;resize:vertical}
-button,a.buttonish{border:none;background:linear-gradient(180deg,var(--brand),var(--brand2));color:#111826;font-weight:800;padding:11px 14px;border-radius:12px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+button,a.buttonish{border:none;background:linear-gradient(180deg,var(--brand),var(--brand2));color:#fff;font-weight:800;padding:11px 14px;border-radius:12px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
 button.secondary{background:#f1f5f9;color:var(--ink);border:1px solid var(--line)}
 .muted{color:var(--muted);font-size:.92rem}
 .tableWrap{overflow:auto}
@@ -65,7 +65,7 @@ code{background:#f4f7fa;border:1px solid var(--line);border-radius:8px;padding:2
   width:46px;height:46px;border-radius:14px;
   display:grid;place-items:center;
   background:linear-gradient(135deg,#0f8bff,#1dc86a);
-  color:#111826;font-weight:900;box-shadow:0 12px 26px rgba(24,119,242,.2);
+  color:#fff;font-weight:900;box-shadow:0 12px 26px rgba(24,119,242,.2);
 }
 .menuLayout{
   max-width:1280px;
@@ -108,7 +108,7 @@ code{background:#f4f7fa;border:1px solid var(--line);border-radius:8px;padding:2
 .previewCard{
   border:1px solid var(--line);
   border-radius:20px;
-  background:#111826fffd9;
+  background:#ffffffd9;
   padding:16px;
 }
 .previewCard h3{margin:0 0 8px;font-size:1rem}
@@ -127,7 +127,7 @@ code{background:#f4f7fa;border:1px solid var(--line);border-radius:8px;padding:2
 .sceneGlowA,.sceneGlowB{position:absolute;border-radius:50%;filter:blur(10px);opacity:.85}
 .sceneGlowA{width:180px;height:180px;background:rgba(24,119,242,.16);top:-24px;right:-16px}
 .sceneGlowB{width:140px;height:140px;background:rgba(66,183,42,.12);bottom:8px;left:8px}
-.sceneTower{position:absolute;bottom:0;border-radius:10px 10px 0 0;background:linear-gradient(180deg,#111826fff,#cfdef7)}
+.sceneTower{position:absolute;bottom:0;border-radius:10px 10px 0 0;background:linear-gradient(180deg,#ffffff,#cfdef7)}
 .scenePanel{
   position:absolute;background:linear-gradient(180deg,#153563,#0f2240);
   border:2px solid rgba(255,255,255,.16);border-radius:16px;overflow:hidden;
@@ -160,7 +160,7 @@ code{background:#f4f7fa;border:1px solid var(--line);border-radius:8px;padding:2
 }
 .miniLeadRow{
   display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
-  padding:10px 12px;border-radius:14px;background:#111826;border:1px solid var(--line);
+  padding:10px 12px;border-radius:14px;background:#fff;border:1px solid var(--line);
 }
 .miniRank{
   width:30px;height:30px;border-radius:10px;background:#edf3fb;display:grid;place-items:center;font-weight:900;color:#2f537d;
@@ -286,7 +286,7 @@ html, body, button, a, input, textarea, select { cursor: none !important; }
 }
 .invAvatarBtn,.invBannerBtn{
   border:1px solid var(--line);
-  background:#111826;
+  background:#fff;
   border-radius:10px;
   min-height:44px;
   padding:8px;
@@ -315,7 +315,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 .inventoryLabel{font-size:.84rem;font-weight:800;color:#5d6d85;margin-bottom:8px}
 .ownedInventory{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
 .ownedBannerInventory{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.invAvatarBtn,.invBannerBtn{border:1px solid var(--line);background:#111826;border-radius:10px;min-height:44px;padding:8px}
+.invAvatarBtn,.invBannerBtn{border:1px solid var(--line);background:#fff;border-radius:10px;min-height:44px;padding:8px}
 .invAvatarBtn.active,.invBannerBtn.active{border-color:#145fd1;box-shadow:0 0 0 2px rgba(20,95,209,.12) inset}
 .invAvatarBtn{display:grid;place-items:center;font-size:1.2rem}
 .invBannerBtn{height:44px}
@@ -329,595 +329,5 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 .livePlayerRow:hover{
   background:#f0f5ff !important;
   border-color:#bfd3f7 !important;
-}
-
-
-/* v57 dark gold theme */
-:root{
-  --bg:#0f1218;
-  --panel:#161b24;
-  --panel2:#1b2230;
-  --text:#ecf0f6;
-  --muted:#9aa6b2;
-  --line:#283142;
-  --gold:#d4a928;
-  --gold-2:#f1c84b;
-}
-body{background:var(--bg);color:var(--text);}
-button,.buttonish{background:linear-gradient(180deg,var(--gold-2),var(--gold));color:#17130a;border-color:#9d7e1b;}
-
-/* v58 refined theme backup */
-:root{
-  --bg:#090d14;
-  --panel:#121927;
-  --text:#eef3fb;
-  --muted:#94a0b2;
-  --line:#253144;
-  --gold:#d4a928;
-  --gold2:#f2cf66;
-}
-body{background:var(--bg);color:var(--text);}
-button,.buttonish{
-  background:linear-gradient(180deg,var(--gold2),var(--gold));
-  color:#17120a;
-  border-color:#8d6f18;
-}
-
-/* v59 backup no-more-wash cleanup */
-body{
-  background:#090d14;
-  color:#eef3fb;
-}
-.card,.panel,.profileCard,.leaderPeek,.sectionCard{
-  background:linear-gradient(180deg, rgba(15,22,33,.98), rgba(11,17,26,.98));
-  border-color:rgba(255,255,255,.08);
-}
-
-
-/* page + top */
-html,body{
-  background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--themeTint, rgba(212,169,40,.06)) 65%, transparent), transparent 34%),
-    linear-gradient(180deg,#090d14 0%, #0d131d 45%, #101724 100%) !important;
-  color:var(--text) !important;
-}
-.topbar,
-.topbar[style],
-.topbar *{
-  color:var(--text) !important;
-}
-.topbar{
-  background:rgba(8,12,19,.92) !important;
-  border-bottom:1px solid rgba(255,255,255,.08) !important;
-  box-shadow:0 12px 28px rgba(0,0,0,.28) !important;
-}
-.searchWrap,
-.searchBar,
-.searchBar input,
-.searchInput{
-  background:transparent !important;
-}
-.searchBar,
-.searchInput,
-.topbar input{
-  background:#0b1119 !important;
-  border:1px solid #253144 !important;
-  color:#f2f7ff !important;
-}
-
-/* kill remaining bright cards/panels */
-.heroCard,
-.profileCard,
-.railCard,
-.feedCard,
-.card,
-.panel,
-.shopCard,
-.socialCard,
-.modalCard,
-.metric,
-.statBox,
-.newsCard,
-.loanCard,
-.stockRow,
-.watchlistRow,
-.leaderMiniRow,
-.miniLeadRow,
-.menuBtn,
-.mobileNavBtn,
-.mobileNav,
-#leaderMini,
-#onlinePlayersGame,
-#watchlist,
-#playerProfileBodyGame,
-#publicProfileBody .profileCard,
-#leaderboardModalOverlay .modalCard,
-#profileModalOverlay .modalCard,
-#playerProfileOverlay .modalCard,
-#eventModal .modalCard,
-#lifeEventModal .modalCard,
-#heroCard,
-#identityPanel,
-#statusPanel,
-#residencePanel,
-#badgePanel,
-#empirePanel,
-#userProfileCard,
-#socialCard,
-#cosmeticStoreGrid > *,
-#stockDetailCard,
-#stockTradeCard,
-#portfolioCard,
-#newsPanel,
-#overviewPanel,
-#assetsPanel,
-#watchlistPanel{
-  background:linear-gradient(180deg, rgba(15,22,33,.99), rgba(11,17,26,.99)) !important;
-  background-color:#111826 !important;
-  border:1px solid rgba(255,255,255,.08) !important;
-  color:var(--text) !important;
-}
-
-/* target nested white stat cards inside bright parent panels */
-.heroCard > *,
-.profileCard > *,
-.railCard > *,
-.card > *,
-.panel > *,
-.shopCard > *,
-.socialCard > *,
-.metric > *,
-.statBox > *,
-#overviewPanel > *,
-#assetsPanel > *,
-#stockDetailCard > *,
-#stockTradeCard > *,
-#portfolioCard > *,
-#newsPanel > *,
-#identityPanel > *,
-#statusPanel > *,
-#residencePanel > *,
-#badgePanel > *,
-#empirePanel > *,
-#userProfileCard > *{
-  color:inherit !important;
-}
-.heroCard .metric,
-.heroCard .statBox,
-.profileCard .metric,
-.profileCard .statBox,
-.railCard .metric,
-.railCard .statBox,
-.card .metric,
-.card .statBox,
-.panel .metric,
-.panel .statBox,
-.shopCard .metric,
-.shopCard .statBox{
-  background:linear-gradient(180deg, rgba(18,26,39,.98), rgba(13,19,29,.98)) !important;
-  background-color:#151f2f !important;
-  border-color:rgba(255,255,255,.08) !important;
-}
-
-/* notifications / floating items */
-#toast,
-.toast,
-.notification,
-.notice,
-.alert,
-.newsToast,
-.marketToast{
-  background:linear-gradient(180deg, rgba(15,22,33,.99), rgba(11,17,26,.99)) !important;
-  background-color:#111826 !important;
-  color:#eef3fb !important;
-  border:1px solid rgba(255,255,255,.08) !important;
-}
-
-/* mobile leftovers */
-.mobileNav{
-  background:rgba(8,12,19,.94) !important;
-  border-top:1px solid rgba(255,255,255,.08) !important;
-}
-.mobileNavBtn:not(.active){
-  background:linear-gradient(180deg,#182233,#121a28) !important;
-  color:#eef3fb !important;
-  border:1px solid #2a374a !important;
-}
-.mobileNavBtn.active,
-.menuBtn.active{
-  background:linear-gradient(180deg,#f2cf66,#d4a928) !important;
-  color:#17120a !important;
-  border:1px solid #8d6f18 !important;
-}
-
-/* buttons */
-button,.buttonish,.buySmall,.actionBtn,.primaryBtn,.shopTab.active{
-  background:linear-gradient(180deg,#f2cf66,#d4a928) !important;
-  color:#17120a !important;
-  border:1px solid #8d6f18 !important;
-}
-button.secondary,.ghostBtn,.shopTab,.menuBtn:not(.active){
-  background:linear-gradient(180deg,#182233,#121a28) !important;
-  color:#eef3fb !important;
-  border:1px solid #2a374a !important;
-}
-
-/* force away common inline light backgrounds */
-[style*="background:rgba(245,247,250,.94)"],
-[style*="background: rgba(245,247,250,.94)"],
-[style*="background:rgba(235,238,242,.96)"],
-[style*="background: rgba(235,238,242,.96)"],
-[style*="background:rgba(226,231,237,.96)"],
-[style*="background: rgba(226,231,237,.96)"],
-[style*="background:#eef2f6"],
-[style*="background: #eef2f6"],
-[style*="background:#fff"],
-[style*="background: #fff"],
-[style*="background:#ffffff"],
-[style*="background: #ffffff"],
-[style*="background:#f7f9fc"],
-[style*="background:#f8fafc"],
-[style*="background: #f7f9fc"],
-[style*="background: #f8fafc"],
-[style*="background-color:#fff"],
-[style*="background-color:#ffffff"],
-[style*="background-color:#f7f9fc"],
-[style*="background-color:#f8fafc"]{
-  background:#111826 !important;
-  background-color:#111826 !important;
-  color:#eef3fb !important;
-  border-color:rgba(255,255,255,.08) !important;
-}
-
-/* text */
-h1,h2,h3,h4,h5,h6,b,strong,.panelTitle,.railTitle,.heroTitle,.v{
-  color:#eef3fb !important;
-}
-.layoutHint,.muted,.k,.panelSub,.feedSub,.subtle,.menuText span{
-  color:#93a0b3 !important;
-}
-table,th,td,tr{
-  background:transparent !important;
-  color:#eef3fb !important;
-  border-color:rgba(255,255,255,.08) !important;
-}
-
-/* decorative images/charts */
-img,svg image{
-  filter:brightness(.68) contrast(1.08) saturate(.9) !important;
-}
-.decorativeGraph,.graphCard img,.graphImage,.placeholderGraph,.chartDecor,.ambientImage{
-  display:none !important;
-}
-
-
-/* ===== v63 STYLES.CSS AUTHORITY: GAME DARK THEME ===== */
-:root{
-  --bg:#090d14 !important;
-  --bg2:#0d131d !important;
-  --panel:#111826 !important;
-  --panel2:#151f2f !important;
-  --panel3:#0f1724 !important;
-  --line:#253144 !important;
-  --text:#eef3fb !important;
-  --muted:#93a0b3 !important;
-  --gold:#d4a928 !important;
-  --gold2:#f2cf66 !important;
-}
-
-/* page */
-html,body{
-  background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--themeTint, rgba(212,169,40,.06)) 65%, transparent), transparent 34%),
-    linear-gradient(180deg,#090d14 0%, #0d131d 45%, #101724 100%) !important;
-  color:var(--text) !important;
-}
-body,
-.mainWrap,
-.appShell,
-.layout,
-.page,
-.contentWrap{
-  background-color:#0b0f17 !important;
-  color:#eef3fb !important;
-}
-
-/* top */
-.topbar{
-  background:rgba(10,14,22,.92) !important;
-  border-bottom:1px solid rgba(255,255,255,.08) !important;
-  box-shadow:0 12px 28px rgba(0,0,0,.28) !important;
-}
-.newsTickerBar{
-  background:linear-gradient(90deg, rgba(212,169,40,.14), rgba(10,14,22,.96) 24%, rgba(10,14,22,.98)) !important;
-}
-.topbar *, .newsTickerBar *{
-  color:#eef3fb !important;
-}
-.searchWrap,
-.searchBar,
-.searchBar input,
-.searchInput{
-  background:transparent !important;
-}
-.searchBar,
-.searchInput,
-.topbar input{
-  background:#0b1119 !important;
-  border:1px solid #253144 !important;
-  color:#f2f7ff !important;
-}
-
-/* all surfaces */
-.heroCard,
-.profileCard,
-.railCard,
-.card,
-.panel,
-.shopCard,
-.socialCard,
-.metric,
-.statBox,
-.feedCard,
-.modalCard,
-.sectionCard,
-.leaderPeek,
-.stockRow,
-.watchlistRow,
-.newsCard,
-.loanCard,
-#stockDetailCard,
-#stockTradeCard,
-#portfolioCard,
-#overviewPanel,
-#assetsPanel,
-#newsPanel,
-#identityPanel,
-#statusPanel,
-#residencePanel,
-#badgePanel,
-#empirePanel,
-#leaderMini,
-#onlinePlayersGame,
-#watchlist,
-#playerProfileBodyGame,
-#publicProfileBody .profileCard,
-#leaderboardModalOverlay .modalCard,
-#profileModalOverlay .modalCard,
-#playerProfileOverlay .modalCard,
-#eventModal .modalCard,
-#lifeEventModal .modalCard{
-  background:#111826 !important;
-  border:1px solid rgba(255,255,255,.08) !important;
-  color:#eef3fb !important;
-}
-
-/* inner boxes causing the washed look */
-.heroCard > div,
-.profileCard > div,
-.railCard > div,
-.card > div,
-.panel > div,
-.shopCard > div,
-.socialCard > div,
-.metric,
-.statBox,
-.grid > div,
-.flex > div,
-#overviewPanel > div,
-#assetsPanel > div,
-#newsPanel > div,
-#identityPanel > div,
-#statusPanel > div,
-#residencePanel > div,
-#badgePanel > div,
-#empirePanel > div,
-#stockDetailCard > div,
-#stockTradeCard > div,
-#portfolioCard > div{
-  background:#151f2f !important;
-  color:#eef3fb !important;
-  border-color:rgba(255,255,255,.08) !important;
-}
-
-/* buttons */
-button,
-.buttonish,
-.buySmall,
-.actionBtn,
-.primaryBtn,
-.shopTab.active,
-.menuBtn.active,
-.mobileNavBtn.active{
-  background:linear-gradient(180deg,#f2cf66,#d4a928) !important;
-  color:#17120a !important;
-  border:1px solid #8d6f18 !important;
-}
-button.secondary,
-.ghostBtn,
-.shopTab,
-.menuBtn:not(.active),
-.mobileNavBtn:not(.active){
-  background:#182233 !important;
-  color:#eef3fb !important;
-  border:1px solid #2a374a !important;
-}
-
-/* text */
-.layoutHint,
-.muted,
-.k,
-.panelSub,
-.feedSub,
-.subtle,
-.menuText span{
-  color:#93a0b3 !important;
-}
-h1,h2,h3,h4,h5,h6,b,strong,.panelTitle,.railTitle,.heroTitle,.v{
-  color:#eef3fb !important;
-}
-
-/* inputs */
-input, textarea, select{
-  background:#0b1119 !important;
-  color:#eef3fb !important;
-  border:1px solid #2a374a !important;
-}
-
-/* notifications */
-.toast,
-.notification,
-#toast,
-.notice,
-.alert,
-.newsToast,
-.marketToast{
-  background:#111826 !important;
-  color:#eef3fb !important;
-  border:1px solid rgba(255,255,255,.08) !important;
-}
-
-/* tables */
-table, th, td, tr{
-  background:transparent !important;
-  color:#eef3fb !important;
-  border-color:rgba(255,255,255,.08) !important;
-}
-
-/* force common inline light backgrounds dark */
-[style*="background:#fff"],
-[style*="background: #fff"],
-[style*="background:#ffffff"],
-[style*="background: #ffffff"],
-[style*="background-color:#fff"],
-[style*="background-color: #fff"],
-[style*="background-color:#ffffff"],
-[style*="background-color: #ffffff"],
-[style*="background:#f7f9fc"],
-[style*="background: #f7f9fc"],
-[style*="background:#f8fafc"],
-[style*="background: #f8fafc"],
-[style*="background:#eef2f6"],
-[style*="background: #eef2f6"],
-[style*="background-color:#f7f9fc"],
-[style*="background-color:#f8fafc"],
-[style*="background-color:#eef2f6"]{
-  background:#111826 !important;
-  background-color:#111826 !important;
-  color:#eef3fb !important;
-  border-color:rgba(255,255,255,.08) !important;
-}
-
-
-/* ===== v64 targeted fix: hero / empire preview washed surfaces ===== */
-.hero,
-.heroLeft,
-.heroArt,
-.empirePreview,
-.empirePreviewInner,
-.empirePreviewCard,
-.empirePreviewMiniGrid,
-.empireMini,
-.empirePreviewFooter,
-.heroGrid,
-.heroCard{
-  background-image:none !important;
-  box-shadow:none;
-}
-
-.hero{
-  background:transparent !important;
-}
-
-.heroLeft{
-  background:transparent !important;
-}
-
-.heroArt,
-.empirePreview{
-  background:
-    radial-gradient(circle at 20% 20%, color-mix(in srgb, var(--themeTint, rgba(212,169,40,.07)) 70%, transparent), transparent 30%),
-    linear-gradient(180deg, rgba(15,22,33,.98), rgba(11,17,26,.98)) !important;
-  border:1px solid rgba(255,255,255,.08) !important;
-  color:var(--text) !important;
-}
-
-.empirePreviewInner{
-  background:transparent !important;
-  border:none !important;
-}
-
-.empirePreviewCard,
-.empireMini,
-.heroCard{
-  background:linear-gradient(180deg, rgba(19,28,42,.98), rgba(13,20,31,.98)) !important;
-  border:1px solid rgba(255,255,255,.08) !important;
-  color:var(--text) !important;
-}
-
-.heroCard .label,
-.empirePreviewLabel,
-.empirePreviewSub,
-.empirePreviewFooter{
-  color:var(--muted) !important;
-}
-
-.heroCard .value,
-.empirePreviewValue{
-  color:var(--text) !important;
-}
-
-/* Kill the pale glows and replace with subtle gold/dark glows */
-.glow,
-.g1,
-.g2{
-  background:
-    radial-gradient(circle, rgba(212,169,40,.16) 0%, rgba(212,169,40,.06) 35%, rgba(212,169,40,0) 70%) !important;
-  filter:blur(34px) !important;
-  opacity:.55 !important;
-  mix-blend-mode:screen;
-}
-
-/* Pills / action buttons in hero should match theme too */
-.pillRow,
-.pill{
-  background:transparent !important;
-}
-.pill{
-  border:1px solid rgba(255,255,255,.08) !important;
-  background:linear-gradient(180deg, rgba(19,28,42,.98), rgba(13,20,31,.98)) !important;
-  color:var(--text) !important;
-}
-.pill b{
-  color:#f7fbff !important;
-}
-
-.heroTitle,
-.heroText{
-  color:var(--text) !important;
-}
-.heroText{
-  color:var(--muted) !important;
-}
-
-.cta{
-  background:linear-gradient(180deg,#f2cf66,#d4a928) !important;
-  color:#17120a !important;
-  border:1px solid #8d6f18 !important;
-}
-.ctaAlt{
-  background:#182233 !important;
-  color:#eef3fb !important;
-  border:1px solid #2a374a !important;
-}
-
-/* If any inline light backgrounds are attached to these exact elements, kill them */
-.heroArt[style*="background"],
-.empirePreview[style*="background"],
-.empirePreviewCard[style*="background"],
-.empireMini[style*="background"],
-.heroCard[style*="background"]{
-  background:#111826 !important;
-  background-image:none !important;
 }
 
