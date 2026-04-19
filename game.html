@@ -3332,46 +3332,164 @@ function mmSharedMarketConfigured(){
     return !!(window.MM_CONFIG && window.MM_CONFIG.SHARED_STOCK_MARKET && window.mmSupabase && typeof window.mmSupabase.from === 'function');
   }catch(e){ return false; }
 }
+/** Deterministic PRNG stream for one market tick; all clients use the same sim_gen → same tape. */
+function mmCreateSharedRng(baseGen){
+  const gen = (Number(baseGen) >>> 0) || 0;
+  let i = 0;
+  function u01(){
+    i += 1;
+    let x = Math.imul(gen ^ (i * 0x85ebca6b), 0x9e3779b9 + i) >>> 0;
+    x ^= x << 13;
+    x >>>= 0;
+    x ^= x >>> 17;
+    x >>>= 0;
+    x ^= x << 5;
+    x >>>= 0;
+    return x / 4294967296;
+  }
+  return {
+    u01,
+    rand(a, b){ return u01() * (b - a) + a; },
+    randn(){
+      let u = 0;
+      let v = 0;
+      while(u <= 1e-12) u = u01();
+      while(v <= 1e-12) v = u01();
+      return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+    },
+    chance(p){ return u01() < p; }
+  };
+}
+const MM_RESET_MARKET_KEY = 'MM_RESET_KEEP_MARKET_V1';
+function mmSharedStockWire(s){
+  return {
+    symbol: s.symbol,
+    name: s.name,
+    sector: s.sector,
+    colorHue: s.colorHue,
+    baseVol: s.baseVol,
+    floorPrice: s.floorPrice,
+    ceilingPrice: s.ceilingPrice,
+    price: s.price,
+    fairValue: s.fairValue,
+    anchorPrice: s.anchorPrice,
+    anchorDrift: s.anchorDrift,
+    dayHigh: s.dayHigh,
+    dayLow: s.dayLow,
+    lastDelta: s.lastDelta,
+    history: Array.isArray(s.history) ? s.history.slice(-100) : [],
+    idioPhase: s.idioPhase,
+    latent: s.latent,
+    volCluster: s.volCluster,
+    microAmp: s.microAmp,
+    microWalk: s.microWalk,
+    drift: s.drift,
+    hype: s.hype,
+    bubble: s.bubble,
+    momentum: s.momentum,
+    sentiment: s.sentiment,
+    newsEffect: s.newsEffect,
+    newsVol: s.newsVol,
+    newsTicks: s.newsTicks,
+    participants: s.participants,
+    liquidity: s.liquidity,
+    lastFlow: s.lastFlow,
+    flowSmooth: s.flowSmooth
+  };
+}
+function mmMergeResetPreservedMarket(){
+  if(!mmSharedMarketConfigured()) return;
+  try{
+    const raw = sessionStorage.getItem(MM_RESET_MARKET_KEY);
+    if(!raw) return;
+    sessionStorage.removeItem(MM_RESET_MARKET_KEY);
+    const blob = JSON.parse(raw);
+    if(blob.stocks && Array.isArray(blob.stocks) && game.stocks && game.stocks.length){
+      const by = Object.create(null);
+      blob.stocks.forEach(b=>{ if(b && b.symbol) by[String(b.symbol).toUpperCase()] = b; });
+      for(const s of game.stocks){
+        const b = by[String(s.symbol || '').toUpperCase()];
+        if(!b) continue;
+        Object.assign(s, b);
+      }
+    }
+    if(typeof blob._macroShock === 'number') game._macroShock = blob._macroShock;
+    if(blob._sectorShock && typeof blob._sectorShock === 'object') game._sectorShock = blob._sectorShock;
+    if(typeof blob._sessionMktEwma === 'number') game._sessionMktEwma = blob._sessionMktEwma;
+    if(typeof blob.dayCount === 'number') game.dayCount = blob.dayCount;
+    if(typeof blob.simHourOfDay === 'number') game.simHourOfDay = blob.simHourOfDay;
+    if(typeof blob._sharedSimGen === 'number') game._sharedSimGen = blob._sharedSimGen;
+    if(typeof blob.mood === 'string') game.mood = blob.mood;
+    if(Array.isArray(blob._arenaFeed)) game._arenaFeed = blob._arenaFeed;
+    if(Array.isArray(blob.news)) game.news = blob.news;
+    if(Array.isArray(blob.newsArchive)) game.newsArchive = blob.newsArchive.slice(0, 300);
+    if(blob.globalEvent !== undefined) game.globalEvent = blob.globalEvent;
+    if(typeof blob.ticksUntilNextNews === 'number') game.ticksUntilNextNews = blob.ticksUntilNextNews;
+    if(typeof blob.nextGlobalAt === 'number') game.nextGlobalAt = blob.nextGlobalAt;
+    game._lastSharedSnapSeen = 0;
+  }catch(e){ console.warn(e); }
+}
 function mmApplySharedMarketPayload(payload){
-  if(!payload || !Array.isArray(payload.stocks) || !Array.isArray(game.stocks)) return;
+  if(!payload || !Array.isArray(game.stocks)) return;
+  if(typeof payload.dayCount === 'number' && Number.isFinite(payload.dayCount)) game.dayCount = payload.dayCount;
+  if(typeof payload.simHourOfDay === 'number' && Number.isFinite(payload.simHourOfDay)){
+    game.simHourOfDay = Math.floor(
+      Math.max(0, Math.min(SIM_HOURS_PER_CAL_DAY - 1, payload.simHourOfDay))
+    );
+  }
+  if(typeof payload.mood === 'string') game.mood = payload.mood;
+  if(typeof payload._sessionMktEwma === 'number' && Number.isFinite(payload._sessionMktEwma)) game._sessionMktEwma = payload._sessionMktEwma;
+  if(typeof payload._macroShock === 'number' && Number.isFinite(payload._macroShock)) game._macroShock = payload._macroShock;
+  if(payload._sectorShock && typeof payload._sectorShock === 'object') game._sectorShock = Object.assign(Object.create(null), payload._sectorShock);
+  if(payload.globalEvent !== undefined) game.globalEvent = payload.globalEvent;
+  if(!Array.isArray(payload.stocks)) return;
   const bySym = Object.create(null);
   for(const r of payload.stocks){
     if(r && r.symbol) bySym[String(r.symbol).toUpperCase()] = r;
   }
+  const wireKeys = [
+    'name', 'sector', 'colorHue', 'baseVol', 'floorPrice', 'ceilingPrice', 'price', 'fairValue', 'anchorPrice', 'anchorDrift',
+    'dayHigh', 'dayLow', 'lastDelta', 'idioPhase', 'latent', 'volCluster', 'microAmp', 'microWalk', 'drift', 'hype', 'bubble',
+    'momentum', 'sentiment', 'newsEffect', 'newsVol', 'newsTicks', 'participants', 'liquidity', 'lastFlow', 'flowSmooth'
+  ];
   for(const s of game.stocks){
     const sym = String(s.symbol || '').toUpperCase();
     const r = bySym[sym];
     if(!r) continue;
-    if(typeof r.price === 'number' && Number.isFinite(r.price)) s.price = r.price;
-    if(typeof r.fairValue === 'number' && Number.isFinite(r.fairValue)) s.fairValue = r.fairValue;
-    if(typeof r.dayHigh === 'number' && Number.isFinite(r.dayHigh)) s.dayHigh = r.dayHigh;
-    if(typeof r.dayLow === 'number' && Number.isFinite(r.dayLow)) s.dayLow = r.dayLow;
-    if(typeof r.lastDelta === 'number' && Number.isFinite(r.lastDelta)) s.lastDelta = r.lastDelta;
+    for(const k of wireKeys){
+      if(r[k] !== undefined && r[k] !== null) s[k] = r[k];
+    }
     if(Array.isArray(r.history) && r.history.length){
       s.history = r.history.slice(-100);
       if(s.history.length < 2) s.history.unshift(s.price);
     }
   }
 }
-function mmApplySharedMarketDbRow(row){
+function mmApplySharedMarketDbRow(row, opts){
   if(!row) return;
   if(row.id != null && Number(row.id) !== 1) return;
   const uat = row.updated_at ? new Date(row.updated_at).getTime() : 0;
-  if(uat && uat <= (game._lastSharedSnapSeen || 0)) return;
+  if(!opts?.force && uat && uat <= (game._lastSharedSnapSeen || 0)) return;
   if(uat) game._lastSharedSnapSeen = uat;
+  if(row.sim_gen != null && Number.isFinite(Number(row.sim_gen))) game._sharedSimGen = Number(row.sim_gen);
   let p = row.payload;
   if(typeof p === 'string'){
     try{ p = JSON.parse(p); }catch(e){ return; }
   }
   mmApplySharedMarketPayload(p);
 }
-async function mmPullSharedMarketBeforeTick(){
+async function mmPullSharedMarketBeforeTick(opts){
   if(!mmSharedMarketConfigured()) return;
   if(!Array.isArray(game.stocks) || !game.stocks.length) return;
+  if(opts && opts.force) game._lastSharedSnapSeen = 0;
   try{
-    const res = await window.mmSupabase.from('shared_market_snapshot').select('id,payload,updated_at').eq('id', 1).maybeSingle();
+    const res = await window.mmSupabase
+      .from('shared_market_snapshot')
+      .select('id,payload,updated_at,sim_gen')
+      .eq('id', 1)
+      .maybeSingle();
     if(res.error || !res.data) return;
-    mmApplySharedMarketDbRow(res.data);
+    mmApplySharedMarketDbRow(res.data, opts);
   }catch(e){}
 }
 async function mmPushSharedMarketAfterTick(){
@@ -3383,33 +3501,67 @@ async function mmPushSharedMarketAfterTick(){
     uid = u && u.data && u.data.user && u.data.user.id;
   }catch(e){}
   if(!uid) return;
+  const prevGen = Number.isFinite(Number(game._sharedSimGen)) ? Number(game._sharedSimGen) : 0;
   const tickBig = Date.now();
   const payload = {
     ts: tickBig,
+    gen: prevGen + 1,
     v: (game._sharedMarketWriteV = (game._sharedMarketWriteV || 0) + 1),
-    stocks: game.stocks.map(s=>({
-      symbol: s.symbol,
-      price: s.price,
-      fairValue: s.fairValue,
-      dayHigh: s.dayHigh,
-      dayLow: s.dayLow,
-      lastDelta: s.lastDelta,
-      history: Array.isArray(s.history) ? s.history.slice(-80) : []
-    }))
+    dayCount: game.dayCount,
+    simHourOfDay: game.simHourOfDay,
+    mood: game.mood,
+    _macroShock: game._macroShock,
+    _sectorShock: game._sectorShock,
+    _sessionMktEwma: game._sessionMktEwma,
+    globalEvent: game.globalEvent,
+    stocks: game.stocks.map(mmSharedStockWire)
   };
   try{
-    await window.mmSupabase.from('shared_market_snapshot').upsert(
-      { id: 1, tick: tickBig, payload, updated_at: new Date().toISOString() },
-      { onConflict: 'id' }
-    );
-  }catch(e){}
+    const up = await window.mmSupabase
+      .from('shared_market_snapshot')
+      .update({
+        tick: tickBig,
+        sim_gen: prevGen + 1,
+        payload,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', 1)
+      .eq('sim_gen', prevGen)
+      .select('id,sim_gen,updated_at');
+    if(!up.error && Array.isArray(up.data) && up.data.length){
+      game._sharedSimGen = prevGen + 1;
+      const u2 = up.data[0].updated_at ? new Date(up.data[0].updated_at).getTime() : Date.now();
+      game._lastSharedSnapSeen = u2;
+    }else{
+      game._lastSharedSnapSeen = 0;
+      await mmPullSharedMarketBeforeTick({ force: true });
+    }
+  }catch(e){
+    game._lastSharedSnapSeen = 0;
+    try{ await mmPullSharedMarketBeforeTick({ force: true }); }catch(_e){}
+  }
 }
 try{
   window.mmApplySharedMarketDbRow = mmApplySharedMarketDbRow;
 }catch(e){}
 
 async function marketTick(){
-  try{ await mmPullSharedMarketBeforeTick(); }catch(e){}
+  const sharedOn = mmSharedMarketConfigured();
+  let uid = null;
+  if(sharedOn){
+    try{
+      const u = await window.mmSupabase.auth.getUser();
+      uid = u && u.data && u.data.user && u.data.user.id;
+    }catch(e){}
+  }
+  try{
+    await mmPullSharedMarketBeforeTick(sharedOn && !uid ? { force: true } : {});
+  }catch(e){}
+  if(sharedOn && !uid) return;
+  const rng = sharedOn ? mmCreateSharedRng(Number(game._sharedSimGen) || 0) : null;
+  const rRand = rng ? (a, b)=>rng.rand(a, b) : rand;
+  const rRandn = rng ? ()=>rng.randn() : randn;
+  const rChance = rng ? p=>rng.chance(p) : p=>Math.random() < p;
   game.simHourOfDay = Number(game.simHourOfDay) || 0;
   let isNewDayStart = false;
   game.simHourOfDay++;
@@ -3424,10 +3576,10 @@ async function marketTick(){
   const decayH = pow => Math.pow(pow, _h);
   const hod = Math.max(1, Math.min(SIM_HOURS_PER_CAL_DAY, Number(game.simHourOfDay) || 1));
   const intradayVolFactor = 0.76 + 0.44 * Math.pow(Math.sin(((hod - 0.5) / SIM_HOURS_PER_CAL_DAY) * Math.PI), 2);
-  const openGapMkt = isNewDayStart ? randn() * 0.0026 + (typeof game._macroShock === 'number' ? game._macroShock : 0) * 0.0034 : 0;
+  const openGapMkt = isNewDayStart ? rRandn() * 0.0026 + (typeof game._macroShock === 'number' ? game._macroShock : 0) * 0.0034 : 0;
   const sessionMkt =
     (typeof game._macroShock === 'number' ? game._macroShock : 0) * 0.0044 * intradayVolFactor +
-    randn() * (0.00062 + Math.abs(game._macroShock || 0) * 0.002) * intradayVolFactor;
+    rRandn() * (0.00062 + Math.abs(game._macroShock || 0) * 0.002) * intradayVolFactor;
   if(typeof game._sessionMktEwma !== 'number') game._sessionMktEwma = 0;
   const sessionMktEwmaPrev = game._sessionMktEwma;
 
@@ -3438,7 +3590,7 @@ async function marketTick(){
 
   if(typeof game._macroShock !== 'number') game._macroShock = 0;
   game._macroShock = clamp(
-    game._macroShock * decayH(0.965) + rand(-0.0048, 0.0048) / SIM_HOURS_PER_CAL_DAY + (Math.random() < 0.018 / SIM_HOURS_PER_CAL_DAY ? rand(-0.014, 0.014) : 0),
+    game._macroShock * decayH(0.965) + rRand(-0.0048, 0.0048) / SIM_HOURS_PER_CAL_DAY + (rChance(0.018 / SIM_HOURS_PER_CAL_DAY) ? rRand(-0.014, 0.014) : 0),
     -0.055,
     0.055
   );
@@ -3449,9 +3601,9 @@ async function marketTick(){
     const sec = st.sector || 'Other';
     if(sectorsSeen.has(sec)) continue;
     sectorsSeen.add(sec);
-    const prev = typeof sectorShock[sec] === 'number' ? sectorShock[sec] : rand(-0.04, 0.04);
+    const prev = typeof sectorShock[sec] === 'number' ? sectorShock[sec] : rRand(-0.04, 0.04);
     sectorShock[sec] = clamp(
-      prev * decayH(0.955) + rand(-0.0065, 0.0065) / SIM_HOURS_PER_CAL_DAY + (Math.random() < 0.012 / SIM_HOURS_PER_CAL_DAY ? rand(-0.018, 0.018) : 0),
+      prev * decayH(0.955) + rRand(-0.0065, 0.0065) / SIM_HOURS_PER_CAL_DAY + (rChance(0.012 / SIM_HOURS_PER_CAL_DAY) ? rRand(-0.018, 0.018) : 0),
       -0.095,
       0.095
     );
@@ -3471,23 +3623,23 @@ async function marketTick(){
       s.dayHigh = s.price;
       s.dayLow = s.price;
     }
-    if(typeof s.idioPhase !== 'number') s.idioPhase = rand(0, Math.PI * 2);
-    if(typeof s.latent !== 'number') s.latent = rand(-0.12, 0.12);
+    if(typeof s.idioPhase !== 'number') s.idioPhase = rRand(0, Math.PI * 2);
+    if(typeof s.latent !== 'number') s.latent = rRand(-0.12, 0.12);
     if(typeof s.volCluster !== 'number') s.volCluster = s.baseVol;
-    if(typeof s.microAmp !== 'number') s.microAmp = rand(0.00065, 0.0028);
+    if(typeof s.microAmp !== 'number') s.microAmp = rRand(0.00065, 0.0028);
 
     s.latent = clamp(
       (s.latent * decayH(0.9)) +
-        randn() * (0.009 + s.baseVol * 0.14) / SIM_HOURS_PER_CAL_DAY +
+        rRandn() * (0.009 + s.baseVol * 0.14) / SIM_HOURS_PER_CAL_DAY +
         (s.newsEffect || 0) * 0.014 / SIM_HOURS_PER_CAL_DAY,
       -0.42,
       0.42
     );
 
-    if(typeof s.microWalk !== 'number') s.microWalk = randn() * 0.006;
+    if(typeof s.microWalk !== 'number') s.microWalk = rRandn() * 0.006;
     s.microWalk = clamp(
       s.microWalk * decayH(0.85) +
-        randn() * (0.00135 + s.baseVol * 0.0026) * intradayVolFactor / SIM_HOURS_PER_CAL_DAY,
+        rRandn() * (0.00135 + s.baseVol * 0.0026) * intradayVolFactor / SIM_HOURS_PER_CAL_DAY,
       -0.048,
       0.048
     );
@@ -3502,11 +3654,11 @@ async function marketTick(){
     const sectorComp = secPulse * 0.0105;
     const macroBeta = 0.52 + (((sym.charCodeAt(0) * 11 + (s.colorHue || 0)) % 95) / 200);
     const macroComp = game._macroShock * 0.02 * macroBeta;
-    const idioNoise = randn() * s.baseVol * 0.007 * intradayVolFactor;
+    const idioNoise = rRandn() * s.baseVol * 0.007 * intradayVolFactor;
     const cyc = idioWave + weakGlobal * 0.45 + sectorComp + macroComp + s.latent * 0.0024 + s.microWalk + idioNoise;
 
     if(typeof s.anchorDrift !== 'number') s.anchorDrift = 0;
-    s.anchorDrift = clamp(s.anchorDrift * decayH(0.93) + randn() * 0.0002 / SIM_HOURS_PER_CAL_DAY, -0.0022, 0.0022);
+    s.anchorDrift = clamp(s.anchorDrift * decayH(0.93) + rRandn() * 0.0002 / SIM_HOURS_PER_CAL_DAY, -0.0022, 0.0022);
     s.anchorPrice = clamp(
       s.anchorPrice * (1 + s.anchorDrift / SIM_HOURS_PER_CAL_DAY),
       Math.max(s.floorPrice * 1.12, s.price * 0.35),
@@ -3518,7 +3670,7 @@ async function marketTick(){
     s.fairValue = clamp(
       s.fairValue *
         (1 +
-          (randn() * 0.00265 + s.drift * 0.075 + (s.newsEffect || 0) * 0.032 + fairPull * 0.24) / SIM_HOURS_PER_CAL_DAY),
+          (rRandn() * 0.00265 + s.drift * 0.075 + (s.newsEffect || 0) * 0.032 + fairPull * 0.24) / SIM_HOURS_PER_CAL_DAY),
       minFair,
       s.ceilingPrice * 0.94
     );
@@ -3529,7 +3681,7 @@ async function marketTick(){
 
     s.drift = clamp(
       s.drift * decayH(0.94) +
-        randn() * 0.00085 / SIM_HOURS_PER_CAL_DAY +
+        rRandn() * 0.00085 / SIM_HOURS_PER_CAL_DAY +
         s.sentiment * 0.00026 / SIM_HOURS_PER_CAL_DAY -
         valuationGap * 0.0025 / SIM_HOURS_PER_CAL_DAY,
       -0.012,
@@ -3586,8 +3738,8 @@ async function marketTick(){
     buyerBias = clamp(buyerBias, 0.22, 0.82);
     sellerBias = clamp(sellerBias, 0.22, 0.82);
 
-    const buyers = Math.max(2200, s.participants * (buyerBias + randn() * 0.019));
-    const sellers = Math.max(2200, s.participants * (sellerBias + randn() * 0.019));
+    const buyers = Math.max(2200, s.participants * (buyerBias + rRandn() * 0.019));
+    const sellers = Math.max(2200, s.participants * (sellerBias + rRandn() * 0.019));
     const netFlow = buyers - sellers;
     s.lastFlow = netFlow;
 
@@ -3603,19 +3755,19 @@ async function marketTick(){
     const floorBounce =
       floorRatio < 1.38 ? ((1.38 / floorRatio) - 1) * 0.055 + (floorRatio < 1.06 ? 0.014 : 0) : 0;
     const crashChance = s.price > s.fairValue * 1.9 ? Math.min(0.2 / SIM_HOURS_PER_CAL_DAY, (0.018 + overheat * 0.06 + s.bubble * 0.02) / SIM_HOURS_PER_CAL_DAY) : 0;
-    const crashShock = Math.random() < crashChance ? -rand(0.08, 0.22) : 0;
+    const crashShock = rChance(crashChance) ? -rRand(0.08, 0.22) : 0;
 
     let idioJump = 0;
     const jumpP = Math.min(0.032 / SIM_HOURS_PER_CAL_DAY, (0.0032 + (s.baseVol || 0.03) * 0.16) / SIM_HOURS_PER_CAL_DAY);
-    if(Math.random() < jumpP){
-      const mag = Math.min(0.09, Math.exp(randn() * 0.38 - 1.35) * (0.022 + s.baseVol * 0.45));
-      idioJump = (Math.random() < 0.48 ? -1 : 1) * mag;
+    if(rChance(jumpP)){
+      const mag = Math.min(0.09, Math.exp(rRandn() * 0.38 - 1.35) * (0.022 + s.baseVol * 0.45));
+      idioJump = (rChance(0.48) ? -1 : 1) * mag;
     }
 
-    const asym = randn() * effectiveVol * 0.065;
+    const asym = rRandn() * effectiveVol * 0.065;
     const shock =
-      randn() * effectiveVol * (0.46 + intradayVolFactor * 0.24) +
-      (Math.random() < 0.035 ? randn() * effectiveVol * 0.48 : 0) +
+      rRandn() * effectiveVol * (0.46 + intradayVolFactor * 0.24) +
+      (rChance(0.035) ? rRandn() * effectiveVol * 0.48 : 0) +
       asym;
 
     const stockBeta = 0.78 + (((s.colorHue || 0) % 118) / 290) + (s.baseVol || 0.03) * 0.35;
@@ -3649,14 +3801,14 @@ async function marketTick(){
     s.dayHigh = Math.max(s.dayHigh, s.price);
     s.dayLow = Math.min(s.dayLow, s.price);
 
-    if(Math.random() < 0.06 / SIM_HOURS_PER_CAL_DAY){
+    if(rChance(0.06 / SIM_HOURS_PER_CAL_DAY)){
       s.participants = Math.max(
         30000,
-        Math.round(s.participants * (1 + rand(-0.04, 0.05) + Math.max(0, s.hype) * 0.015 - overheat * 0.03))
+        Math.round(s.participants * (1 + rRand(-0.04, 0.05) + Math.max(0, s.hype) * 0.015 - overheat * 0.03))
       );
     }
-    if(Math.random() < 0.05 / SIM_HOURS_PER_CAL_DAY){
-      s.liquidity = Math.max(50000, s.liquidity * (1 + rand(-0.04, 0.04)));
+    if(rChance(0.05 / SIM_HOURS_PER_CAL_DAY)){
+      s.liquidity = Math.max(50000, s.liquidity * (1 + rRand(-0.04, 0.04)));
     }
   }
 
@@ -3854,7 +4006,20 @@ window.__mmGetSpeed = getSpeed;
 
 function load(){
   const raw = localStorage.getItem(SAVE_KEY);
-  if(!raw){ game.speedIndex = 1; game.speedLabel = '1x'; game.simNow = Date.now(); recalc(); makeNews(true); makeNews(true); try{ document.body.classList.add('mm-motion'); }catch(e){} return; }
+  if(!raw){
+    game.speedIndex = 1;
+    game.speedLabel = '1x';
+    game.simNow = Date.now();
+    recalc();
+    makeNews(true);
+    makeNews(true);
+    mmMergeResetPreservedMarket();
+    if(mmSharedMarketConfigured()){
+      setTimeout(()=>{ mmPullSharedMarketBeforeTick({ force: true }).catch(()=>{}); }, 0);
+    }
+    try{ document.body.classList.add('mm-motion'); }catch(e){}
+    return;
+  }
   try{
     const parsed = JSON.parse(raw);
     Object.assign(game, parsed);
@@ -3931,11 +4096,39 @@ function load(){
     }
     if(!game.nextBonusAt) game.nextBonusAt = game.simNow + irand(15000,60000);
     if(!game.nextLifeAt) game.nextLifeAt = game.simNow + irand(60000,300000);
+    mmMergeResetPreservedMarket();
+    if(mmSharedMarketConfigured()){
+      setTimeout(()=>{ mmPullSharedMarketBeforeTick({ force: true }).catch(()=>{}); }, 0);
+    }
     recalc();
     try{ document.body.classList.add('mm-motion'); }catch(e){}
   }catch(e){ console.warn(e); recalc(); try{ document.body.classList.add('mm-motion'); }catch(_e){} }
 }
-function reset(){ if(confirm('Reset everything?')){ localStorage.removeItem(SAVE_KEY); location.reload(); } }
+function reset(){
+  if(!confirm('Reset everything?')) return;
+  try{
+    if(mmSharedMarketConfigured()){
+      sessionStorage.setItem(MM_RESET_MARKET_KEY, JSON.stringify({
+        stocks: game.stocks,
+        _macroShock: game._macroShock,
+        _sectorShock: game._sectorShock,
+        _sessionMktEwma: game._sessionMktEwma,
+        dayCount: game.dayCount,
+        simHourOfDay: game.simHourOfDay,
+        _sharedSimGen: game._sharedSimGen,
+        mood: game.mood,
+        news: game.news,
+        newsArchive: game.newsArchive,
+        ticksUntilNextNews: game.ticksUntilNextNews,
+        globalEvent: game.globalEvent,
+        nextGlobalAt: game.nextGlobalAt,
+        _arenaFeed: game._arenaFeed
+      }));
+    }
+  }catch(e){ console.warn(e); }
+  localStorage.removeItem(SAVE_KEY);
+  location.reload();
+}
 
 function renderWatchlist(){
   const el = $('#watchlist');
