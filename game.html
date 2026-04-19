@@ -3102,6 +3102,7 @@ function makeNews(initial=false){
   if(game.news.length>24) game.news.length = 24;
   game.newsBonusPool += Math.max(50, Math.abs(effects)*20000);
   if(!initial) showNewsFlashChyron(`${s.symbol} · ${card.tone}: ${card.text}`);
+  if(!initial && mmSharedMarketConfigured()) mmQueueSharedTapePush();
 }
 
 function triggerOpportunity(){
@@ -3192,6 +3193,7 @@ function mmApplyTradeMicroPrice(s, notional, side){
   const prev = s.price;
   s.price = clamp(prev * (1 + (side === 'buy' ? mag : -mag)), s.floorPrice, s.ceilingPrice);
   s.lastDelta = prev > 1e-12 ? s.price / prev - 1 : 0;
+  mmQueueSharedTapePush();
 }
 function mmSpectatorToast(msg){
   try{
@@ -3289,15 +3291,77 @@ function mmStashMarketForResetBeforeReload(){
     sessionStorage.setItem(MM_RESET_MARKET_KEY, s);
   }catch(e){ console.warn(e); }
 }
-function mmSchedulePostLoadSharedPull(){
+async function mmHydrateSharedTapeFromCloud(){
   if(!mmSharedMarketConfigured()) return;
-  setTimeout(()=>{
-    if(game._mmSkipNextSharedPull){
-      game._mmSkipNextSharedPull = false;
-      return;
+  game._mmSkipNextSharedPull = false;
+  try{
+    game._lastSharedSnapSeen = 0;
+    await mmPullSharedMarketBeforeTick({ force: true });
+    if(typeof window.mmRefreshLive === 'function') window.mmRefreshLive();
+  }catch(e){ console.warn(e); }
+}
+function mmBuildSharedMarketPayloadBody(genForPayload){
+  return {
+    ts: Date.now(),
+    gen: genForPayload,
+    v: (game._sharedMarketWriteV = (game._sharedMarketWriteV || 0) + 1),
+    dayCount: game.dayCount,
+    simHourOfDay: game.simHourOfDay,
+    mood: game.mood,
+    _macroShock: game._macroShock,
+    _sectorShock: game._sectorShock,
+    _sessionMktEwma: game._sessionMktEwma,
+    globalEvent: game.globalEvent,
+    newsBonusPool: typeof game.newsBonusPool === 'number' ? game.newsBonusPool : 0,
+    news: Array.isArray(game.news) ? game.news.slice(0, 24) : [],
+    newsArchive: Array.isArray(game.newsArchive) ? game.newsArchive.slice(0, 120) : [],
+    stocks: game.stocks.map(mmSharedStockWire)
+  };
+}
+let __mmTapePushTimer = null;
+function mmQueueSharedTapePush(){
+  if(!mmSharedMarketConfigured()) return;
+  clearTimeout(__mmTapePushTimer);
+  __mmTapePushTimer = setTimeout(()=>{
+    __mmTapePushTimer = null;
+    void mmDoSharedMarketWrite({ bumpGen: false });
+  }, 320);
+}
+async function mmDoSharedMarketWrite(opts){
+  const bumpGen = !!(opts && opts.bumpGen);
+  if(!mmSharedMarketConfigured()) return;
+  if(!Array.isArray(game.stocks) || !game.stocks.length) return;
+  let uid = null;
+  try{
+    const u = await window.mmSupabase.auth.getUser();
+    uid = u && u.data && u.data.user && u.data.user.id;
+  }catch(e){}
+  if(!uid) return;
+  const prevGen = Number.isFinite(Number(game._sharedSimGen)) ? Number(game._sharedSimGen) : 0;
+  const nextGen = bumpGen ? prevGen + 1 : prevGen;
+  const tickBig = Date.now();
+  const payload = mmBuildSharedMarketPayloadBody(nextGen);
+  const row = { tick: tickBig, payload, updated_at: new Date().toISOString() };
+  if(bumpGen) row.sim_gen = nextGen;
+  try{
+    const up = await window.mmSupabase
+      .from('shared_market_snapshot')
+      .update(row)
+      .eq('id', 1)
+      .eq('sim_gen', prevGen)
+      .select('id,sim_gen,updated_at');
+    if(!up.error && Array.isArray(up.data) && up.data.length){
+      if(bumpGen) game._sharedSimGen = nextGen;
+      const u2 = up.data[0].updated_at ? new Date(up.data[0].updated_at).getTime() : Date.now();
+      game._lastSharedSnapSeen = u2;
+    }else{
+      game._lastSharedSnapSeen = 0;
+      await mmPullSharedMarketBeforeTick({ force: true });
     }
-    mmPullSharedMarketBeforeTick({ force: true }).catch(()=>{});
-  }, 0);
+  }catch(e){
+    game._lastSharedSnapSeen = 0;
+    try{ await mmPullSharedMarketBeforeTick({ force: true }); }catch(_e){}
+  }
 }
 function mmSharedStockWire(s){
   return {
@@ -3383,6 +3447,9 @@ function mmApplySharedMarketPayload(payload){
   if(typeof payload._macroShock === 'number' && Number.isFinite(payload._macroShock)) game._macroShock = payload._macroShock;
   if(payload._sectorShock && typeof payload._sectorShock === 'object') game._sectorShock = Object.assign(Object.create(null), payload._sectorShock);
   if(payload.globalEvent !== undefined) game.globalEvent = payload.globalEvent;
+  if(typeof payload.newsBonusPool === 'number' && Number.isFinite(payload.newsBonusPool)) game.newsBonusPool = payload.newsBonusPool;
+  if(Array.isArray(payload.news)) game.news = payload.news.slice(0, 24);
+  if(Array.isArray(payload.newsArchive)) game.newsArchive = payload.newsArchive.slice(0, 300);
   if(!Array.isArray(payload.stocks)) return;
   const bySym = Object.create(null);
   for(const r of payload.stocks){
@@ -3434,53 +3501,7 @@ async function mmPullSharedMarketBeforeTick(opts){
   }catch(e){}
 }
 async function mmPushSharedMarketAfterTick(){
-  if(!mmSharedMarketConfigured()) return;
-  if(!Array.isArray(game.stocks) || !game.stocks.length) return;
-  let uid = null;
-  try{
-    const u = await window.mmSupabase.auth.getUser();
-    uid = u && u.data && u.data.user && u.data.user.id;
-  }catch(e){}
-  if(!uid) return;
-  const prevGen = Number.isFinite(Number(game._sharedSimGen)) ? Number(game._sharedSimGen) : 0;
-  const tickBig = Date.now();
-  const payload = {
-    ts: tickBig,
-    gen: prevGen + 1,
-    v: (game._sharedMarketWriteV = (game._sharedMarketWriteV || 0) + 1),
-    dayCount: game.dayCount,
-    simHourOfDay: game.simHourOfDay,
-    mood: game.mood,
-    _macroShock: game._macroShock,
-    _sectorShock: game._sectorShock,
-    _sessionMktEwma: game._sessionMktEwma,
-    globalEvent: game.globalEvent,
-    stocks: game.stocks.map(mmSharedStockWire)
-  };
-  try{
-    const up = await window.mmSupabase
-      .from('shared_market_snapshot')
-      .update({
-        tick: tickBig,
-        sim_gen: prevGen + 1,
-        payload,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', 1)
-      .eq('sim_gen', prevGen)
-      .select('id,sim_gen,updated_at');
-    if(!up.error && Array.isArray(up.data) && up.data.length){
-      game._sharedSimGen = prevGen + 1;
-      const u2 = up.data[0].updated_at ? new Date(up.data[0].updated_at).getTime() : Date.now();
-      game._lastSharedSnapSeen = u2;
-    }else{
-      game._lastSharedSnapSeen = 0;
-      await mmPullSharedMarketBeforeTick({ force: true });
-    }
-  }catch(e){
-    game._lastSharedSnapSeen = 0;
-    try{ await mmPullSharedMarketBeforeTick({ force: true }); }catch(_e){}
-  }
+  await mmDoSharedMarketWrite({ bumpGen: true });
 }
 try{
   window.mmApplySharedMarketDbRow = mmApplySharedMarketDbRow;
@@ -3946,7 +3967,7 @@ function load(){
     makeNews(true);
     makeNews(true);
     mmMergeResetPreservedMarket();
-    mmSchedulePostLoadSharedPull();
+    void mmHydrateSharedTapeFromCloud();
     try{ document.body.classList.add('mm-motion'); }catch(e){}
     return;
   }
@@ -4027,7 +4048,7 @@ function load(){
     if(!game.nextBonusAt) game.nextBonusAt = game.simNow + irand(15000,60000);
     if(!game.nextLifeAt) game.nextLifeAt = game.simNow + irand(60000,300000);
     mmMergeResetPreservedMarket();
-    mmSchedulePostLoadSharedPull();
+    void mmHydrateSharedTapeFromCloud();
     recalc();
     try{ document.body.classList.add('mm-motion'); }catch(e){}
   }catch(e){ console.warn(e); recalc(); try{ document.body.classList.add('mm-motion'); }catch(_e){} }
@@ -6163,6 +6184,12 @@ refresh();
 try{
   tickArenaUi(true);
 }catch(e){}
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState !== 'visible') return;
+  try{
+    if(mmSharedMarketConfigured()) void mmHydrateSharedTapeFromCloud();
+  }catch(e){}
+}, { passive: true });
 
 
 let __realLast = Date.now();
