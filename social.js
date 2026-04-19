@@ -215,6 +215,9 @@ function renderOwnedAccountCosmetics(owned){
     });
   }
 
+
+  let accountDetailsLoadedOnce = false;
+
 async function getUser() {
     const { data, error } = await window.mmSupabase.auth.getUser();
     if (error) throw error;
@@ -505,10 +508,11 @@ async function loadLeaderboard() {
     }
   }
 
-  async function loadMyProfile() {
+  async function loadMyProfile(force = false) {
     const user = await getUser().catch(() => null);
     if (!user) return;
-    if (profileFormDirty) return;
+    if (profileFormDirty && !force) return;
+    if (accountDetailsLoadedOnce && !force) return;
 
     const { data, error } = await window.mmSupabase.from("profiles").select("*").eq("id", user.id).single();
     if (error || !data) return;
@@ -524,6 +528,7 @@ async function loadLeaderboard() {
       selectedAccountBanner = data.banner_url || "default_banner";
       const owned = await loadOwnedAccountCosmetics(user.id);
       renderOwnedAccountCosmetics(owned);
+      accountDetailsLoadedOnce = true;
     } finally {
       suppressProfileDirty = false;
     }
@@ -555,6 +560,7 @@ async function loadLeaderboard() {
     if (error) return flash(el.profileMessage(), error.message, false);
 
     profileFormDirty = false;
+    accountDetailsLoadedOnce = true;
     flash(el.profileMessage(), "Profile saved.");
   }
 
