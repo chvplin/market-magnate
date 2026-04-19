@@ -1,5 +1,6 @@
 (function () {
   const SAVE_KEY = 'market_magnate_ultra_save_v11';
+  const HUB_AVATAR_FALLBACK_KEY = 'market_magnate_hub_avatar_dna_v1';
   const $ = (sel) => document.querySelector(sel);
 
   const el = {
@@ -26,6 +27,53 @@
     profileMessage: () => $("#profileMessage"),
     authMessage: () => $("#authMessage")
   };
+
+  function readHubAvatarDNA() {
+    if (!window.MM_AVATAR) return {};
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (raw) {
+        const o = JSON.parse(raw);
+        return window.MM_AVATAR.normalizeAvatarDNA(o.avatarDNA || {});
+      }
+      const hubRaw = localStorage.getItem(HUB_AVATAR_FALLBACK_KEY);
+      if (hubRaw) return window.MM_AVATAR.normalizeAvatarDNA(JSON.parse(hubRaw));
+    } catch (e) {}
+    return window.MM_AVATAR.defaultAvatarDNA();
+  }
+
+  function writeHubAvatarDNA(d) {
+    if (!window.MM_AVATAR) return;
+    const norm = window.MM_AVATAR.normalizeAvatarDNA(d);
+    try {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (raw) {
+        const o = JSON.parse(raw);
+        o.avatarDNA = norm;
+        localStorage.setItem(SAVE_KEY, JSON.stringify(o));
+        try { localStorage.removeItem(HUB_AVATAR_FALLBACK_KEY); } catch (e2) {}
+        return;
+      }
+      localStorage.setItem(HUB_AVATAR_FALLBACK_KEY, JSON.stringify(norm));
+    } catch (e) {}
+  }
+
+  let refreshHubAvatarStudio = null;
+  function ensureHubAvatarStudio() {
+    const studio = document.getElementById("hubAvatarStudio");
+    const host = document.getElementById("hubAvatarHost");
+    if (!studio || !host || !window.MM_AVATAR) return;
+    if (!refreshHubAvatarStudio) {
+      refreshHubAvatarStudio = window.MM_AVATAR.mountStudio(studio, host, {
+        get: readHubAvatarDNA,
+        set: writeHubAvatarDNA,
+        save: function () {},
+        flex: function () { return {}; }
+      });
+    } else {
+      refreshHubAvatarStudio();
+    }
+  }
 
 
 const accountAvatarShop = [
@@ -349,7 +397,12 @@ async function getUser() {
       flash(el.authMessage(), error.message, false);
       return;
     }
-    try { localStorage.removeItem(SAVE_KEY); localStorage.removeItem("MM_LAST_LOGIN"); localStorage.removeItem("MM_PROFILE_HINT"); } catch (e) {}
+    try {
+      localStorage.removeItem(SAVE_KEY);
+      localStorage.removeItem(HUB_AVATAR_FALLBACK_KEY);
+      localStorage.removeItem("MM_LAST_LOGIN");
+      localStorage.removeItem("MM_PROFILE_HINT");
+    } catch (e) {}
     flash(el.authMessage(), "Signed out.");
     await refreshAuthUI();
     setTimeout(() => { window.location.href = "./index.html"; }, 250);
@@ -546,6 +599,7 @@ async function loadLeaderboard() {
       accountDetailsLoadedOnce = true;
     } finally {
       suppressProfileDirty = false;
+      try { ensureHubAvatarStudio(); } catch (e) {}
     }
   }
 
@@ -667,6 +721,7 @@ async function loadLeaderboard() {
   async function init() {
     if (!window.mmSupabase) return;
     bindEvents();
+    try { ensureHubAvatarStudio(); } catch (e) {}
     await refreshAuthUI();
     await loadMyProfile();
     await loadLeaderboard();

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Market Magnate Login</title>
   <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./avatar.css" />
   <style>
     body{
       min-height:100vh;
@@ -143,7 +144,16 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
           <input id="profileDisplayName" type="text" placeholder="Display name" />
           <textarea id="profileBio" placeholder="Bio" style="min-height:82px"></textarea>
           <input id="profileFavoriteStock" type="text" placeholder="Favorite stock" />
-          
+          <div class="hubCharCreator" id="hubCharCreatorBlock">
+            <div class="inventoryLabel">Character look</div>
+            <p class="muted" style="margin:0 0 10px;font-size:.82rem;line-height:1.45">Same options as in the game Empire tab. Updates your local <code>market_magnate_ultra_save_v11</code> avatar when a save exists; otherwise it is stored in this browser only.</p>
+            <div class="hubCharTop">
+              <div class="hubCharPreview">
+                <div id="hubAvatarHost" class="mmAvatarHost mmAvatarHost--hub" aria-hidden="true"></div>
+              </div>
+              <div id="hubAvatarStudio" style="flex:1;min-width:0"></div>
+            </div>
+          </div>
         <div class="inventorySection">
           <div class="inventoryLabel">Owned Avatars</div>
           <div id="ownedAvatarInventory" class="ownedInventory"></div>
@@ -187,6 +197,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./config.js"></script>
   <script src="./supabase-client.js"></script>
+  <script src="./avatar-engine.js"></script>
   <script src="./social.js"></script>
   
   

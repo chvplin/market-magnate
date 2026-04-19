@@ -24,6 +24,10 @@
   --orange:#ff9f43;
   --shadow:0 10px 28px rgba(24,119,242,.10), 0 3px 10px rgba(0,0,0,.06);
   --radius:14px;
+  --mm-topbar-h:76px;
+}
+@media (max-width:560px){
+  :root{ --mm-topbar-h:68px; }
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);background:
@@ -41,9 +45,32 @@ button{cursor:pointer;border:none;color:var(--text)}
 linear-gradient(90deg,transparent 0 6%, rgba(255,255,255,.14) 6% 8%, transparent 8% 26%, rgba(255,255,255,.14) 26% 28%, transparent 28% 46%, rgba(255,255,255,.14) 46% 48%, transparent 48% 100%);
 border-radius:8px}
 .mmMark span{position:relative;z-index:1;letter-spacing:.02em;text-shadow:0 1px 2px rgba(0,0,0,.12)}
-.searchWrap{position:relative}
-.searchBar{display:flex;align-items:center;gap:10px;background:#e3e8ee;border:1px solid #e2e8f0;border-radius:999px;padding:10px 14px;min-width:min(420px,44vw);color:#667085}
-.searchBar input{border:none;outline:none;background:transparent;width:100%;font-size:.95rem;color:var(--text)}
+.searchWrap{position:relative;flex:1;min-width:0;max-width:min(560px,52vw)}
+.searchBar{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  background:linear-gradient(180deg,#ffffff 0%,#f1f6fc 100%);
+  border:2px solid #8eb4eb;
+  border-radius:999px;
+  padding:11px 16px;
+  min-width:min(440px,46vw);
+  color:#334155;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.95) inset,
+    0 2px 0 rgba(24,119,242,.1),
+    0 6px 20px rgba(24,119,242,.1);
+  transition:border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.searchWrap:focus-within .searchBar{
+  border-color:#1877f2;
+  background:linear-gradient(180deg,#ffffff 0%,#f5f9ff 100%);
+  box-shadow:
+    0 0 0 3px rgba(24,119,242,.2),
+    0 8px 26px rgba(24,119,242,.14);
+}
+.searchBar input{border:none;outline:none;background:transparent;width:100%;font-size:.96rem;color:var(--text);font-weight:500}
+.searchBar input::placeholder{color:#5c6b80;opacity:.92}
 .searchResults{position:absolute;top:calc(100% + 10px);left:0;right:0;background:#f8fafc;border:1px solid var(--line);border-radius:11px;box-shadow:0 16px 40px rgba(0,0,0,.12);padding:10px;display:none;max-height:min(70vh,520px);overflow:auto;z-index:150}
 .searchResults.open{display:block}
 .searchHint{padding:12px 14px;color:var(--muted);font-size:.92rem}
@@ -54,8 +81,6 @@ border-radius:8px}
 .searchItemMain b{display:block;font-size:.95rem}
 .searchItemMain span{display:block;color:var(--muted);font-size:.84rem;margin-top:3px}
 .searchItemMeta{font-size:.84rem;color:#44556f;font-weight:800}
-.searchBar{display:flex;align-items:center;gap:10px;background:#e3e8ee;border:1px solid #e2e8f0;border-radius:999px;padding:10px 14px;min-width:min(420px,44vw);color:#667085}
-.searchBar input{border:none;outline:none;background:transparent;width:100%;font-size:.95rem;color:var(--text)}
 .circleBtn{width:42px;height:42px;border-radius:999px;background:#dbe3ec;display:grid;place-items:center;font-size:1.15rem}
 .menuToggle{display:none}
 .app{max-width:1560px;margin:0 auto;padding:18px;display:grid;grid-template-columns:290px minmax(0,1fr) 270px;gap:18px;align-items:start}
@@ -174,6 +199,19 @@ canvas{width:100%;height:100%}
 .portfolioTable,.ownedTable{display:grid;gap:10px}
 .holding{padding:12px 14px;border-radius:10px;background:#f8fafc;border:1px solid var(--line);display:grid;grid-template-columns:1.2fr .8fr .8fr .8fr;gap:10px;align-items:center}
 .marketFeed{display:grid;gap:12px}
+.newsFeedScroll{
+  max-height:min(68vh, 640px);
+  overflow-y:auto;
+  padding-right:6px;
+  scrollbar-gutter:stable;
+}
+.newsCardMeta{
+  font-size:.78rem;
+  font-weight:750;
+  color:var(--muted);
+  margin:0 0 8px;
+  letter-spacing:.02em;
+}
 .newsCard{padding:14px 16px;border-radius:10px;background:#f7f9fc;border:1px solid var(--line)}
 .newsCard .head{display:flex;justify-content:space-between;gap:8px;align-items:center}
 .newsCard .tag{padding:6px 10px;border-radius:999px;font-size:.78rem;font-weight:800;background:#e7f0ff;color:#0d57c6}
@@ -196,13 +234,88 @@ canvas{width:100%;height:100%}
 .avatar{width:88px;height:88px;border-radius:13px;background:linear-gradient(145deg,#1877f2,#42b72a);display:grid;place-items:center;font-size:2rem;color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
 .assetList{display:grid;gap:10px;max-height:420px;overflow:auto;padding-right:4px}
 .assetRow{padding:12px 14px;border-radius:10px;background:#f8fafc;border:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;align-items:center}
-.toast{position:fixed;right:18px;bottom:18px;z-index:120;background:#1f8bff;color:#fff;padding:12px 16px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transform:translateY(12px);pointer-events:none;transition:.25s}
-.toast.show{opacity:1;transform:translateY(0)}
-.newsDock{position:fixed;right:18px;bottom:76px;z-index:95;display:grid;gap:10px;max-width:min(380px,calc(100vw - 36px))}
-.newsToast{background:#f7fafc;border:1px solid #c7d6ea;border-left:5px solid #1877f2;border-radius:10px;box-shadow:var(--shadow);padding:12px 14px}
-.newsToast .top{display:flex;justify-content:space-between;gap:8px;align-items:center;font-weight:800}
-.newsToast .tone{font-size:.75rem;padding:4px 8px;border-radius:999px;background:#e7f0ff;color:#145fd1}
-.newsToast p{margin:8px 0 0;color:#334155;font-size:.9rem;line-height:1.38}
+.toastDock{
+  position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+  z-index:220;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:10px;
+  max-width:min(92vw,480px);max-height:min(52vh,420px);pointer-events:none;padding:0 10px;
+}
+.toastItem{
+  width:100%;max-width:100%;box-sizing:border-box;
+  background:linear-gradient(180deg,#208cff,#157ae6);color:#fff;padding:12px 18px;border-radius:12px;
+  box-shadow:0 10px 28px rgba(24,119,242,.35),0 2px 8px rgba(0,0,0,.12);
+  font-weight:750;font-size:.92rem;line-height:1.35;text-align:center;
+  opacity:0;transform:translateY(10px) scale(.98);
+  transition:opacity .32s ease,transform .32s ease;
+  pointer-events:none;border:1px solid rgba(255,255,255,.2);
+}
+.toastItem.show{opacity:1;transform:translateY(0) scale(1)}
+.toastItem.toast-out{opacity:0;transform:translateY(6px) scale(.98)}
+.toastItem.toast--ok{border-left:4px solid #4ade80;padding-left:14px}
+.toastItem.toast--warn{border-left:4px solid #fbbf24;padding-left:14px;background:linear-gradient(180deg,#1a7ad8,#1368c4)}
+.toastItem.toast--note{border-left:4px solid #93c5fd;padding-left:14px}
+#newsDock{display:none !important;height:0!important;overflow:hidden!important;pointer-events:none!important}
+#newsFlashBar.newsFlashBar[hidden]{ display:none !important; }
+.newsFlashBar{
+  display:block;
+  position:fixed;
+  left:0;right:0;
+  top:var(--mm-topbar-h,76px);
+  z-index:200;
+  padding:7px 12px 8px;
+  background:linear-gradient(90deg,#0a1020 0%,#152a4a 42%,#0a1020 100%);
+  color:#f1f5f9;
+  border-bottom:2px solid #f59e0b;
+  box-shadow:0 10px 28px rgba(0,0,0,.22);
+  transform:translateY(-130%);
+  opacity:0;
+  transition:transform .38s cubic-bezier(.2,.9,.2,1),opacity .28s ease;
+  pointer-events:none;
+}
+.newsFlashBar.is-active{
+  transform:translateY(0);
+  opacity:1;
+}
+.newsFlashInner{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  max-width:100%;
+}
+.newsFlashBadge{
+  flex:0 0 auto;
+  font-size:.68rem;
+  font-weight:950;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:#0b1220;
+  background:linear-gradient(180deg,#fde68a,#fbbf24);
+  border-radius:8px;
+  padding:6px 10px;
+  box-shadow:0 2px 0 rgba(0,0,0,.12);
+}
+.newsFlashViewport{
+  flex:1 1 auto;
+  min-width:0;
+  overflow:hidden;
+  mask-image:linear-gradient(90deg,transparent,#000 18px,#000 calc(100% - 18px),transparent);
+}
+.newsFlashTrack{
+  display:flex;
+  width:max-content;
+  will-change:transform;
+}
+@keyframes mmNewsFlashScroll{
+  0%{ transform:translateX(0); }
+  100%{ transform:translateX(-50%); }
+}
+.newsFlashMarquee{
+  display:inline-block;
+  padding-right:3.5rem;
+  font-weight:700;
+  font-size:.94rem;
+  letter-spacing:.01em;
+  white-space:nowrap;
+}
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-thumb{background:rgba(100,116,139,.28);border-radius:999px}
 .modalOverlay,.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:140;padding:18px}
@@ -254,8 +367,7 @@ canvas{width:100%;height:100%}
   .shopCard{padding:14px;border-radius:10px}
   .userGrid{grid-template-columns:1fr}
   .assetList{max-height:none}
-  .newsDock{right:10px;left:10px;bottom:154px;max-width:none}
-  .newsToast{padding:11px 12px;border-radius:11px}
+  .newsFlashMarquee{font-size:.88rem}
   .eventModal{padding:18px;border-radius:10px}
   .eventChoices{grid-template-columns:1fr}
   .mobileNav{position:fixed;left:0;right:0;bottom:0;z-index:132;display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:10px 10px calc(10px + env(safe-area-inset-bottom));background:rgba(226,231,237,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);box-shadow:0 -10px 28px rgba(0,0,0,.10)}
@@ -367,11 +479,8 @@ canvas{width:100%;height:100%}
   .assetList{gap:8px}
   .assetRow{padding:9px 10px;border-radius:10px;font-size:.76rem}
 
-  .newsDock{left:8px;right:8px;bottom:116px;gap:8px}
-  .newsToast{padding:9px 10px;border-radius:10px}
-  .newsToast .top{font-size:.76rem}
-  .newsToast .tone{font-size:.62rem;padding:3px 6px}
-  .newsToast p{font-size:.74rem;margin-top:6px}
+  .newsFlashBadge{font-size:.6rem;padding:5px 8px}
+  .newsFlashMarquee{font-size:.82rem;padding-right:2.5rem}
 
   .mobileQuickTrade{left:8px;right:8px;bottom:66px;padding:9px 10px;border-radius:10px}
   .mqtTop{margin-bottom:7px}
@@ -692,7 +801,15 @@ body.theme-cosmic .metric,
 body.theme-cosmic .feedMini .mini,
 body.theme-cosmic .bigCash{background:var(--panel)!important;color:var(--text)}
 body.theme-cosmic .topbar{background:rgba(14,18,30,.92)!important}
-body.theme-cosmic .searchBar{background:#1a2233!important}
+body.theme-cosmic .searchBar{
+  background:linear-gradient(180deg,#2a354d,#1a2233)!important;
+  border-color:#5b7fd4!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 2px 0 rgba(0,0,0,.35),0 6px 18px rgba(0,0,0,.4)!important;
+}
+body.theme-cosmic .searchWrap:focus-within .searchBar{
+  border-color:#93c5fd!important;
+  box-shadow:0 0 0 3px rgba(147,197,253,.28),0 8px 22px rgba(0,0,0,.45)!important;
+}
 body.theme-cosmic .searchBar input{color:var(--text)!important}
 body.theme-cosmic .panelSub, body.theme-cosmic .layoutHint{color:var(--muted)!important}
 body.theme-cosmic .shopTab, body.theme-cosmic .qtyBtn, body.theme-cosmic .ghostBtn{background:#1a2233!important;color:var(--text)!important;border-color:#31405c!important}
@@ -721,16 +838,120 @@ body.theme-cosmic .socialBanner.theme-default{background:linear-gradient(135deg,
   background:linear-gradient(180deg,#f8fbff,#eef4fb);
   position:relative;overflow:hidden;
 }
-.sceneSky{position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.35),transparent 40%)}
-.sceneGround{position:absolute;left:0;right:0;bottom:0;height:38%;background:linear-gradient(180deg,#d7e6d9,#b9d1bb)}
-.sceneAsset{
-  position:absolute;bottom:20px;border-radius:13px;background:linear-gradient(145deg,#ffffff,#d8e7fb);border:1px solid rgba(0,0,0,.06);
-  display:grid;place-items:center;font-size:2rem;box-shadow:0 14px 30px rgba(0,0,0,.08)
+.empirePickGrid{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px;
 }
-.sceneAsset.home{left:28px;width:140px;height:110px}
-.sceneAsset.car{right:26px;width:118px;height:72px;bottom:24px}
-.sceneAsset.jewel{left:190px;width:72px;height:72px;bottom:36px}
-.sceneAsset.office{right:170px;width:92px;height:120px;bottom:18px}
+.empirePickCell{display:flex;flex-direction:column;gap:4px;min-width:0}
+.empirePickCell label{
+  font-size:.72rem;font-weight:850;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;
+}
+.empirePickCell select{
+  width:100%;padding:9px 10px;border-radius:11px;border:1px solid var(--line);
+  background:var(--panel);color:var(--text);font-weight:750;font-size:.86rem;
+}
+.empireAvatarStage{
+  position:relative;margin-top:12px;min-height:min(54vh,420px);border-radius:16px;overflow:hidden;
+  background:linear-gradient(185deg,#e8f0ff 0%,#dfeaf9 38%,#cfd9ec 100%);
+  border:1px solid rgba(24,119,242,.12);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.45),0 18px 40px rgba(24,119,242,.08);
+}
+.empireAvatarStage[data-tier="comfort"]{ background:linear-gradient(185deg,#eef6ff,#e2edff 40%,#d5e3f5 100%); }
+.empireAvatarStage[data-tier="luxury"]{ background:linear-gradient(185deg,#fff8f0,#ffe9f6 42%,#ebe4ff 100%); }
+.empireAvatarStage[data-tier="elite"]{ background:linear-gradient(185deg,#f0f4ff,#e8f0ff 40%,#dbe7ff 100%); }
+.empireAvatarStage::after{
+  content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  box-shadow:inset 0 -48px 90px rgba(15,23,42,.14);
+  z-index:14;
+}
+.empireStageSky{
+  position:absolute;inset:0;background:
+    radial-gradient(ellipse 120% 70% at 50% -10%,rgba(255,255,255,.75),transparent 52%),
+    linear-gradient(180deg,rgba(124,194,255,.22),transparent 45%);
+  z-index:0;
+}
+.empireHouseBackdrop{
+  position:absolute;left:50%;top:10%;transform:translate(-50%,0) scale(.78);
+  text-align:center;z-index:2;pointer-events:none;opacity:.94;
+  filter:blur(.2px);
+  animation:empireFloatHouse 5.2s ease-in-out infinite;
+}
+.empireHouseBackdrop .empBigEmoji{
+  font-size:clamp(2.4rem,9vw,4.1rem);line-height:1;filter:drop-shadow(0 18px 26px rgba(0,0,0,.14));
+}
+.empireHouseBackdrop .empTag{
+  display:inline-block;margin-top:6px;padding:4px 10px;border-radius:999px;
+  font-size:.72rem;font-weight:850;color:var(--text);background:rgba(255,255,255,.78);
+  border:1px solid var(--line);max-width:min(92%,260px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.empireDriveway{
+  position:absolute;left:0;bottom:30%;width:58%;height:26%;z-index:4;pointer-events:none;
+  background:linear-gradient(180deg,rgba(210,214,222,.92),rgba(170,178,192,.95));
+  border-radius:0 40% 18% 0;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 10px 22px rgba(0,0,0,.08);
+  transform:skewY(-1.2deg);
+}
+.empireCarBackdrop{
+  position:absolute;left:7%;bottom:27%;z-index:7;pointer-events:none;
+  transform:rotate(-4deg) scale(1.02);
+  animation:empireFloatCar 4.3s ease-in-out infinite .35s;
+}
+.empireCarBackdrop .empBigEmoji{
+  font-size:clamp(2.1rem,5.5vw,3.1rem);line-height:1;filter:drop-shadow(0 12px 20px rgba(0,0,0,.16));
+}
+.empireCarBackdrop .empTag{
+  display:block;margin-top:4px;padding:3px 8px;border-radius:999px;font-size:.68rem;font-weight:800;
+  background:rgba(255,255,255,.85);border:1px solid var(--line);max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.empireStageFloor{
+  position:absolute;left:0;right:0;bottom:0;height:32%;
+  background:linear-gradient(180deg,rgba(198,218,202,.96),rgba(158,188,166,.99));
+  z-index:3;
+}
+.empireStageFloor::before{
+  content:"";position:absolute;left:-20%;right:-20%;top:0;height:16px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.38),transparent);opacity:.65;
+}
+.empireFigureWrap{
+  position:absolute;left:50%;bottom:11%;transform:translateX(-50%);z-index:10;
+  width:min(48vw,200px);display:flex;flex-direction:column;align-items:center;pointer-events:none;
+}
+.empireAvatarGlow{
+  position:absolute;left:50%;bottom:16%;transform:translateX(-50%);width:min(72vw,240px);height:58%;
+  background:radial-gradient(ellipse at 50% 100%,rgba(124,194,255,.4),transparent 64%);
+  z-index:5;pointer-events:none;animation:empireGlowPulse 3.4s ease-in-out infinite;
+}
+@keyframes empireGlowPulse{ 0%,100%{opacity:.5} 50%{opacity:1} }
+@keyframes empireFloatHouse{ 0%,100%{transform:translate(-50%,0) scale(.78)} 50%{transform:translate(-50%,-5px) scale(.78)} }
+@keyframes empireFloatCar{ 0%,100%{transform:rotate(-4deg) scale(1.02) translateY(0)} 50%{transform:rotate(-4deg) scale(1.02) translateY(-4px)} }
+@keyframes empireJewelShine{ 0%,100%{filter:drop-shadow(0 0 0 transparent)} 50%{filter:drop-shadow(0 0 12px rgba(255,215,120,.9))} }
+
+.empireStudioCard{ border-radius:14px; border:1px solid var(--line); background:var(--panel2); }
+.empireStudioGrid{
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 14px; margin-top:10px;
+}
+.empireStudioRow{ display:flex; flex-direction:column; gap:4px; min-width:0; }
+.empireStudioRow label{ font-size:.72rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+.empireStudioRow input[type="range"]{ width:100%; accent-color:#1877f2; }
+.empireStudioRow select{ width:100%; padding:8px 10px; border-radius:10px; border:1px solid var(--line); background:var(--panel); font-weight:750; }
+.playerQuickViewAvatar.mmQuickAvatar{
+  width:88px; height:104px; border-radius:18px; padding:0; overflow:visible;
+  display:flex; align-items:flex-end; justify-content:center;
+  background:radial-gradient(circle at 50% 20%,rgba(255,255,255,.12),rgba(10,14,24,.65));
+}
+.playerQuickViewAvatar.mmQuickAvatar .mmAvatarHost{ margin:0; }
+.empireSpotlightHint{
+  margin-top:8px;font-size:.78rem;color:var(--muted);font-weight:700;text-align:center;
+}
+.empireLifeCard .empireLifeStudio{ margin-top:4px; }
+.empireLifeCatBody{ display:flex; flex-direction:column; gap:12px; padding:10px 0 4px; }
+.empireLifeItem{
+  border:1px solid var(--line); border-radius:12px; padding:11px 12px; background:var(--panel);
+  box-shadow:0 1px 0 rgba(255,255,255,.6) inset;
+}
+.empireLifeItemHead{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap; font-weight:850; font-size:.9rem; }
+.empireLifeItemHead .muted{ font-size:.78rem; font-weight:700; color:var(--muted); }
+.empireLifeBtns{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+.empireLifeBtns .shopTab{ font-size:.78rem; padding:7px 11px; }
 .empireShowcase{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .showcaseCard{padding:14px;border-radius:10px;border:1px solid var(--line);background:#f8fafc}
 .showcaseCard .label{font-size:.74rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
@@ -745,10 +966,9 @@ body.theme-cosmic .socialBanner.theme-default{background:linear-gradient(135deg,
 @media (max-width:760px){
   .empireHero{grid-template-columns:1fr}
   .empireShowcase{grid-template-columns:1fr}
-  .sceneAsset.home{left:16px;width:120px;height:92px}
-  .sceneAsset.office{right:140px;width:72px;height:98px}
-  .sceneAsset.car{right:14px;width:102px;height:60px}
-  .sceneAsset.jewel{left:146px;width:60px;height:60px}
+  .empirePickGrid{grid-template-columns:1fr}
+  .empireStudioGrid{grid-template-columns:1fr}
+  .empireAvatarStage{min-height:min(48vh,340px)}
 }
 
 
@@ -761,7 +981,15 @@ body.theme-sunset{
   --muted:#7f4d39;
 }
 body.theme-sunset .topbar{background:rgba(255,242,232,.93)!important}
-body.theme-sunset .searchBar{background:#fff4ea!important}
+body.theme-sunset .searchBar{
+  background:linear-gradient(180deg,#fffdfb,#ffe8d4)!important;
+  border-color:#e8956a!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.85) inset,0 2px 0 rgba(232,149,106,.25),0 6px 18px rgba(180,80,40,.12)!important;
+}
+body.theme-sunset .searchWrap:focus-within .searchBar{
+  border-color:#ea580c!important;
+  box-shadow:0 0 0 3px rgba(251,146,60,.35),0 8px 22px rgba(180,80,40,.14)!important;
+}
 body.theme-sunset .shopTab,
 body.theme-sunset .qtyBtn,
 body.theme-sunset .ghostBtn,
@@ -791,7 +1019,15 @@ body.theme-skyline{
   --muted:#50648f;
 }
 body.theme-skyline .topbar{background:rgba(240,246,255,.94)!important}
-body.theme-skyline .searchBar{background:#edf4ff!important}
+body.theme-skyline .searchBar{
+  background:linear-gradient(180deg,#ffffff,#e3edff)!important;
+  border-color:#6b93e8!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 2px 0 rgba(24,119,242,.12),0 6px 18px rgba(24,119,242,.12)!important;
+}
+body.theme-skyline .searchWrap:focus-within .searchBar{
+  border-color:#2563eb!important;
+  box-shadow:0 0 0 3px rgba(37,99,235,.22),0 8px 22px rgba(24,119,242,.14)!important;
+}
 body.theme-skyline .shopTab,
 body.theme-skyline .qtyBtn,
 body.theme-skyline .ghostBtn,
@@ -821,7 +1057,15 @@ body.theme-lagoon{
   --muted:#467176;
 }
 body.theme-lagoon .topbar{background:rgba(240,255,251,.94)!important}
-body.theme-lagoon .searchBar{background:#eafff9!important}
+body.theme-lagoon .searchBar{
+  background:linear-gradient(180deg,#f6fffd,#daf8f0)!important;
+  border-color:#5ec4b0!important;
+  box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 2px 0 rgba(20,184,166,.15),0 6px 18px rgba(15,118,110,.1)!important;
+}
+body.theme-lagoon .searchWrap:focus-within .searchBar{
+  border-color:#0d9488!important;
+  box-shadow:0 0 0 3px rgba(45,212,191,.28),0 8px 22px rgba(15,118,110,.12)!important;
+}
 body.theme-lagoon .shopTab,
 body.theme-lagoon .qtyBtn,
 body.theme-lagoon .ghostBtn,
@@ -1429,26 +1673,9 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   from{ transform:translateX(0); }
   to{ transform:translateX(-35%); }
 }
-.gameLoadingProgressWrap{ margin-top:18px; }
-.gameLoadingProgressBar{
-  height:10px;
-  background:#0c1320;
-  border:1px solid rgba(255,255,255,.06);
-  border-radius:999px;
-  overflow:hidden;
-}
-.gameLoadingProgress{
-  height:100%; width:6%; border-radius:999px;
-  background:linear-gradient(90deg,#7cc2ff,#57d16c);
-  box-shadow:0 0 18px rgba(124,194,255,.25);
-  transition:width .2s ease;
-}
-.gameLoadingOverlay.is-crash .gameLoadingProgress{
-  background:linear-gradient(90deg,#ff9b6b,#ff5d5d);
-  box-shadow:0 0 18px rgba(255,93,93,.25);
-}
+.gameLoadingStatusOnly{ margin-top:18px; }
 .gameLoadingStatus{
-  margin-top:10px;
+  margin-top:0;
   color:#98a7ba;
   font-size:.95rem;
 }
@@ -1605,6 +1832,8 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./config.js"></script>
 <script src="./supabase-client.js"></script>
+<link rel="stylesheet" href="./avatar.css" />
+<script src="./avatar-engine.js"></script>
 
 </head>
 <body>
@@ -1626,6 +1855,14 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
     <button class="circleBtn" id="leaderboardBtn" title="Leaderboard">🏆</button>
     <button class="circleBtn" id="topUser">👤</button>
     <div class="socialChip" id="socialChip" title="Signed in player"><div class="avatarMini" id="socialChipAvatar">💹</div><div class="crestMini" id="socialChipCrest">◈</div><div style="min-width:0"><div class="name" id="socialChipName">Guest</div><div class="sub" id="socialChipSub">Offline</div></div></div>
+  </div>
+</div>
+<div id="newsFlashBar" class="newsFlashBar" hidden aria-live="polite" aria-atomic="true">
+  <div class="newsFlashInner">
+    <span class="newsFlashBadge">Breaking</span>
+    <div class="newsFlashViewport">
+      <div class="newsFlashTrack" id="newsFlashTrack"></div>
+    </div>
   </div>
 </div>
 <div class="app">
@@ -1780,8 +2017,8 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
     </section>
 
     <section id="newsView" class="panel hidden">
-      <div class="panelHead"><div><div class="panelTitle">Stock News</div><div class="panelSub">Random headlines create market pressure, hype, panic, and volatility spikes.</div></div><div class="pill">Live Feed</div></div>
-      <div class="marketFeed" id="newsFeed"></div>
+      <div class="panelHead"><div><div class="panelTitle">Stock News</div><div class="panelSub">Headlines roll in over time. Scroll the archive — each item is timestamped and kept for this run.</div></div><div class="pill">Archive</div></div>
+      <div class="marketFeed newsFeedScroll" id="newsFeed"></div>
     </section>
 
     <section id="businessView" class="panel hidden">
@@ -1849,7 +2086,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
       <div class="panelHead">
         <div>
           <div class="panelTitle">Empire</div>
-          <div class="panelSub">Your owned life made visible. Homes, fleet, luxury, badges, and your current empire identity.</div>
+          <div class="panelSub">Build a procedural avatar, stage your owned flex pieces, and sync your look for other traders to see when they peek your profile.</div>
         </div>
         <div class="pill" id="empireThemePill">Theme · Default</div>
       </div>
@@ -1858,20 +2095,45 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
           <h2 class="emperorTitle"><span class="crestBadge" id="empireCrest">◈</span><span id="empireTitle">Empire in Progress</span></h2>
           <div class="panelSub" style="margin-top:8px" id="empireSubtitle">Keep building to transform your world.</div>
           <div class="badgeGrid" id="empireBadges"></div>
-          <div class="empireScene" style="margin-top:14px">
-            <div class="sceneSky"></div>
-            <div class="sceneGround"></div>
-            <div class="sceneAsset home" id="sceneHome">🏚️</div>
-            <div class="sceneAsset office" id="sceneOffice">🖥️</div>
-            <div class="sceneAsset jewel" id="sceneJewel">💍</div>
-            <div class="sceneAsset car" id="sceneCar">🚗</div>
+          <div class="empireScene" style="margin-top:14px;padding:12px 12px 14px">
+            <div class="panelSub" style="margin:0;font-weight:800">Spotlight wardrobe</div>
+            <div class="empirePickGrid" id="empirePickBar"></div>
+            <div class="empireStudioCard" style="margin-top:12px;padding:12px 14px">
+              <div class="panelTitle" style="font-size:1rem">Avatar studio</div>
+              <div class="panelSub" style="margin-top:6px">Skin, hair, outfit, pose, and scale. Changes save with your game and sync to the cloud so other players can see your character in Online Players. Use Randomize / Defaults inside the studio.</div>
+              <div id="empireAvatarStudio" style="margin-top:10px"></div>
+            </div>
+            <div class="empireStudioCard empireLifeCard" style="margin-top:12px;padding:12px 14px">
+              <div class="panelTitle" style="font-size:1rem">Lifestyle choices</div>
+              <div class="panelSub" style="margin-top:6px">BitLife-style moves on what you own: drives, mods, parties, sales, and flex moments. Results roll good or bad — watch the toast and ticker.</div>
+              <div id="empireLifestyleMount" class="empireLifeStudio mmAvStudio" style="margin-top:10px"></div>
+            </div>
+            <div class="empireAvatarStage" id="empireAvatarStage" data-tier="starter">
+              <div class="empireStageSky"></div>
+              <div class="empireHouseBackdrop" id="empireHouseBackdrop" aria-hidden="true">
+                <div class="empBigEmoji" id="empireHouseEmoji">🏚️</div>
+                <div class="empTag" id="empireHouseCaption">Residence</div>
+              </div>
+              <div class="empireDriveway" aria-hidden="true"></div>
+              <div class="empireStageFloor"></div>
+              <div class="empireCarBackdrop" id="empireCarBackdrop" aria-hidden="true">
+                <div class="empBigEmoji" id="empireCarEmoji">🚗</div>
+                <div class="empTag" id="empireCarCaption">Vehicle</div>
+              </div>
+              <div class="empireAvatarGlow"></div>
+              <div class="empireFigureWrap">
+                <div id="empireAvatarHost" class="mmAvatarHost mmAvatarHost--stage" aria-hidden="true"></div>
+              </div>
+            </div>
+            <div class="empireSpotlightHint" id="empireSpotlightHint">House sits on the horizon behind you; the car is on the driveway to your side; necklace, chest piece, watch, and ring map to your owned flex picks.</div>
           </div>
         </div>
         <div class="profileCard">
           <div class="empireShowcase">
             <div class="showcaseCard"><div class="label">Residence</div><div class="value" id="showHome">Tiny Apartment</div></div>
             <div class="showcaseCard"><div class="label">Fleet</div><div class="value" id="showCar">Rusty Beater</div></div>
-            <div class="showcaseCard"><div class="label">Jewels</div><div class="value" id="showJewel">Silver Ring</div></div>
+            <div class="showcaseCard"><div class="label">Jewelry</div><div class="value" id="showJewel">Silver Ring</div></div>
+            <div class="showcaseCard"><div class="label">Watch</div><div class="value" id="showWatch">Everyday Watch</div></div>
             <div class="showcaseCard"><div class="label">HQ</div><div class="value" id="showHQ">Bedroom Setup</div></div>
             <div class="showcaseCard"><div class="label">Status</div><div class="value" id="showStatus">Unknown Hustler</div></div>
             <div class="showcaseCard"><div class="label">Empire Value</div><div class="value" id="showEmpireValue">$500</div></div>
@@ -2056,7 +2318,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   </div>
 </div>
 <div class="newsDock" id="newsDock"></div>
-<div class="toast" id="toast">Saved</div>
+<div id="toastDock" class="toastDock" aria-live="polite" aria-relevant="additions text"></div>
 <script>
 (() => {
 const SAVE_KEY = 'market_magnate_ultra_save_v11';
@@ -2224,6 +2486,7 @@ const shoppingItems = mapItems(shoppingData,'shopping');
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 }
+
 function niceCategory(name){
   return name.charAt(0).toUpperCase()+name.slice(1);
 }
@@ -2251,10 +2514,13 @@ const game = {
   lastSaved:0,
   businessOwned: businessItems.filter(i=>i.owned).map(i=>i.id),
   shoppingOwned: [],
+  empireShowcasePicks: { homes: '', cars: '', jewelry: '', watches: '' },
+  avatarDNA: defaultAvatarDNA(),
   stocks: stockSeed,
   news: [],
+  newsArchive: [],
+  ticksUntilNextNews: irand(40, 100),
   paused:false,
-  nextNewsAt:Date.now()+irand(15000,60000),
   nextBonusAt:Date.now()+irand(15000,60000),
   nextLifeAt:Date.now()+irand(60000,300000),
   activeEvent:null,
@@ -2330,8 +2596,85 @@ function currentStage(){ let s=stageDefs[0].name; for(const x of stageDefs){ if(
 function currentStatus(){ let s=statusDefs[0].name; for(const x of statusDefs){ if(netWorth()>=x.worth) s=x.name; } return s; }
 
 function addXP(n){ game.xp += n; }
-function toast(msg, sound='click'){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); if(sound==='success') playSuccessSound(); else if(sound==='warning') playWarningSound(); else if(sound==='notification') playNotificationSound(); else if(sound!=='none') playClickSound(); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove('show'),1800); }
+const TOAST_MIN_VISIBLE_MS = 2500;
+const TOAST_FADE_OUT_MS = 360;
+const TOAST_MAX_STACK = 8;
+function toast(msg, sound='click'){
+  let dock = document.getElementById('toastDock');
+  if(!dock){
+    dock = document.createElement('div');
+    dock.id = 'toastDock';
+    dock.className = 'toastDock';
+    dock.setAttribute('aria-live', 'polite');
+    document.body.appendChild(dock);
+  }
+  if(sound==='success') playSuccessSound();
+  else if(sound==='warning') playWarningSound();
+  else if(sound==='notification') playNotificationSound();
+  else if(sound!=='none') playClickSound();
 
+  const el = document.createElement('div');
+  el.className = 'toastItem';
+  if(sound==='success') el.classList.add('toast--ok');
+  else if(sound==='warning') el.classList.add('toast--warn');
+  else if(sound==='notification') el.classList.add('toast--note');
+  el.setAttribute('role', 'status');
+  el.textContent = String(msg || '');
+  dock.appendChild(el);
+  while(dock.children.length > TOAST_MAX_STACK){
+    const first = dock.firstChild;
+    if(first && first.parentNode) first.parentNode.removeChild(first);
+  }
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=> el.classList.add('show'));
+  });
+  setTimeout(()=>{
+    el.classList.remove('show');
+    el.classList.add('toast-out');
+    setTimeout(()=>{ try{ el.remove(); }catch(e){} }, TOAST_FADE_OUT_MS);
+  }, TOAST_MIN_VISIBLE_MS);
+}
+
+const NEWS_FLASH_MIN_MS = 5000;
+let newsFlashTimer = null;
+let newsFlashRunId = 0;
+function showNewsFlashChyron(message){
+  const bar = document.getElementById('newsFlashBar');
+  const track = document.getElementById('newsFlashTrack');
+  if(!bar || !track){
+    toast(String(message || ''), 'notification');
+    return;
+  }
+  const text = String(message || '').trim();
+  if(!text) return;
+  const runId = ++newsFlashRunId;
+  clearTimeout(newsFlashTimer);
+  playNotificationSound();
+  track.innerHTML = '';
+  track.style.animation = 'none';
+  void track.offsetWidth;
+  const spanA = document.createElement('span');
+  spanA.className = 'newsFlashMarquee';
+  spanA.textContent = text + '   ·   ';
+  const spanB = spanA.cloneNode(true);
+  track.appendChild(spanA);
+  track.appendChild(spanB);
+  const sec = Math.max(14, Math.min(50, 10 + text.length * 0.05));
+  requestAnimationFrame(()=>{
+    if(runId !== newsFlashRunId) return;
+    track.style.animation = `mmNewsFlashScroll ${sec}s linear infinite`;
+  });
+  bar.removeAttribute('hidden');
+  bar.classList.add('is-active');
+  const holdMs = Math.min(22000, Math.max(NEWS_FLASH_MIN_MS, Math.floor(sec * 1000)));
+  newsFlashTimer = setTimeout(()=>{
+    if(runId !== newsFlashRunId) return;
+    bar.classList.remove('is-active');
+    bar.setAttribute('hidden','');
+    track.innerHTML = '';
+    track.style.animation = 'none';
+  }, holdMs);
+}
 
 
 function maybeTriggerGlobalEvent(){
@@ -2365,7 +2708,7 @@ function eventAffectsStock(s){
 function syncNewsTicker(){
   const track = document.getElementById('newsTickerTrack');
   if(!track) return;
-  const items = (game.news || []).slice(0, 8);
+  const items = (Array.isArray(game.newsArchive) && game.newsArchive.length ? game.newsArchive : game.news || []).slice(0, 12);
   const fallback = ['Markets opening...', 'Watch the tape and trade carefully.'];
   const headlines = items.length
     ? items.map(n => {
@@ -2376,7 +2719,7 @@ function syncNewsTicker(){
 
   // duplicate the list so the ticker feels continuous
   const doubled = [...headlines, ...headlines];
-  track.innerHTML = doubled.map(h => `<span class="newsTickerItem">${h}</span>`).join('');
+  track.innerHTML = doubled.map(h => `<span class="newsTickerItem">${escapeHtml(h)}</span>`).join('');
   track.classList.remove('paused');
 
   // adjust speed a bit based on amount of content
@@ -2414,10 +2757,14 @@ function makeNews(initial=false){
   s.fairValue = clamp(s.fairValue * (1 + fundamentalShift), s.floorPrice, s.ceilingPrice * 0.92);
   const crowdFlow = Math.round((buyerMillions*1000000) * (positive ? 1 : -1));
   const card = {id:Date.now()+Math.random(), tone:positive?'Bullish':'Bearish', text:(positive?templatesPos:templatesNeg)[irand(0,4)], ticker:s.symbol, expires:ticks, effect:effects, vol:volBoost, crowd: crowdFlow};
+  if(!Array.isArray(game.newsArchive)) game.newsArchive = [];
+  const wallTime = Date.now();
+  game.newsArchive.unshift(Object.assign({}, card, { wallTime, simDay: Number(game.dayCount) || 1 }));
+  if(game.newsArchive.length > 300) game.newsArchive.length = 300;
   game.news.unshift(card);
   if(game.news.length>24) game.news.length = 24;
   game.newsBonusPool += Math.max(50, Math.abs(effects)*20000);
-  if(!initial) toast(`${s.symbol} ${positive?'caught fire':'got slammed'} on the news`);
+  if(!initial) showNewsFlashChyron(`${s.symbol} · ${card.tone}: ${card.text}`);
 }
 
 function triggerOpportunity(){
@@ -2670,8 +3017,10 @@ function doPrestige(){
   if(gain<1) return toast('Grow bigger before prestige');
   if(!confirm(`Prestige for ${gain} Legacy Points? This resets money, stocks, and purchases.`)) return;
   const legacy = game.legacy + gain;
+  const keepAvatarDNA = JSON.parse(JSON.stringify(normalizeAvatarDNA(game.avatarDNA || {})));
   localStorage.removeItem(SAVE_KEY);
-  Object.assign(game,{cash:500,totalEarned:500,xp:0,level:1,legacy,passivePerSec:0,incomeMult:1,tradeBonus:0,style:0,network:0,view:'stocks',selectedStock:0,tradeQty:1,newsBonusPool:0,mood:'Balanced',trades:0,lastSaved:0,businessOwned:['business_headquarters_0'],shoppingOwned:[],ownedProfileAvatars:['default_avatar'],ownedProfileBanners:['default_banner','profile_banner_gold','profile_banner_neon','profile_banner_midnight'],stocks: JSON.parse(JSON.stringify(stockSeed)),news:[],paused:false,nextNewsAt:Date.now()+irand(15000,60000),nextBonusAt:Date.now()+irand(15000,60000),nextLifeAt:Date.now()+irand(60000,300000),activeEvent:null,debt:0,debtInterestRate:0.00045,leverage:1,globalEvent:null,nextGlobalAt:Date.now()+irand(90000,180000),dayCount:1,creditScore:300,creditTier:0,onTimePayments:0,missedPayments:0,loanCycleStartDay:1,loanDueDay:8,loanDueAmount:0,loanPaidThisCycle:0});
+  Object.assign(game,{cash:500,totalEarned:500,xp:0,level:1,legacy,passivePerSec:0,incomeMult:1,tradeBonus:0,style:0,network:0,view:'stocks',selectedStock:0,tradeQty:1,newsBonusPool:0,mood:'Balanced',trades:0,lastSaved:0,businessOwned:['business_headquarters_0'],shoppingOwned:[],empireShowcasePicks:{homes:'',cars:'',jewelry:'',watches:''},ownedProfileAvatars:['default_avatar'],ownedProfileBanners:['default_banner','profile_banner_gold','profile_banner_neon','profile_banner_midnight'],stocks: JSON.parse(JSON.stringify(stockSeed)),news:[],newsArchive:[],ticksUntilNextNews:irand(40,100),paused:false,nextBonusAt:Date.now()+irand(15000,60000),nextLifeAt:Date.now()+irand(60000,300000),activeEvent:null,debt:0,debtInterestRate:0.00045,leverage:1,globalEvent:null,nextGlobalAt:Date.now()+irand(90000,180000),dayCount:1,creditScore:300,creditTier:0,onTimePayments:0,missedPayments:0,loanCycleStartDay:1,loanDueDay:8,loanDueAmount:0,loanPaidThisCycle:0});
+  game.avatarDNA = keepAvatarDNA;
   recalc();
   makeNews(true);makeNews(true);
   save(false);refresh();toast(`Prestiged +${gain} LP`);
@@ -2751,7 +3100,25 @@ function load(){
     game.nextGlobalAt ??= Date.now()+irand(90000,180000);
     game.activeEvent = null;
     if(!game.simNow) game.simNow = Date.now();
-    if(!game.nextNewsAt) game.nextNewsAt = game.simNow + irand(15000,60000);
+    if(!Number.isFinite(game.ticksUntilNextNews)) game.ticksUntilNextNews = irand(40, 100);
+    if(!Array.isArray(game.newsArchive)) game.newsArchive = [];
+    if(!game.empireShowcasePicks || typeof game.empireShowcasePicks !== 'object'){
+      game.empireShowcasePicks = { homes:'', cars:'', jewelry:'', watches:'' };
+    }else{
+      ['homes','cars','jewelry','watches'].forEach(k=>{
+        if(game.empireShowcasePicks[k] == null) game.empireShowcasePicks[k] = '';
+        else game.empireShowcasePicks[k] = String(game.empireShowcasePicks[k]);
+      });
+    }
+    game.avatarDNA = normalizeAvatarDNA(game.avatarDNA || {});
+    if(!game.newsArchive.length && Array.isArray(game.news) && game.news.length){
+      game.newsArchive = game.news.map((n, i) => {
+        const idNum = typeof n.id === 'number' ? n.id : NaN;
+        const wallTime = Number.isFinite(idNum) && idNum > 1e11 ? Math.floor(idNum) : (Date.now() - i * 3600000);
+        return Object.assign({}, n, { wallTime, simDay: n.simDay != null ? n.simDay : (Number(game.dayCount) || 1) });
+      });
+      if(game.newsArchive.length > 300) game.newsArchive.length = 300;
+    }
     if(!game.nextBonusAt) game.nextBonusAt = game.simNow + irand(15000,60000);
     if(!game.nextLifeAt) game.nextLifeAt = game.simNow + irand(60000,300000);
     recalc();
@@ -3175,13 +3542,34 @@ function renderItems(kind){
   });
 }
 
+function formatNewsWallTime(ts){
+  if(!ts || !Number.isFinite(ts)) return '—';
+  try{
+    return new Date(ts).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  }catch(e){
+    return '—';
+  }
+}
+
 function renderNews(){
   syncNewsTicker();
-  const wrap=$('#newsFeed'); wrap.innerHTML='';
-  if(!game.news.length){ wrap.innerHTML='<div class="panelSub">No news yet.</div>'; return; }
-  game.news.forEach(n=>{
-    const el=document.createElement('div'); el.className='newsCard';
-    el.innerHTML=`<div class="head"><div style="font-weight:900">${n.ticker}</div><div class="tag">${n.tone} · ${n.expires}s</div></div><p>${n.text}</p><div class="panelSub" style="margin-top:8px">Pressure ${n.effect>0?'+':'-'}${Math.abs(n.effect*100).toFixed(1)}% · Volatility +${(n.vol*100).toFixed(1)}% · Crowd ${n.crowd>0?'+':''}${fmtNum(Math.round(n.crowd))}</div>`;
+  const wrap=$('#newsFeed');
+  if(!wrap) return;
+  wrap.innerHTML='';
+  const list = Array.isArray(game.newsArchive) && game.newsArchive.length ? game.newsArchive : (game.news || []);
+  if(!list.length){
+    wrap.innerHTML='<div class="panelSub">No headlines yet. Random stories will appear every few dozen market ticks.</div>';
+    return;
+  }
+  list.forEach(n=>{
+    const el=document.createElement('div');
+    el.className='newsCard';
+    const ts = formatNewsWallTime(n.wallTime);
+    const day = Number.isFinite(n.simDay) ? n.simDay : '—';
+    const head = `<div class="head"><div style="font-weight:900">${escapeHtml(n.ticker)}</div><div class="tag">${escapeHtml(n.tone)} · ${escapeHtml(String(n.expires != null ? n.expires : '—'))}s</div></div>`;
+    const meta = `<div class="newsCardMeta">${escapeHtml(ts)} · Trading day ${escapeHtml(String(day))}</div>`;
+    const body = `<p>${escapeHtml(n.text)}</p><div class="panelSub" style="margin-top:8px">Pressure ${n.effect>0?'+':'-'}${Math.abs(Number(n.effect||0)*100).toFixed(1)}% · Volatility +${(Number(n.vol||0)*100).toFixed(1)}% · Crowd ${n.crowd>0?'+':''}${fmtNum(Math.round(Number(n.crowd||0)))}</div>`;
+    el.innerHTML = head + meta + body;
     wrap.appendChild(el);
   });
 }
@@ -3189,14 +3577,7 @@ function renderNews(){
 
 function renderNewsDock(){
   const dock = $('#newsDock');
-  dock.innerHTML = '';
-  const recent = game.news.slice(0,3);
-  recent.forEach(n=>{
-    const el = document.createElement('div');
-    el.className = 'newsToast';
-    el.innerHTML = `<div class="top"><span>${n.ticker}</span><span class="tone">${n.tone}</span></div><p>${n.text}</p>`;
-    dock.appendChild(el);
-  });
+  if(dock) dock.innerHTML = '';
 }
 
 
@@ -3212,6 +3593,335 @@ function getTopOwned(kind, category){
     return source.find(i => i.category === category) || null;
   }
   return [...list].sort((a,b)=>b.cost-a.cost)[0];
+}
+function ensureEmpireShowcasePicks(){
+  if(!game.empireShowcasePicks || typeof game.empireShowcasePicks !== 'object'){
+    game.empireShowcasePicks = { homes:'', cars:'', jewelry:'', watches:'' };
+  }
+  ['homes','cars','jewelry','watches'].forEach(k=>{
+    if(game.empireShowcasePicks[k] == null) game.empireShowcasePicks[k] = '';
+    else game.empireShowcasePicks[k] = String(game.empireShowcasePicks[k]);
+  });
+}
+function defaultCatalogItem(cat){
+  return shoppingItems.find(i => i.kind === 'shopping' && i.category === cat && /_0$/.test(i.id))
+    || shoppingItems.find(i => i.kind === 'shopping' && i.category === cat)
+    || null;
+}
+function sanitizeEmpirePicks(){
+  ensureEmpireShowcasePicks();
+  let dirty = false;
+  ['homes','cars','jewelry','watches'].forEach(cat=>{
+    const owned = getOwnedIn('shopping', cat);
+    const p = game.empireShowcasePicks[cat];
+    if(p && !owned.some(i => i.id === p)){
+      game.empireShowcasePicks[cat] = '';
+      dirty = true;
+    }
+  });
+  if(dirty){
+    try{ save(false); }catch(e){}
+  }
+}
+function resolveEmpireSpotItem(cat){
+  ensureEmpireShowcasePicks();
+  const pick = game.empireShowcasePicks[cat] || '';
+  const owned = getOwnedIn('shopping', cat).sort((a,b)=>b.cost-a.cost);
+  if(pick && owned.some(i => i.id === pick)) return owned.find(i => i.id === pick);
+  if(owned.length) return owned[0];
+  return defaultCatalogItem(cat);
+}
+function empireSpotlightTier(homeItem){
+  const c = homeItem && Number(homeItem.cost) > 0 ? homeItem.cost : 0;
+  if(c >= 5e8) return 'elite';
+  if(c >= 4e6) return 'luxury';
+  if(c >= 3e4) return 'comfort';
+  return 'starter';
+}
+
+const MM_LIFESTYLE_LINES = {
+  driveGood: ['Cleared your head on the open road — mood + money.', 'Valet footage went viral. Tips rolled in.', 'Sunset cruise led to a random networking win.', 'Perfect shift. You actually smiled.'],
+  driveBad: ['Speed trap. Fine in the mail.', 'Parking scrape. Body shop wants a chat.', 'Flat tire in the rain. Classic.', 'Someone dinged you in a lot. No note.'],
+  modGood: ['The shop nailed the wrap. Strangers point.', 'New wheels + tune: night-and-day difference.', 'Subtle kit — tasteful flex unlocked.'],
+  modBad: ['The wrap bubbled. You paid twice.', 'Mod shop ghosted you halfway.', 'Wrong parts ordered. Weeks of delays.'],
+  partyGood: ['The party was legendary. Your name is on every invite now.', 'Catering crushed it. Guests posted nonstop.', 'DJ + lights = instant main character energy.', 'Someone closed a deal in your kitchen. You get credit.'],
+  partyBad: ['Noise complaint stack. HOA is furious.', 'A guest broke something priceless-ish.', 'Caterer no-showed. You improvised badly.', 'Afterparty chaos hit the tab hard.'],
+  flexGood: ['Table-side flex landed. People noticed.', 'Watch caught the light perfectly in a meeting.', 'Stranger asked if it was “the real one.”'],
+  flexBad: ['Caught a door jamb. Heart skipped.', 'Someone spilled near your wrist. Crisis averted… barely.', 'Wrong flex moment. Awkward silence.'],
+  serviceGood: ['Movement regulation is butter now.', 'Service center treated it like art. Feels new.', 'Polish + pressure test passed with honors.'],
+  serviceBad: ['They scratched the case. “Complimentary polish.”', 'Waitlisted parts. Still ticking… nervously.', 'Bill climbed after “unexpected wear.”'],
+  sellGood: ['Sold clean. Cash hits now.', 'Buyer paid fast. No drama.', 'Handshake deal. Everyone walks happy.'],
+  genericBad: ['That did not go to plan.', 'Rough beat. Markets and vibes both red.', 'Sometimes the simulation says no.']
+};
+function lifestylePick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+function lifestyleFlashMaybe(msg){
+  if(Math.random() < 0.26) showNewsFlashChyron(msg);
+}
+function lifestyleFinalize(){
+  recalc();
+  save(false);
+  refresh();
+}
+function sellOwnedShoppingItem(id){
+  const item = getItemById(id);
+  if(!item || item.kind !== 'shopping' || !game.shoppingOwned.includes(id)) return null;
+  const payout = Math.round(item.cost * (0.28 + Math.random() * 0.42));
+  const ix = game.shoppingOwned.indexOf(id);
+  game.shoppingOwned.splice(ix, 1);
+  game.cash += payout;
+  sanitizeEmpirePicks();
+  return { item, payout };
+}
+
+function readEmpireLifeOpenPrefs(){
+  try{
+    const raw = sessionStorage.getItem('mm_empire_life_open');
+    if(raw === null || raw === '') return null;
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? new Set(arr.filter(Boolean)) : null;
+  }catch(e){ return null; }
+}
+function writeEmpireLifeOpenPrefs(){
+  const mount = $('#empireLifestyleMount');
+  if(!mount) return;
+  try{
+    const keys = [...mount.querySelectorAll('details[data-life-sec]')].filter(d => d.open).map(d => d.getAttribute('data-life-sec')).filter(Boolean);
+    sessionStorage.setItem('mm_empire_life_open', JSON.stringify(keys));
+  }catch(e){}
+}
+function buildEmpireLifestylePanel(){
+  const mount = $('#empireLifestyleMount');
+  if(!mount) return;
+  const domOpen = new Set();
+  mount.querySelectorAll('details[data-life-sec][open]').forEach(d => {
+    const k = d.getAttribute('data-life-sec');
+    if(k) domOpen.add(k);
+  });
+  const storedOpen = readEmpireLifeOpenPrefs();
+  const prevOpen = domOpen.size ? domOpen : storedOpen;
+  const sections = [];
+  let defaultOpened = false;
+  const pushSection = (title, cat) => {
+    const owned = getOwnedIn('shopping', cat).sort((a,b)=>b.cost-a.cost);
+    if(!owned.length) return;
+    let isOpen;
+    if(prevOpen === null){
+      isOpen = !defaultOpened && (defaultOpened = true);
+    }else{
+      isOpen = prevOpen.has(cat);
+    }
+    const rows = owned.map(it => {
+      const idAttr = String(it.id).replace(/"/g, '');
+      const nm = escapeHtml(it.icon + ' ' + it.name);
+      const val = escapeHtml(fmt(it.cost));
+      let btns = '';
+      if(cat === 'cars'){
+        btns = `<button type="button" class="shopTab" data-life-act="car_drive" data-life-id="${idAttr}">Go for a drive</button>` +
+          `<button type="button" class="shopTab" data-life-act="car_mod" data-life-id="${idAttr}">Modify</button>` +
+          `<button type="button" class="shopTab" data-life-act="car_sell" data-life-id="${idAttr}">Sell</button>`;
+      }else if(cat === 'jewelry'){
+        btns = `<button type="button" class="shopTab" data-life-act="jewel_sell" data-life-id="${idAttr}">Sell</button>`;
+      }else if(cat === 'homes'){
+        btns = `<button type="button" class="shopTab" data-life-act="home_party" data-life-id="${idAttr}">Host party</button>` +
+          `<button type="button" class="shopTab" data-life-act="home_sell" data-life-id="${idAttr}">Sell</button>`;
+      }else if(cat === 'watches'){
+        btns = `<button type="button" class="shopTab" data-life-act="watch_flex" data-life-id="${idAttr}">Flash in public</button>` +
+          `<button type="button" class="shopTab" data-life-act="watch_service" data-life-id="${idAttr}">Service</button>` +
+          `<button type="button" class="shopTab" data-life-act="watch_sell" data-life-id="${idAttr}">Sell</button>`;
+      }
+      return `<div class="empireLifeItem"><div class="empireLifeItemHead"><span>${nm}</span><span class="muted">${val} basis</span></div><div class="empireLifeBtns">${btns}</div></div>`;
+    }).join('');
+    sections.push(`<details data-life-sec="${escapeHtml(cat)}"${isOpen ? ' open' : ''}><summary>${escapeHtml(title)}</summary><div class="empireLifeCatBody">${rows}</div></details>`);
+  };
+  pushSection('Cars · garage decisions', 'cars');
+  pushSection('Homes · parties & moves', 'homes');
+  pushSection('Jewelry · liquidity', 'jewelry');
+  pushSection('Watches · wrist drama', 'watches');
+  if(!sections.length){
+    mount.innerHTML = '<div class="layoutHint" style="padding:10px 0">Buy homes, cars, jewelry, or watches in Shopping to unlock lifestyle actions here.</div>';
+    try{ sessionStorage.removeItem('mm_empire_life_open'); }catch(e){}
+    return;
+  }
+  mount.innerHTML = sections.join('');
+  writeEmpireLifeOpenPrefs();
+}
+
+function onEmpireLifestyleClick(e){
+  const btn = e.target.closest('[data-life-act]');
+  if(!btn) return;
+  const act = btn.getAttribute('data-life-act');
+  const id = btn.getAttribute('data-life-id');
+  if(!act || !id) return;
+  e.preventDefault();
+  playClickSound();
+  const item = getItemById(id);
+  if(!item || item.kind !== 'shopping' || !game.shoppingOwned.includes(id)){
+    toast('You no longer own that asset.', 'warning');
+    return;
+  }
+
+  const goodRoll = (p) => Math.random() < p;
+
+  if(act === 'car_drive'){
+    if(goodRoll(0.58)){
+      const gain = Math.round(35 + Math.random() * 420 + Math.min(12000, item.cost) * 0.00035);
+      game.cash += gain;
+      const line = lifestylePick(MM_LIFESTYLE_LINES.driveGood);
+      toast(line + ' +' + fmt(gain), 'success');
+      lifestyleFlashMaybe('Lifestyle: joyride payout ' + fmt(gain));
+    }else{
+      const cap = Math.min(4200, Math.max(120, Math.floor(game.cash * 0.12)));
+      const loss = Math.round(90 + Math.random() * Math.max(1, cap - 90));
+      game.cash = Math.max(0, game.cash - loss);
+      toast(lifestylePick(MM_LIFESTYLE_LINES.driveBad) + ' -' + fmt(loss), 'warning');
+      lifestyleFlashMaybe('Lifestyle: rough drive — ' + fmt(loss) + ' gone');
+    }
+    lifestyleFinalize();
+    return;
+  }
+
+  if(act === 'car_mod'){
+    const cost = Math.floor(350 + Math.random() * 9650);
+    if(game.cash < cost){
+      toast('Need ' + fmt(cost) + ' cash to modify this ride.', 'warning');
+      return;
+    }
+    game.cash -= cost;
+    if(goodRoll(0.7)){
+      const xp = irand(5, 16);
+      addXP(xp);
+      toast(lifestylePick(MM_LIFESTYLE_LINES.modGood) + ' · -' + fmt(cost) + ' · +' + xp + ' XP', 'success');
+      lifestyleFlashMaybe('Mods complete · -' + fmt(cost));
+    }else{
+      const botch = Math.round(180 + Math.random() * Math.min(7500, Math.max(200, game.cash * 0.18)));
+      game.cash = Math.max(0, game.cash - botch);
+      toast(lifestylePick(MM_LIFESTYLE_LINES.modBad) + ' · -' + fmt(cost + botch) + ' total', 'warning');
+      lifestyleFlashMaybe('Mod job went sideways');
+    }
+    lifestyleFinalize();
+    return;
+  }
+
+  if(act === 'car_sell'){
+    const res = sellOwnedShoppingItem(id);
+    if(!res){ toast('Could not sell.', 'warning'); return; }
+    toast(lifestylePick(MM_LIFESTYLE_LINES.sellGood) + ' +' + fmt(res.payout) + ' · sold ' + res.item.icon + ' ' + res.item.name, 'success');
+    lifestyleFlashMaybe('Sold a vehicle · +' + fmt(res.payout));
+    lifestyleFinalize();
+    return;
+  }
+
+  if(act === 'jewel_sell'){
+    const res = sellOwnedShoppingItem(id);
+    if(!res){ toast('Could not sell.', 'warning'); return; }
+    toast(lifestylePick(MM_LIFESTYLE_LINES.sellGood) + ' +' + fmt(res.payout) + ' · sold ' + res.item.icon + ' ' + res.item.name, 'notification');
+    lifestyleFlashMaybe('Jewelry sale · +' + fmt(res.payout));
+    lifestyleFinalize();
+    return;
+  }
+
+  if(act === 'home_party'){
+    const fee = Math.min(Math.floor(game.cash * 0.35), Math.max(220, Math.floor(item.cost * 0.0038 + 180)));
+    if(game.cash < fee){
+      toast('Need at least ' + fmt(fee) + ' cash to throw this party.', 'warning');
+      return;
+    }
+    game.cash -= fee;
+    const styleW = Number(item.effects && item.effects.style) || 1;
+    const partyXp = Math.round(6 + styleW * 2.4 + Math.log10(Math.max(800, item.cost)) * 3.5);
+    if(goodRoll(0.62)){
+      addXP(partyXp);
+      const tip = Math.round(40 + Math.random() * 260 + styleW * 12);
+      game.cash += tip;
+      toast(lifestylePick(MM_LIFESTYLE_LINES.partyGood) + ' · -' + fmt(fee) + ' · +' + partyXp + ' XP · +' + fmt(tip) + ' buzz', 'success');
+      lifestyleFlashMaybe('House party: style XP +' + partyXp);
+    }else{
+      const mess = Math.round(350 + Math.random() * Math.min(14000, fee * 2.2));
+      game.cash = Math.max(0, game.cash - mess);
+      toast(lifestylePick(MM_LIFESTYLE_LINES.partyBad) + ' · -' + fmt(fee + mess) + ' total', 'warning');
+      lifestyleFlashMaybe('Party aftermath — costly');
+    }
+    lifestyleFinalize();
+    return;
+  }
+
+  if(act === 'home_sell'){
+    const homes = getOwnedIn('shopping', 'homes');
+    if(homes.length === 1 && !confirm('Sell your only listed residence? You can rebuy from Shopping anytime.')) return;
+    const res = sellOwnedShoppingItem(id);
+    if(!res){ toast('Could not sell.', 'warning'); return; }
+    toast(lifestylePick(MM_LIFESTYLE_LINES.sellGood) + ' +' + fmt(res.payout) + ' · sold ' + res.item.icon + ' ' + res.item.name, 'notification');
+    lifestyleFlashMaybe('Property sold · +' + fmt(res.payout));
+    lifestyleFinalize();
+    return;
+  }
+
+  if(act === 'watch_flex'){
+    if(goodRoll(0.6)){
+      const gain = Math.round(20 + Math.random() * 280 + Math.min(8000, item.cost) * 0.0002);
+      game.cash += gain;
+      addXP(irand(2, 7));
+      toast(lifestylePick(MM_LIFESTYLE_LINES.flexGood) + ' +' + fmt(gain) + ' · +XP', 'success');
+    }else{
+      const loss = Math.round(60 + Math.random() * Math.min(3200, Math.max(100, game.cash * 0.08)));
+      game.cash = Math.max(0, game.cash - loss);
+      toast(lifestylePick(MM_LIFESTYLE_LINES.flexBad) + ' -' + fmt(loss), 'warning');
+    }
+    lifestyleFlashMaybe('Wrist check · lifestyle roll');
+    lifestyleFinalize();
+    return;
+  }
+
+  if(act === 'watch_service'){
+    const bill = Math.floor(650 + Math.random() * 7350);
+    if(game.cash < bill){
+      toast('Service quote is ' + fmt(bill) + '. Need more cash.', 'warning');
+      return;
+    }
+    game.cash -= bill;
+    if(goodRoll(0.78)){
+      addXP(irand(4, 12));
+      toast(lifestylePick(MM_LIFESTYLE_LINES.serviceGood) + ' · -' + fmt(bill) + ' · +XP', 'success');
+    }else{
+      const extra = Math.round(200 + Math.random() * Math.min(6000, bill * 0.9));
+      game.cash = Math.max(0, game.cash - extra);
+      toast(lifestylePick(MM_LIFESTYLE_LINES.serviceBad) + ' · -' + fmt(bill + extra) + ' total', 'warning');
+    }
+    lifestyleFinalize();
+    return;
+  }
+
+  if(act === 'watch_sell'){
+    const res = sellOwnedShoppingItem(id);
+    if(!res){ toast('Could not sell.', 'warning'); return; }
+    toast(lifestylePick(MM_LIFESTYLE_LINES.sellGood) + ' +' + fmt(res.payout) + ' · sold ' + res.item.icon + ' ' + res.item.name, 'success');
+    lifestyleFinalize();
+    return;
+  }
+}
+
+function buildEmpirePickControls(){
+  const bar = $('#empirePickBar');
+  if(!bar) return;
+  ensureEmpireShowcasePicks();
+  const rows = [
+    { cat:'homes', label:'Residence' },
+    { cat:'cars', label:'Vehicle' },
+    { cat:'jewelry', label:'Jewelry' },
+    { cat:'watches', label:'Watch' }
+  ];
+  bar.innerHTML = rows.map(({cat,label})=>{
+    const owned = getOwnedIn('shopping', cat).sort((a,b)=>b.cost-a.cost);
+    const cur = game.empireShowcasePicks[cat] || '';
+    if(!owned.length){
+      return `<div class="empirePickCell"><label>${escapeHtml(label)}</label><div class="layoutHint" style="padding:6px 0">Nothing owned — unlock in Shopping</div></div>`;
+    }
+    const opts = [`<option value="">Auto · finest owned</option>`].concat(owned.map(i=>{
+      const sel = i.id === cur ? ' selected' : '';
+      return `<option value="${escapeHtml(i.id)}"${sel}>${escapeHtml(i.icon)} ${escapeHtml(i.name)}</option>`;
+    })).join('');
+    return `<div class="empirePickCell"><label for="empirePick_${escapeHtml(cat)}">${escapeHtml(label)}</label><select id="empirePick_${escapeHtml(cat)}" class="empirePickSelect" data-pick-cat="${escapeHtml(cat)}">${opts}</select></div>`;
+  }).join('');
 }
 function getOwnershipTheme(){
   const home = getTopOwned('shopping','homes');
@@ -3269,33 +3979,98 @@ function renderBadges(targetSel){
   const badges = computeBadges();
   wrap.innerHTML = badges.length ? badges.map(b=>`<div class="badgePill"><span>${b.icon}</span><span>${b.name}</span></div>`).join('') : '<div class="layoutHint">No badges yet. Hit milestones to build your legend.</div>';
 }
+let refreshEmpireAvatarStudio = null;
+function ensureEmpireAvatarStudio(){
+  const studio = $('#empireAvatarStudio');
+  const host = $('#empireAvatarHost');
+  if(!studio || !host || !window.MM_AVATAR) return;
+  if(!refreshEmpireAvatarStudio){
+    refreshEmpireAvatarStudio = window.MM_AVATAR.mountStudio(studio, host, {
+      get: () => game.avatarDNA,
+      set: (d) => { game.avatarDNA = window.MM_AVATAR.normalizeAvatarDNA(d); },
+      save: () => { try{ save(false); }catch(e){} },
+      flex: () => window.MM_AVATAR.classifyShopFlex(resolveEmpireSpotItem('jewelry'), resolveEmpireSpotItem('watches'))
+    });
+  }else{
+    refreshEmpireAvatarStudio();
+  }
+}
+function paintEmpireAvatarFigure(){
+  if(!window.MM_AVATAR) return;
+  game.avatarDNA = window.MM_AVATAR.normalizeAvatarDNA(game.avatarDNA || {});
+  const host = $('#empireAvatarHost');
+  if(!host) return;
+  window.MM_AVATAR.applyAvatarDNAToHost(host, game.avatarDNA,
+    window.MM_AVATAR.classifyShopFlex(resolveEmpireSpotItem('jewelry'), resolveEmpireSpotItem('watches'))
+  );
+}
 function renderEmpire(){
-  const home = getTopOwned('shopping','homes');
-  const car = getTopOwned('shopping','cars');
-  const jewel = getTopOwned('shopping','jewelry');
+  sanitizeEmpirePicks();
+  ensureEmpireShowcasePicks();
+  game.avatarDNA = normalizeAvatarDNA(game.avatarDNA || {});
+  const homePick = resolveEmpireSpotItem('homes');
+  const carPick = resolveEmpireSpotItem('cars');
+  const jewelPick = resolveEmpireSpotItem('jewelry');
+  const watchPick = resolveEmpireSpotItem('watches');
   const hq = getTopOwned('business','headquarters');
-  $('#sceneHome').textContent = home ? home.icon : '🏚️';
-  $('#sceneCar').textContent = car ? car.icon : '🚗';
-  $('#sceneJewel').textContent = jewel ? jewel.icon : '💍';
-  $('#sceneOffice').textContent = hq ? hq.icon : '🖥️';
-  $('#showHome').textContent = home ? home.name : 'Tiny Apartment';
-  $('#showCar').textContent = car ? car.name : 'Rusty Beater';
-  $('#showJewel').textContent = jewel ? jewel.name : 'Silver Ring';
+  const railHome = getTopOwned('shopping','homes');
+
+  const he = $('#empireHouseEmoji');
+  const hc = $('#empireHouseCaption');
+  const ce = $('#empireCarEmoji');
+  const cc = $('#empireCarCaption');
+  const stage = $('#empireAvatarStage');
+  const hint = $('#empireSpotlightHint');
+
+  if(he) he.textContent = homePick && homePick.icon ? homePick.icon : '🏚️';
+  if(hc) hc.textContent = homePick && homePick.name ? homePick.name : 'Dream residence';
+  if(ce) ce.textContent = carPick && carPick.icon ? carPick.icon : '🚗';
+  if(cc) cc.textContent = carPick && carPick.name ? carPick.name : 'Daily driver';
+  if(stage) stage.dataset.tier = empireSpotlightTier(homePick);
+
+  buildEmpirePickControls();
+  ensureEmpireAvatarStudio();
+  buildEmpireLifestylePanel();
+
+  if(hint){
+    const pinned = ['homes','cars','jewelry','watches'].filter(k => game.empireShowcasePicks[k]);
+    hint.textContent = pinned.length
+      ? `${pinned.length} slot${pinned.length>1?'s are':' is'} pinned to specific items. Use Auto to follow your newest top-tier flex.`
+      : 'Each slot uses your finest owned piece until you pin a favorite below.';
+  }
+
+  $('#showHome').textContent = homePick ? homePick.name : 'Tiny Apartment';
+  $('#showCar').textContent = carPick ? carPick.name : 'Rusty Beater';
+  $('#showJewel').textContent = jewelPick ? jewelPick.name : 'Silver Ring';
+  $('#showWatch').textContent = watchPick ? watchPick.name : 'Everyday Watch';
   $('#showHQ').textContent = hq ? hq.name : 'Bedroom Setup';
   $('#showStatus').textContent = currentStatus();
   $('#showEmpireValue').textContent = fmt(netWorth());
   $('#empireTitle').textContent = currentStage();
   $('#empireSubtitle').textContent = `${currentStatus()} · ${fmt(netWorth())} total empire value`;
-  $('#railResidence').textContent = home ? home.name : 'Tiny Apartment';
+  $('#railResidence').textContent = railHome ? railHome.name : 'Tiny Apartment';
   const flavor = [];
-  if(home) flavor.push(`Your home theme is now shaped by ${home.name}.`);
-  if(car) flavor.push(`Your fleet centerpiece is ${car.name}.`);
-  if(jewel) flavor.push(`${jewel.name} adds visible prestige to your identity.`);
-  if(hq) flavor.push(`Your empire operates from ${hq.name}.`);
-  $('#ownershipFlavor').textContent = flavor.join(' ') || 'Your purchases now shape the visual identity of the app.';
+  if(homePick) flavor.push(`Backdrop residence: ${homePick.name}.`);
+  if(carPick) flavor.push(`Garage hero: ${carPick.name}.`);
+  if(jewelPick) flavor.push(`${jewelPick.name} lights up the figure.`);
+  if(watchPick) flavor.push(`${watchPick.name} sits on the wrist.`);
+  if(hq) flavor.push(`Operations run through ${hq.name}.`);
+  $('#ownershipFlavor').textContent = flavor.join(' ') || 'Shop homes, cars, jewelry, and watches to fill this flex wall.';
+  paintEmpireAvatarFigure();
   renderBadges('#empireBadges');
   renderBadges('#userBadges');
   applyOwnershipTheme();
+}
+function onEmpirePickChange(e){
+  const sel = e.target.closest('.empirePickSelect');
+  if(!sel) return;
+  playClickSound();
+  ensureEmpireShowcasePicks();
+  const cat = sel.getAttribute('data-pick-cat');
+  if(!cat || ['homes','cars','jewelry','watches'].indexOf(cat) === -1) return;
+  game.empireShowcasePicks[cat] = sel.value;
+  save(false);
+  renderEmpire();
 }
 function renderUser(){
   $('#userTitle').textContent = currentStage();
@@ -3364,7 +4139,8 @@ function buildSearchResults(query){
     {view:'shopping', icon:'🛍️', title:'Shopping page', subtitle:'Homes, cars, jewelry, watches, and luxury.'},
     {view:'business', icon:'🏢', title:'Business upgrades page', subtitle:'Scale your empire with offices, staff, and software.'},
     {view:'news', icon:'📰', title:'Stock news page', subtitle:'See fake news events driving the market.'},
-    {view:'user', icon:'👤', title:'User page', subtitle:'Portfolio, assets, XP, and progress summary.'}
+    {view:'user', icon:'👤', title:'User page', subtitle:'Portfolio, assets, XP, and progress summary.'},
+    {view:'empire', icon:'👑', title:'Empire spotlight', subtitle:'Full-body flex scene with your homes, cars, jewelry, and watches.'}
   ].forEach(page => {
     const hay = `${page.title} ${page.subtitle} ${page.view}`.toLowerCase();
     if(hay.includes(q)){
@@ -3487,6 +4263,18 @@ $('#repayMaxBtn')?.addEventListener('click', ()=>{ playClickSound(); repayDebt('
 $('#jumpStocks').addEventListener('click', ()=>{ playClickSound(); switchView('stocks'); });
 $('#jumpBusiness').addEventListener('click', ()=>{ playClickSound(); switchView('business'); });
 $$('.menuBtn[data-view]').forEach(btn=>btn.addEventListener('click', ()=>{ playClickSound(); switchView(btn.dataset.view); }));
+const empireViewEl = $('#empireView');
+if(empireViewEl){
+  empireViewEl.addEventListener('change', onEmpirePickChange);
+  empireViewEl.addEventListener('click', onEmpireLifestyleClick);
+  empireViewEl.addEventListener('toggle', (e) => {
+    const det = e.target;
+    if(!det || det.tagName !== 'DETAILS' || !det.hasAttribute('data-life-sec')) return;
+    const m = $('#empireLifestyleMount');
+    if(!m || !m.contains(det)) return;
+    writeEmpireLifeOpenPrefs();
+  }, true);
+}
 const globalSearchInput = $('#globalSearch');
 const searchResultsEl = $('#searchResults');
 if(globalSearchInput){
@@ -3550,6 +4338,11 @@ setInterval(()=>{
       marketTick();
       passiveTick();
       __marketAccum -= 1500;
+      game.ticksUntilNextNews = (Number.isFinite(game.ticksUntilNextNews) ? game.ticksUntilNextNews : irand(40, 100)) - 1;
+      if(game.ticksUntilNextNews <= 0){
+        makeNews();
+        game.ticksUntilNextNews = irand(40, 100);
+      }
     }
 
     while(__newsDecayAccum >= 1000){
@@ -3558,10 +4351,6 @@ setInterval(()=>{
       __newsDecayAccum -= 1000;
     }
 
-    if(game.simNow >= game.nextNewsAt){
-      makeNews();
-      game.nextNewsAt = game.simNow + irand(15000,60000);
-    }
     if(game.simNow >= game.nextBonusAt){
       triggerOpportunity();
       game.nextBonusAt = game.simNow + irand(15000,60000);
@@ -3682,7 +4471,14 @@ let mmSocial = { user:null, profile:null, selectedAvatar:'💹', selectedTheme:'
     const portfolio = stocks.reduce((sum,s)=>sum + Number(s?.owned||0)*Number(s?.price||0),0);
     const cash = Number(g.cash||0);
     const net = Number(g.netWorth || cash + portfolio || currentNetWorth());
-    return {
+    let avatar_dna = '';
+    try{
+      const gv = typeof window !== 'undefined' ? window.game : null;
+      if(gv && gv.avatarDNA && typeof window.normalizeAvatarDNA === 'function'){
+        avatar_dna = JSON.stringify(window.normalizeAvatarDNA(gv.avatarDNA));
+      }
+    }catch(e){}
+    const row = {
       net_worth: Number(net || 0),
       cash: Number(cash || 0),
       total_profit: Number(g.totalEarned || 0),
@@ -3692,6 +4488,8 @@ let mmSocial = { user:null, profile:null, selectedAvatar:'💹', selectedTheme:'
       xp: Math.round(Number(g.xp || 0)),
       empire_tier: String(currentStageSafe())
     };
+    if(avatar_dna) row.avatar_dna = avatar_dna;
+    return row;
   }
   function formatMoney(n){ try{return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:Math.abs(n)>=1000?0:2}).format(Number(n||0));}catch(e){return '$0';} }
   
@@ -4012,7 +4810,8 @@ async function fetchLeaderboardRowsGame(){
         net_worth: r.net_worth || 0,
         prestige: r.prestige || 0,
         empire_tier: r.empire_tier || '-',
-        updated_at: r.updated_at || null
+        updated_at: r.updated_at || null,
+        avatar_dna: r.avatar_dna != null ? r.avatar_dna : null
       };
     });
   }catch(e){
@@ -4056,7 +4855,8 @@ async function fetchLeaderboardRowsUnified(){
         net_worth: r.net_worth || 0,
         prestige: r.prestige || 0,
         empire_tier: r.empire_tier || '-',
-        updated_at: r.updated_at || null
+        updated_at: r.updated_at || null,
+        avatar_dna: r.avatar_dna != null ? r.avatar_dna : null
       };
     });
   }catch(e){
@@ -4184,9 +4984,13 @@ async function loadLeaderboardSocial(){
       const stats = getCurrentStats();
       const nowIso = new Date().toISOString();
 
-      const statsRes = await window.mmSupabase
-        .from('player_stats')
-        .upsert(Object.assign({user_id:user.id, updated_at:nowIso}, stats));
+      let statsPayload = Object.assign({ user_id: user.id, updated_at: nowIso }, stats);
+      let statsRes = await window.mmSupabase.from('player_stats').upsert(statsPayload);
+      if(statsRes?.error && stats.avatar_dna){
+        const { avatar_dna, ...rest } = stats;
+        statsPayload = Object.assign({ user_id: user.id, updated_at: nowIso }, rest);
+        statsRes = await window.mmSupabase.from('player_stats').upsert(statsPayload);
+      }
       if(statsRes?.error){
         console.warn('player_stats sync failed:', statsRes.error.message || statsRes.error);
       }
@@ -4300,13 +5104,6 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 });
 </script>
-<button class="ghostBtn" id="closePlayerProfileBtn">Close</button>
-    </div>
-    <div id="playerProfileBodyGame" class="profileCard" style="margin-top:14px">
-      <div class="layoutHint">Loading profile...</div>
-    </div>
-  </div>
-</div>
 
 
 <div id="gameLoadingOverlay" class="gameLoadingOverlay" aria-live="polite" aria-label="Loading game">
@@ -4360,41 +5157,7 @@ document.addEventListener('DOMContentLoaded', function(){
       </div>
     </div>
 
-    <div class="gameLoadingProgressWrap">
-      <div class="gameLoadingProgressBar"><div id="gameLoadingProgress" class="gameLoadingProgress"></div></div>
-      <div id="gameLoadingStatus" class="gameLoadingStatus">Syncing account and market data...</div>
-    </div>
-  </div>
-</div>
-
-
-    <div class="gameLoadingChart">
-      <div class="gameLoadingGrid"></div>
-      <div class="gameLoadingLineWrap">
-        <svg class="gameLoadingSvg" viewBox="0 0 600 160" preserveAspectRatio="none" aria-hidden="true">
-          <polyline class="gameLoadingLine1" points="0,125 40,118 85,122 125,101 165,109 210,72 255,82 300,52 350,63 390,42 440,60 485,34 540,24 600,18"></polyline>
-          <polyline class="gameLoadingLine2" points="0,145 50,140 95,142 135,128 180,135 225,110 270,120 315,92 360,102 405,82 455,96 500,70 550,60 600,48"></polyline>
-        </svg>
-      </div>
-      <div class="gameLoadingGlow"></div>
-    </div>
-
-    <div class="gameLoadingTicker">
-      <div class="gameLoadingTickerTrack">
-        <span>BLZN +2.4%</span>
-        <span>QNTX +1.8%</span>
-        <span>NRVA -0.6%</span>
-        <span>Loading market data</span>
-        <span>Preparing portfolio</span>
-        <span>Connecting leaderboard</span>
-        <span>BLZN +2.4%</span>
-        <span>QNTX +1.8%</span>
-        <span>NRVA -0.6%</span>
-      </div>
-    </div>
-
-    <div class="gameLoadingProgressWrap">
-      <div class="gameLoadingProgressBar"><div id="gameLoadingProgress" class="gameLoadingProgress"></div></div>
+    <div class="gameLoadingStatusOnly">
       <div id="gameLoadingStatus" class="gameLoadingStatus">Syncing account and market data...</div>
     </div>
   </div>
@@ -4405,14 +5168,13 @@ document.addEventListener('DOMContentLoaded', function(){
 <script>
 (function(){
   const overlay = document.getElementById('gameLoadingOverlay');
-  const bar = document.getElementById('gameLoadingProgress');
   const statusEl = document.getElementById('gameLoadingStatus');
   const subtitleEl = document.getElementById('gameLoadingSubtitle');
   const playerEl = document.getElementById('gameLoadingPlayer');
   const worthEl = document.getElementById('gameLoadingWorth');
   const stateEl = document.getElementById('gameLoadingState');
   const tickerEl = document.getElementById('gameLoadingTickerTrack');
-  if(!overlay || !bar || !statusEl) return;
+  if(!overlay || !statusEl) return;
 
   const started = performance.now();
   const minDuration = 2000;
@@ -4488,7 +5250,6 @@ document.addEventListener('DOMContentLoaded', function(){
 
   const tick = setInterval(() => {
     progress = Math.min(progress + (progress < 72 ? 7 : progress < 90 ? 2.2 : .8), 94);
-    bar.style.width = progress + '%';
 
     if (progress > 22 && stateIndex < 1) stateIndex = 1;
     if (progress > 46 && stateIndex < 2) stateIndex = 2;
@@ -4513,7 +5274,6 @@ document.addEventListener('DOMContentLoaded', function(){
     setTimeout(() => {
       clearInterval(tick);
       statusEl.textContent = isCrash ? 'Survived the open.' : 'Ready.';
-      bar.style.width = '100%';
       worthEl.textContent = fmt(targetWorth);
       overlay.classList.add('is-hidden');
       try {
@@ -4533,8 +5293,6 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 })();
 </script>
-</div>
-</div>
 
 
 <div id="playerQuickViewOverlay" class="playerQuickViewOverlay" hidden aria-hidden="true">
@@ -4693,10 +5451,27 @@ document.addEventListener('DOMContentLoaded', function(){
           .maybeSingle();
         stats = statsRes?.data || null;
       }catch(e){}
+      try{
+        const selfU = mmSocial?.profile?.username;
+        if(selfU && String(username).trim().toLowerCase() === String(selfU).trim().toLowerCase() && window.game && window.game.avatarDNA && typeof window.normalizeAvatarDNA === 'function'){
+          stats = Object.assign({}, stats || {}, { avatar_dna: JSON.stringify(window.normalizeAvatarDNA(window.game.avatarDNA)) });
+        }
+      }catch(e){}
       return { profile, stats };
     }catch(e){
       return null;
     }
+  }
+
+  function parseAvatarDnaField(raw){
+    if(raw == null || raw === '') return null;
+    if(typeof raw === 'object'){
+      return typeof window.normalizeAvatarDNA === 'function' ? window.normalizeAvatarDNA(raw) : null;
+    }
+    try{
+      const o = JSON.parse(String(raw));
+      return typeof window.normalizeAvatarDNA === 'function' ? window.normalizeAvatarDNA(o) : null;
+    }catch(e){ return null; }
   }
 
   function renderPlayerQuickView(payload){
@@ -4709,16 +5484,23 @@ document.addEventListener('DOMContentLoaded', function(){
     const p = payload.profile;
     const s = payload.stats || {};
     const banner = getBannerGradient(p.banner_url || 'default_banner');
-    const avatar = escapeHtml(p.avatar_url || '💹');
     const disp = escapeHtml(p.display_name || p.username || 'Unknown');
     const handle = escapeHtml(p.username || 'unknown');
+    const handleRaw = String(p.username || 'unknown');
     const bioHtml = (p.bio && String(p.bio).trim()) ? escapeHtml(p.bio) : 'No bio yet.';
     const fav = escapeHtml(p.favorite_stock || '—');
     const empire = escapeHtml(String(s.empire_tier != null ? s.empire_tier : '-'));
+    const dnaFromCloud = parseAvatarDnaField(s.avatar_dna);
+    const dnaFallback = typeof window.deterministicAvatarDNA === 'function' ? window.deterministicAvatarDNA(handleRaw) : null;
+    const dna = dnaFromCloud || dnaFallback;
+    const useFig = !!(dna && typeof window.MM_applyAvatarDNA === 'function');
+    const avatarHtml = useFig
+      ? '<div class="playerQuickViewAvatar mmQuickAvatar"><div class="mmAvatarHost mmAvatarHost--quick" id="pvAvatarHost"></div></div>'
+      : '<div class="playerQuickViewAvatar">' + escapeHtml(p.avatar_url || '💹') + '</div>';
     body.innerHTML = ''
       + '<div class="playerQuickViewBanner" style="background:' + banner + '"></div>'
       + '<div class="playerQuickViewHeader">'
-      +   '<div class="playerQuickViewAvatar">' + avatar + '</div>'
+      +   avatarHtml
       +   '<div>'
       +     '<div class="playerQuickViewName">' + disp + '</div>'
       +     '<div class="playerQuickViewHandle">@' + handle + '</div>'
@@ -4731,6 +5513,10 @@ document.addEventListener('DOMContentLoaded', function(){
       +   '<div class="playerQuickViewStat"><div class="playerQuickViewStatLabel">Prestige</div><div class="playerQuickViewStatValue">' + escapeHtml(String(Math.round(Number(s.prestige || 0)))) + '</div></div>'
       +   '<div class="playerQuickViewStat"><div class="playerQuickViewStatLabel">Empire</div><div class="playerQuickViewStatValue">' + empire + '</div></div>'
       + '</div>';
+    if(useFig){
+      const host = body.querySelector('#pvAvatarHost');
+      if(host) window.MM_applyAvatarDNA(host, dna, {});
+    }
     requestAnimationFrame(function(){ positionPlayerQuickCard(); });
   }
 
