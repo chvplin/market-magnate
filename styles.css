@@ -372,3 +372,232 @@ body{
   background:linear-gradient(180deg, rgba(15,22,33,.98), rgba(11,17,26,.98));
   border-color:rgba(255,255,255,.08);
 }
+
+
+/* v61 force dark remaining surfaces */
+:root{
+  --bg:#090d14 !important;
+  --bg2:#0d131d !important;
+  --panel:#111826 !important;
+  --panel2:#151f2f !important;
+  --panel3:#0f1724 !important;
+  --line:#253144 !important;
+  --text:#eef3fb !important;
+  --muted:#93a0b3 !important;
+}
+
+/* page + top */
+html,body{
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--themeTint, rgba(212,169,40,.06)) 65%, transparent), transparent 34%),
+    linear-gradient(180deg,#090d14 0%, #0d131d 45%, #101724 100%) !important;
+  color:var(--text) !important;
+}
+.topbar,
+.topbar[style],
+.topbar *{
+  color:var(--text) !important;
+}
+.topbar{
+  background:rgba(8,12,19,.92) !important;
+  border-bottom:1px solid rgba(255,255,255,.08) !important;
+  box-shadow:0 12px 28px rgba(0,0,0,.28) !important;
+}
+.searchWrap,
+.searchBar,
+.searchBar input,
+.searchInput{
+  background:transparent !important;
+}
+.searchBar,
+.searchInput,
+.topbar input{
+  background:#0b1119 !important;
+  border:1px solid #253144 !important;
+  color:#f2f7ff !important;
+}
+
+/* kill remaining bright cards/panels */
+.heroCard,
+.profileCard,
+.railCard,
+.feedCard,
+.card,
+.panel,
+.shopCard,
+.socialCard,
+.modalCard,
+.metric,
+.statBox,
+.newsCard,
+.loanCard,
+.stockRow,
+.watchlistRow,
+.leaderMiniRow,
+.miniLeadRow,
+.menuBtn,
+.mobileNavBtn,
+.mobileNav,
+#leaderMini,
+#onlinePlayersGame,
+#watchlist,
+#playerProfileBodyGame,
+#publicProfileBody .profileCard,
+#leaderboardModalOverlay .modalCard,
+#profileModalOverlay .modalCard,
+#playerProfileOverlay .modalCard,
+#eventModal .modalCard,
+#lifeEventModal .modalCard,
+#heroCard,
+#identityPanel,
+#statusPanel,
+#residencePanel,
+#badgePanel,
+#empirePanel,
+#userProfileCard,
+#socialCard,
+#cosmeticStoreGrid > *,
+#stockDetailCard,
+#stockTradeCard,
+#portfolioCard,
+#newsPanel,
+#overviewPanel,
+#assetsPanel,
+#watchlistPanel{
+  background:linear-gradient(180deg, rgba(15,22,33,.99), rgba(11,17,26,.99)) !important;
+  background-color:#111826 !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+  color:var(--text) !important;
+}
+
+/* target nested white stat cards inside bright parent panels */
+.heroCard > *,
+.profileCard > *,
+.railCard > *,
+.card > *,
+.panel > *,
+.shopCard > *,
+.socialCard > *,
+.metric > *,
+.statBox > *,
+#overviewPanel > *,
+#assetsPanel > *,
+#stockDetailCard > *,
+#stockTradeCard > *,
+#portfolioCard > *,
+#newsPanel > *,
+#identityPanel > *,
+#statusPanel > *,
+#residencePanel > *,
+#badgePanel > *,
+#empirePanel > *,
+#userProfileCard > *{
+  color:inherit !important;
+}
+.heroCard .metric,
+.heroCard .statBox,
+.profileCard .metric,
+.profileCard .statBox,
+.railCard .metric,
+.railCard .statBox,
+.card .metric,
+.card .statBox,
+.panel .metric,
+.panel .statBox,
+.shopCard .metric,
+.shopCard .statBox{
+  background:linear-gradient(180deg, rgba(18,26,39,.98), rgba(13,19,29,.98)) !important;
+  background-color:#151f2f !important;
+  border-color:rgba(255,255,255,.08) !important;
+}
+
+/* notifications / floating items */
+#toast,
+.toast,
+.notification,
+.notice,
+.alert,
+.newsToast,
+.marketToast{
+  background:linear-gradient(180deg, rgba(15,22,33,.99), rgba(11,17,26,.99)) !important;
+  background-color:#111826 !important;
+  color:#eef3fb !important;
+  border:1px solid rgba(255,255,255,.08) !important;
+}
+
+/* mobile leftovers */
+.mobileNav{
+  background:rgba(8,12,19,.94) !important;
+  border-top:1px solid rgba(255,255,255,.08) !important;
+}
+.mobileNavBtn:not(.active){
+  background:linear-gradient(180deg,#182233,#121a28) !important;
+  color:#eef3fb !important;
+  border:1px solid #2a374a !important;
+}
+.mobileNavBtn.active,
+.menuBtn.active{
+  background:linear-gradient(180deg,#f2cf66,#d4a928) !important;
+  color:#17120a !important;
+  border:1px solid #8d6f18 !important;
+}
+
+/* buttons */
+button,.buttonish,.buySmall,.actionBtn,.primaryBtn,.shopTab.active{
+  background:linear-gradient(180deg,#f2cf66,#d4a928) !important;
+  color:#17120a !important;
+  border:1px solid #8d6f18 !important;
+}
+button.secondary,.ghostBtn,.shopTab,.menuBtn:not(.active){
+  background:linear-gradient(180deg,#182233,#121a28) !important;
+  color:#eef3fb !important;
+  border:1px solid #2a374a !important;
+}
+
+/* force away common inline light backgrounds */
+[style*="background:rgba(245,247,250,.94)"],
+[style*="background: rgba(245,247,250,.94)"],
+[style*="background:rgba(235,238,242,.96)"],
+[style*="background: rgba(235,238,242,.96)"],
+[style*="background:rgba(226,231,237,.96)"],
+[style*="background: rgba(226,231,237,.96)"],
+[style*="background:#eef2f6"],
+[style*="background: #eef2f6"],
+[style*="background:#fff"],
+[style*="background: #fff"],
+[style*="background:#ffffff"],
+[style*="background: #ffffff"],
+[style*="background:#f7f9fc"],
+[style*="background:#f8fafc"],
+[style*="background: #f7f9fc"],
+[style*="background: #f8fafc"],
+[style*="background-color:#fff"],
+[style*="background-color:#ffffff"],
+[style*="background-color:#f7f9fc"],
+[style*="background-color:#f8fafc"]{
+  background:#111826 !important;
+  background-color:#111826 !important;
+  color:#eef3fb !important;
+  border-color:rgba(255,255,255,.08) !important;
+}
+
+/* text */
+h1,h2,h3,h4,h5,h6,b,strong,.panelTitle,.railTitle,.heroTitle,.v{
+  color:#eef3fb !important;
+}
+.layoutHint,.muted,.k,.panelSub,.feedSub,.subtle,.menuText span{
+  color:#93a0b3 !important;
+}
+table,th,td,tr{
+  background:transparent !important;
+  color:#eef3fb !important;
+  border-color:rgba(255,255,255,.08) !important;
+}
+
+/* decorative images/charts */
+img,svg image{
+  filter:brightness(.68) contrast(1.08) saturate(.9) !important;
+}
+.decorativeGraph,.graphCard img,.graphImage,.placeholderGraph,.chartDecor,.ambientImage{
+  display:none !important;
+}
