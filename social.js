@@ -284,6 +284,36 @@ async function getUser() {
     if (el.playBtn()) el.playBtn().hidden = !user;
   }
 
+  async function prepareGameSessionHints() {
+    try {
+      sessionStorage.setItem("MM_SHOW_GAME_LOADING", "1");
+      const user = await getUser().catch(() => null);
+      if (!user) return;
+      localStorage.setItem("MM_LAST_LOGIN", JSON.stringify({ email: user.email || "", id: user.id || "" }));
+      const prof = await window.mmSupabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+      if (prof?.data) localStorage.setItem("MM_PROFILE_HINT", JSON.stringify(prof.data));
+      const stats = await window.mmSupabase.from("player_stats").select("net_worth").eq("user_id", user.id).maybeSingle();
+      sessionStorage.setItem(
+        "MM_LOADING_HINT",
+        JSON.stringify({
+          username: prof?.data?.username || "",
+          display_name: prof?.data?.display_name || prof?.data?.username || "",
+          net_worth: Number(stats?.data?.net_worth || 0)
+        })
+      );
+    } catch (e) {}
+  }
+
+  async function navigateToGame() {
+    const user = await getUser().catch(() => null);
+    if (!user) {
+      flash(el.authMessage(), "Sign in first.", false);
+      return;
+    }
+    await prepareGameSessionHints();
+    window.location.href = "./game.html";
+  }
+
   async function ensureProfileRow(user, usernameSeed) {
     const { data: existing } = await window.mmSupabase.from("profiles").select("id, username").eq("id", user.id).maybeSingle();
     if (existing) return existing;
@@ -348,9 +378,8 @@ async function getUser() {
       updated_at: new Date().toISOString()
     });
 
-    flash(el.authMessage(), "Account created. Redirecting to game...");
+    flash(el.authMessage(), "Account created. Save your account details, then click Play game.", true);
     await refreshAuthUI();
-    setTimeout(() => { window.location.href = "./game.html"; }, 700);
   }
 
   async function signIn() {
@@ -371,24 +400,8 @@ async function getUser() {
       }
     } catch (e) {}
 
-    try {
-      sessionStorage.setItem("MM_SHOW_GAME_LOADING", "1");
-      const user = await getUser().catch(() => null);
-      let profileHint = null;
-      if (user) {
-        const prof = await window.mmSupabase.from("profiles").select("username,display_name").eq("id", user.id).maybeSingle();
-        profileHint = prof?.data || null;
-        const stats = await window.mmSupabase.from("player_stats").select("net_worth").eq("user_id", user.id).maybeSingle();
-        sessionStorage.setItem("MM_LOADING_HINT", JSON.stringify({
-          username: profileHint?.username || "",
-          display_name: profileHint?.display_name || profileHint?.username || "",
-          net_worth: Number(stats?.data?.net_worth || 0)
-        }));
-      }
-    } catch (e) {}
-    flash(el.authMessage(), "Signed in. Redirecting to game...");
+    flash(el.authMessage(), "Signed in. Save your account details if needed, then click Play game.", true);
     await refreshAuthUI();
-    setTimeout(() => { window.location.href = "./game.html"; }, 500);
   }
 
   async function signOut() {
@@ -476,7 +489,9 @@ async function getUser() {
           net_worth: r.net_worth || 0,
           prestige: r.prestige || 0,
           empire_tier: r.empire_tier || "-",
-          updated_at: r.updated_at || null
+          updated_at: r.updated_at || null,
+          last_seen: r.last_seen != null ? r.last_seen : null,
+          last_active: r.last_active != null ? r.last_active : null
         };
       });
     } catch (e) {
@@ -484,8 +499,82 @@ async function getUser() {
     }
   }
 
+  async function fetchPlayerStatsRecentActivityIndex(maxRows) {
+    if (!window.mmSupabase || !maxRows) return [];
+    try {
+      const statsRes = await window.mmSupabase
+        .from("player_stats")
+        .select("user_id, net_worth, prestige, empire_tier, updated_at, last_seen, last_active")
+        .order("updated_at", { ascending: false })
+        .limit(maxRows);
+      if (statsRes.error || !Array.isArray(statsRes.data)) return [];
+      const statsRows = statsRes.data || [];
+      const ids = [...new Set(statsRows.map(r => r.user_id).filter(Boolean))];
+      if (!ids.length) return [];
+      const profileRes = await window.mmSupabase
+        .from("profiles")
+        .select("id,username,display_name")
+        .in("id", ids);
+      const profiles = Array.isArray(profileRes.data) ? profileRes.data : [];
+      const byId = new Map(profiles.map(p => [p.id, p]));
+      return statsRows
+        .map(r => {
+          const p = byId.get(r.user_id) || {};
+          return {
+            username: p.username || "unknown",
+            display_name: p.display_name || p.username || "Unknown",
+            net_worth: r.net_worth || 0,
+            prestige: r.prestige || 0,
+            empire_tier: r.empire_tier || "-",
+            updated_at: r.updated_at || null,
+            last_seen: r.last_seen != null ? r.last_seen : null,
+            last_active: r.last_active != null ? r.last_active : null
+          };
+        })
+        .filter(r => r.username && r.username !== "unknown");
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function buildOnlinePlayersListHub(leaderRows, activityRows, opts) {
+    const now = Date.now();
+    const ONLINE_WINDOW_MS = opts && opts.windowMs ? opts.windowMs : 18 * 60 * 1000;
+    const maxSlots = opts && opts.maxSlots ? opts.maxSlots : 12;
+    const passes = row => {
+      const raw = row.updated_at || row.last_seen || row.last_active || null;
+      if (!raw) return false;
+      const t = new Date(raw).getTime();
+      return Number.isFinite(t) && now - t >= 0 && now - t <= ONLINE_WINDOW_MS;
+    };
+    const stamp = row => new Date(row.updated_at || row.last_seen || row.last_active || 0).getTime();
+    const candidates = [];
+    (activityRows || []).forEach(r => {
+      if (passes(r)) candidates.push(r);
+    });
+    (leaderRows || []).forEach(r => {
+      if (passes(r)) candidates.push(r);
+    });
+    candidates.sort((a, b) => stamp(b) - stamp(a));
+    const seen = new Set();
+    const out = [];
+    for (let i = 0; i < candidates.length; i++) {
+      const r = candidates[i];
+      const key = String(r.username || "")
+        .trim()
+        .toLowerCase();
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      out.push(r);
+      if (out.length >= maxSlots) break;
+    }
+    return out;
+  }
+
 async function loadLeaderboard() {
     const data = await fetchLeaderboardRowsIndex();
+    const activityRows = await fetchPlayerStatsRecentActivityIndex(160);
+    const ONLINE_WINDOW_MS = 18 * 60 * 1000;
 
     if (!data.length) {
       leaderboardTargets().forEach(t => {
@@ -496,21 +585,53 @@ async function loadLeaderboard() {
       const onlineWrap = $("#onlinePlayersList");
       const onlineCount = $("#onlineCount");
       if (onlineWrap) {
+        let online = buildOnlinePlayersListHub([], activityRows, { windowMs: ONLINE_WINDOW_MS, maxSlots: 12 });
+        const now = Date.now();
+        const inWindow = r => {
+          const raw = r.updated_at || r.last_seen || r.last_active || null;
+          if (!raw) return false;
+          const t = new Date(raw).getTime();
+          return Number.isFinite(t) && now - t >= 0 && now - t <= ONLINE_WINDOW_MS;
+        };
+        let selfProfile = null;
         try {
-          const selfProfile = JSON.parse(localStorage.getItem("MM_PROFILE_HINT") || "null");
-          if (selfProfile?.username) {
-            onlineWrap.innerHTML = `
-              <a class="miniLeadRow livePlayerRow" href="./index.html?u=${encodeURIComponent(selfProfile.username)}">
-                <div class="miniRank">●</div>
-                <div><div style="font-weight:900">${selfProfile.display_name || selfProfile.username} (You)</div><div class="muted" style="font-size:.8rem">Online</div></div>
-                <div style="font-weight:900">Online</div>
-              </a>`;
-            if (onlineCount) onlineCount.textContent = "(1)";
-            return;
-          }
+          selfProfile = JSON.parse(localStorage.getItem("MM_PROFILE_HINT") || "null");
         } catch (e) {}
-        onlineWrap.innerHTML = '<div class="muted">No players active right now.</div>';
-        if (onlineCount) onlineCount.textContent = "(0)";
+        const selfUsername = selfProfile?.username || "";
+        const selfFresh =
+          (selfUsername &&
+            activityRows.some(r => {
+              const key = String(r.username || "")
+                .trim()
+                .toLowerCase();
+              return key === String(selfUsername).trim().toLowerCase() && inWindow(r);
+            })) ||
+          false;
+        if (selfUsername && selfFresh && !online.some(r => (r.username || "") === selfUsername)) {
+          online.unshift({
+            username: selfUsername,
+            display_name: selfProfile.display_name || selfUsername,
+            empire_tier: "Online",
+            net_worth: 0,
+            __self: true,
+            updated_at: new Date().toISOString()
+          });
+        }
+        online = online.slice(0, 12);
+        onlineWrap.innerHTML = online.length
+          ? online
+              .map(
+                row => `
+              <a class="miniLeadRow livePlayerRow" href="./index.html?u=${encodeURIComponent(row.username || "")}">
+                <div class="miniRank">●</div>
+                <div><div style="font-weight:900">${row.display_name || row.username || "Unknown"}${row.__self ? " (You)" : ""}</div><div class="muted" style="font-size:.8rem">${row.empire_tier || "-"}</div></div>
+                <div style="font-weight:900">${row.__self ? "Online" : fmtMoney(row.net_worth)}</div>
+              </a>
+            `
+              )
+              .join("")
+          : '<div class="muted">No players active right now.</div>';
+        if (onlineCount) onlineCount.textContent = `(${online.length})`;
       }
       return;
     }
@@ -542,23 +663,43 @@ async function loadLeaderboard() {
     const onlineCount = $("#onlineCount");
     if (onlineWrap) {
       const now = Date.now();
-      let online = (data || []).filter(row => {
-        const t = row.updated_at ? new Date(row.updated_at).getTime() : 0;
-        return t && (now - t) <= 120000;
-      }).slice(0, 12);
+      const inWindow = r => {
+        const raw = r.updated_at || r.last_seen || r.last_active || null;
+        if (!raw) return false;
+        const t = new Date(raw).getTime();
+        return Number.isFinite(t) && now - t >= 0 && now - t <= ONLINE_WINDOW_MS;
+      };
+      let online = buildOnlinePlayersListHub(data, activityRows, { windowMs: ONLINE_WINDOW_MS, maxSlots: 12 });
 
+      let selfProfile = null;
       try {
-        const selfProfile = JSON.parse(localStorage.getItem("MM_PROFILE_HINT") || "null");
-        if (selfProfile?.username && !online.some(r => (r.username || "") === selfProfile.username)) {
-          online.unshift({
-            username: selfProfile.username,
-            display_name: selfProfile.display_name || selfProfile.username,
-            empire_tier: "Online",
-            net_worth: 0,
-            __self: true
-          });
-        }
+        selfProfile = JSON.parse(localStorage.getItem("MM_PROFILE_HINT") || "null");
       } catch (e) {}
+      const selfUsername = selfProfile?.username || "";
+      const selfFresh =
+        !!selfUsername &&
+        ((data || []).some(r => {
+          const key = String(r.username || "")
+            .trim()
+            .toLowerCase();
+          return key === String(selfUsername).trim().toLowerCase() && inWindow(r);
+        }) ||
+          activityRows.some(r => {
+            const key = String(r.username || "")
+              .trim()
+              .toLowerCase();
+            return key === String(selfUsername).trim().toLowerCase() && inWindow(r);
+          }));
+      if (selfUsername && selfFresh && !online.some(r => (r.username || "") === selfUsername)) {
+        online.unshift({
+          username: selfUsername,
+          display_name: selfProfile.display_name || selfUsername,
+          empire_tier: "Online",
+          net_worth: 0,
+          __self: true,
+          updated_at: new Date().toISOString()
+        });
+      }
 
       online = online.slice(0, 12);
 
@@ -713,7 +854,13 @@ async function loadLeaderboard() {
     el.syncBtn()?.addEventListener("click", syncToCloud);
     el.loadBtn()?.addEventListener("click", loadFromCloud);
     el.profileForm()?.addEventListener("submit", saveMyProfile);
-    el.playBtn()?.addEventListener("click", () => { window.location.href = "./game.html"; });
+    el.playBtn()?.addEventListener("click", async () => {
+      try {
+        await navigateToGame();
+      } catch (e) {
+        flash(el.authMessage(), "Could not open the game. Try again.", false);
+      }
+    });
   }
 
   let leaderboardRefreshTimer = null;
