@@ -3184,6 +3184,7 @@ function mmPushArenaFeed(kind, text){
   const prefix = firm ? '[' + firm + '] ' : '';
   game._arenaFeed.unshift({ t: Date.now(), kind: kind || 'info', text: prefix + String(text || '') });
   if(game._arenaFeed.length > 48) game._arenaFeed.length = 48;
+  if(mmSharedMarketConfigured()) mmQueueSharedTapePush();
 }
 function mmApplyTradeMicroPrice(s, notional, side){
   if(!s || !notional) return;
@@ -3301,6 +3302,7 @@ async function mmHydrateSharedTapeFromCloud(){
   }catch(e){ console.warn(e); }
 }
 function mmBuildSharedMarketPayloadBody(genForPayload){
+  mmArenaEnsureGameFields();
   return {
     ts: Date.now(),
     gen: genForPayload,
@@ -3315,6 +3317,11 @@ function mmBuildSharedMarketPayloadBody(genForPayload){
     newsBonusPool: typeof game.newsBonusPool === 'number' ? game.newsBonusPool : 0,
     news: Array.isArray(game.news) ? game.news.slice(0, 24) : [],
     newsArchive: Array.isArray(game.newsArchive) ? game.newsArchive.slice(0, 120) : [],
+    arena: {
+      feed: Array.isArray(game._arenaFeed) ? game._arenaFeed.slice(0, 48) : [],
+      sprint: game.arenaSprint && typeof game.arenaSprint === 'object' ? game.arenaSprint : null,
+      contract: game.arenaContract && typeof game.arenaContract === 'object' ? game.arenaContract : null
+    },
     stocks: game.stocks.map(mmSharedStockWire)
   };
 }
@@ -3450,6 +3457,18 @@ function mmApplySharedMarketPayload(payload){
   if(typeof payload.newsBonusPool === 'number' && Number.isFinite(payload.newsBonusPool)) game.newsBonusPool = payload.newsBonusPool;
   if(Array.isArray(payload.news)) game.news = payload.news.slice(0, 24);
   if(Array.isArray(payload.newsArchive)) game.newsArchive = payload.newsArchive.slice(0, 300);
+  if(mmSharedMarketConfigured()){
+    if(payload.arena && typeof payload.arena === 'object'){
+      const a = payload.arena;
+      game._arenaFeed = Array.isArray(a.feed) ? a.feed.slice(0, 48) : [];
+      game.arenaSprint = a.sprint && typeof a.sprint === 'object' && typeof a.sprint.start === 'number' ? a.sprint : null;
+      game.arenaContract = a.contract && typeof a.contract === 'object' && a.contract.target != null ? a.contract : null;
+    }else{
+      game._arenaFeed = [];
+      game.arenaSprint = null;
+      game.arenaContract = null;
+    }
+  }
   if(!Array.isArray(payload.stocks)) return;
   const bySym = Object.create(null);
   for(const r of payload.stocks){
@@ -3933,8 +3952,42 @@ function doPrestige(){
 }
 
 function save(show=true){
-  const data = JSON.stringify(game);
-  localStorage.setItem(SAVE_KEY,data);
+  let data;
+  if(mmSharedMarketConfigured()){
+    try{
+      const src = JSON.parse(JSON.stringify(game));
+      delete src._arenaFeed;
+      delete src.arenaSprint;
+      delete src.arenaContract;
+      delete src.news;
+      delete src.newsArchive;
+      delete src.newsBonusPool;
+      delete src.globalEvent;
+      delete src.mood;
+      delete src._macroShock;
+      delete src._sectorShock;
+      delete src._sessionMktEwma;
+      delete src._sharedSimGen;
+      delete src.dayCount;
+      delete src.simHourOfDay;
+      const strip = [
+        'price', 'fairValue', 'history', 'dayHigh', 'dayLow', 'lastDelta', 'latent', 'microWalk', 'drift', 'hype', 'bubble',
+        'momentum', 'sentiment', 'newsEffect', 'newsVol', 'newsTicks', 'anchorPrice', 'anchorDrift', 'volCluster', 'microAmp',
+        'idioPhase', 'participants', 'liquidity', 'lastFlow', 'flowSmooth'
+      ];
+      if(Array.isArray(src.stocks)){
+        for(const sx of src.stocks){
+          for(const k of strip) delete sx[k];
+        }
+      }
+      data = JSON.stringify(src);
+    }catch(e){
+      data = JSON.stringify(game);
+    }
+  }else{
+    data = JSON.stringify(game);
+  }
+  localStorage.setItem(SAVE_KEY, data);
   game.lastSaved = Date.now();
   if(show) toast('Game saved');
 }
@@ -4481,6 +4534,16 @@ function renderLoans(){
   });
 }
 
+function mmNetWorthForArenaLeaderboard(rows){
+  try{
+    const soc = typeof window.mmSocial !== 'undefined' ? window.mmSocial : null;
+    const un = soc && soc.profile ? String(soc.profile.username || '').trim().toLowerCase() : '';
+    if(!un || !Array.isArray(rows)) return netWorth();
+    const mine = rows.find(r=>String(r.username || '').trim().toLowerCase() === un);
+    if(mine && Number.isFinite(Number(mine.net_worth))) return Number(mine.net_worth);
+  }catch(e){}
+  return netWorth();
+}
 function mmPickRivalsForPressure(rows, me, myUsername){
   const myKey = String(myUsername || '').trim().toLowerCase();
   const list = (Array.isArray(rows) ? rows : []).filter(
@@ -4497,7 +4560,7 @@ function mmPickRivalsForPressure(rows, me, myUsername){
   return pack.slice(0, 3);
 }
 function mmRivalPressureHtml(rows){
-  const me = netWorth();
+  const me = mmNetWorthForArenaLeaderboard(rows);
   const soc = typeof window.mmSocial !== 'undefined' ? window.mmSocial : null;
   const myUsername = soc && soc.profile ? soc.profile.username : '';
   const rivals = mmPickRivalsForPressure(rows, me, myUsername);
@@ -4536,7 +4599,7 @@ function renderRivalFromLeaderboard(rows){
 }
 let __mmLastLeaderRank = null;
 function mmUpdateLeaderRankNudge(rows){
-  const me = netWorth();
+  const me = mmNetWorthForArenaLeaderboard(rows);
   const soc = typeof window.mmSocial !== 'undefined' ? window.mmSocial : null;
   const myUsername = soc && soc.profile ? soc.profile.username : '';
   if(!myUsername || !(Array.isArray(rows) && rows.length)) return;
@@ -4551,7 +4614,7 @@ function mmUpdateLeaderRankNudge(rows){
 function mmStartArenaSprint(ms){
   mmArenaEnsureGameFields();
   const dur = Math.min(30 * 60 * 1000, Math.max(5 * 60 * 1000, ms || 12 * 60 * 1000));
-  game.arenaSprint = { start: Date.now(), durationMs: dur, startNet: netWorth() };
+  game.arenaSprint = { start: Date.now(), durationMs: dur, startNet: mmNetWorthForArenaLeaderboard(window.mmSocial && window.mmSocial.leaderRows ? window.mmSocial.leaderRows : []) };
   mmPushArenaFeed('sprint', 'Sprint live — highest net growth wins the moment');
   try{
     save(false);
@@ -4575,7 +4638,12 @@ function mmTickArenaSprint(){
 }
 function mmSetArenaContract(targetNet, label){
   mmArenaEnsureGameFields();
-  game.arenaContract = { target: targetNet, label: String(label || 'Goal'), created: Date.now(), startNet: netWorth() };
+  game.arenaContract = {
+    target: targetNet,
+    label: String(label || 'Goal'),
+    created: Date.now(),
+    startNet: mmNetWorthForArenaLeaderboard(window.mmSocial && window.mmSocial.leaderRows ? window.mmSocial.leaderRows : [])
+  };
   mmPushArenaFeed('bet', 'Side goal: ' + game.arenaContract.label);
   try{
     save(false);
