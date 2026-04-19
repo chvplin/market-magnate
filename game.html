@@ -1244,6 +1244,68 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   height:120px;border-radius:14px;border:1px solid var(--line);margin-bottom:12px;
 }
 
+
+:root{
+  --bg:#0f1218;
+  --panel:#161b24;
+  --panel2:#1b2230;
+  --text:#ecf0f6;
+  --muted:#9aa6b2;
+  --line:#283142;
+  --gold:#d4a928;
+  --gold-2:#f1c84b;
+  --gold-soft:#4f4120;
+}
+html,body{background:var(--bg) !important;color:var(--text) !important;}
+body{
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--themeTint, rgba(212,169,40,.12)) 65%, transparent), transparent 32%),
+    linear-gradient(180deg, #0f1218 0%, #121722 100%) !important;
+}
+.topbar,.newsTickerBar,.railCard,.profileCard,.card,.panel,.modalCard,.heroCard,.loginCard,.sectionCard,.leaderPeek,.metric,.shopCard,.feedCard,.socialCard,.rail,.sidebar,.menuCard,.statBox{
+  background:var(--panel) !important;
+  color:var(--text) !important;
+  border-color:var(--line) !important;
+  box-shadow:none !important;
+}
+.panelSub,.layoutHint,.muted,.k,.subtle,.menuText span,.feedSub,.railSub{color:var(--muted) !important;}
+h1,h2,h3,h4,h5,h6,b,strong,.v,.panelTitle,.railTitle,.menuText b,.heroTitle,.loginTitle{color:var(--text) !important;}
+input,textarea,select{
+  background:#0f141d !important;
+  color:var(--text) !important;
+  border-color:var(--line) !important;
+}
+input::placeholder,textarea::placeholder{color:#778394 !important;}
+button,.buttonish,.ghostBtn,.shopTab,.buySmall,.actionBtn,.primaryBtn,.secondaryBtn,.menuBtn.active,.mobileNavBtn.active{
+  background:linear-gradient(180deg,var(--gold-2),var(--gold)) !important;
+  color:#17130a !important;
+  border-color:#9d7e1b !important;
+}
+button.secondary,.ghostBtn.secondary,.shopTab.disabled,.menuBtn,.mobileNavBtn{
+  background:#1a2230 !important;
+  color:var(--text) !important;
+  border-color:var(--line) !important;
+}
+button:hover,.buttonish:hover,.buySmall:hover,.shopTab:hover{filter:brightness(1.03);}
+.rankBubble,.loginMark,.menuIcon,.cosmeticIcon{background:linear-gradient(180deg,var(--gold-2),var(--gold)) !important;color:#17130a !important;}
+.newsTickerLabel{
+  background:#3b2f0d !important;
+  color:#ffd761 !important;
+  border-color:#7d651d !important;
+}
+.newsTickerBar{
+  background:
+    linear-gradient(90deg, rgba(212,169,40,.16), rgba(18,24,34,.92) 30%, rgba(18,24,34,.96)) !important;
+}
+.livePlayerRow,.leaderMiniRow,.miniLeadRow,.metric,.statBox,.invAvatarBtn,.invBannerBtn,.bannerOpt,.avatarOpt{
+  background:var(--panel2) !important;
+  border-color:var(--line) !important;
+  color:var(--text) !important;
+}
+table,th,td{color:var(--text) !important;border-color:var(--line) !important;}
+a{color:#ffd761;}
+#publicProfileBody .profileCard,#playerProfileBodyGame{background:var(--panel) !important;border-color:var(--line) !important;}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -4013,5 +4075,40 @@ document.addEventListener('DOMContentLoaded', function(){
     </div>
   </div>
 </div>
+
+<script>
+(function(){
+  const tintMap = {
+    'Tiny Apartment':'rgba(120,140,170,.16)',
+    'Starter':'rgba(120,140,170,.16)',
+    'Suburban House':'rgba(120,180,130,.16)',
+    'Luxury Condo':'rgba(120,170,220,.16)',
+    'Beach House':'rgba(80,190,200,.16)',
+    'Mountain Lodge':'rgba(130,170,130,.16)',
+    'Island Villa':'rgba(255,170,120,.16)',
+    'Sky Palace Penthouse':'rgba(210,170,255,.18)',
+    'Private Island Cabin':'rgba(90,200,170,.18)'
+  };
+  function applyHouseThemeTint(){
+    try{
+      const empireEl = document.querySelector('#empireTitle, #empireTier, #houseName');
+      const fallbackText = document.body.innerText || '';
+      let label = '';
+      if(empireEl) label = empireEl.textContent || '';
+      if(!label){
+        const m = fallbackText.match(/Tiny Apartment|Suburban House|Luxury Condo|Beach House|Mountain Lodge|Island Villa|Sky Palace Penthouse|Private Island Cabin|Starter/);
+        if(m) label = m[0];
+      }
+      let tint = 'rgba(212,169,40,.12)';
+      Object.keys(tintMap).forEach(k=>{ if(label.includes(k)) tint = tintMap[k]; });
+      document.documentElement.style.setProperty('--themeTint', tint);
+    }catch(e){}
+  }
+  window.applyHouseThemeTint = applyHouseThemeTint;
+  document.addEventListener('DOMContentLoaded', applyHouseThemeTint);
+  setInterval(applyHouseThemeTint, 1500);
+})();
+</script>
+
 </body>
 </html>

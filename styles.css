@@ -331,3 +331,17 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   border-color:#bfd3f7 !important;
 }
 
+
+/* v57 dark gold theme */
+:root{
+  --bg:#0f1218;
+  --panel:#161b24;
+  --panel2:#1b2230;
+  --text:#ecf0f6;
+  --muted:#9aa6b2;
+  --line:#283142;
+  --gold:#d4a928;
+  --gold-2:#f1c84b;
+}
+body{background:var(--bg);color:var(--text);}
+button,.buttonish{background:linear-gradient(180deg,var(--gold-2),var(--gold));color:#17130a;border-color:#9d7e1b;}

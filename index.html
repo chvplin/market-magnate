@@ -103,6 +103,45 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 html, body, body *, body *::before, body *::after { cursor:auto !important; }
 }
 
+
+:root{
+  --bg:#0f1218;
+  --panel:#161b24;
+  --panel2:#1b2230;
+  --text:#ecf0f6;
+  --muted:#9aa6b2;
+  --line:#283142;
+  --gold:#d4a928;
+  --gold-2:#f1c84b;
+}
+html,body{
+  background:linear-gradient(180deg,#0f1218 0%,#121722 100%) !important;
+  color:var(--text) !important;
+}
+.loginCard,.sectionCard,.leaderPeek,.profileCard,.miniLeadRow,.loginMeta,.tableWrap{
+  background:var(--panel) !important;
+  color:var(--text) !important;
+  border-color:var(--line) !important;
+  box-shadow:none !important;
+}
+.muted,.loginSub,.loginMeta,#authStatus{color:var(--muted) !important;}
+h1,h2,h3,h4,h5,h6,strong,b,.loginTitle{color:var(--text) !important;}
+input,textarea,select{
+  background:#0f141d !important;
+  color:var(--text) !important;
+  border-color:var(--line) !important;
+}
+input::placeholder,textarea::placeholder{color:#778394 !important;}
+button,.buttonish{
+  background:linear-gradient(180deg,var(--gold-2),var(--gold)) !important;
+  color:#17130a !important;
+  border-color:#9d7e1b !important;
+}
+button.secondary{background:#1a2230 !important;color:var(--text) !important;border-color:var(--line) !important;}
+.loginMark,.miniRank{background:linear-gradient(180deg,var(--gold-2),var(--gold)) !important;color:#17130a !important;}
+table,th,td{color:var(--text) !important;border-color:var(--line) !important;}
+a{color:#ffd761;}
+
 </style>
 
 </head>
