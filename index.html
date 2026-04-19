@@ -230,6 +230,37 @@ a{ color:#ffd76d; }
   .loginBoard{ grid-template-columns:1fr !important; }
 }
 
+
+/* v59 index no-more-wash cleanup */
+html,body{
+  background:
+    radial-gradient(circle at top left, rgba(212,169,40,.08), transparent 26%),
+    radial-gradient(circle at top right, rgba(212,169,40,.04), transparent 20%),
+    linear-gradient(180deg,#090d14 0%, #0d131d 44%, #101724 100%) !important;
+}
+body{
+  background-color:#090d14 !important;
+}
+.loginCard,.sectionCard,.leaderPeek,.profileCard,.tableWrap,.miniLeadRow,
+#publicProfileCard,#publicProfileBody .profileCard{
+  background:linear-gradient(180deg, rgba(15,22,33,.98), rgba(11,17,26,.98)) !important;
+  color:var(--text) !important;
+  border-color:rgba(255,255,255,.08) !important;
+}
+.loginBoard,.loginSide{
+  background:transparent !important;
+}
+.loginMeta{
+  background:transparent !important;
+  color:var(--muted) !important;
+}
+.muted,#authStatus,.loginSub,.loginMeta *{
+  color:var(--muted) !important;
+}
+table,th,td{
+  background:transparent !important;
+}
+
 </style>
 
 </head>

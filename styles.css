@@ -362,3 +362,13 @@ button,.buttonish{
   color:#17120a;
   border-color:#8d6f18;
 }
+
+/* v59 backup no-more-wash cleanup */
+body{
+  background:#090d14;
+  color:#eef3fb;
+}
+.card,.panel,.profileCard,.leaderPeek,.sectionCard{
+  background:linear-gradient(180deg, rgba(15,22,33,.98), rgba(11,17,26,.98));
+  border-color:rgba(255,255,255,.08);
+}
