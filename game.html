@@ -1841,6 +1841,16 @@ img,svg image{
 <script src="./config.js"></script>
 <script src="./supabase-client.js"></script>
   <link rel="stylesheet" href="./styles.css?v=64">
+
+<style id="v65-direct-surface-fix">
+.heroArt.empirePreview{background:#0f1724 !important;background-image:none !important;border:1px solid rgba(255,255,255,.08) !important;}
+.empirePreviewInner{background:transparent !important;background-image:none !important;border:none !important;}
+.empirePreviewCard,.empireMini,.heroCard,.pill,.stockRow,.watchlistRow,.metric,.statBox,.leaderMiniRow,.miniLeadRow{background:#151f2f !important;background-image:none !important;border-color:rgba(255,255,255,.08) !important;color:#eef3fb !important;}
+.empirePreviewValue,.heroCard .value{color:#eef3fb !important;}
+.empirePreviewLabel,.empirePreviewSub,.empirePreviewFooter,.heroCard .label{color:#93a0b3 !important;}
+.glow,.g1,.g2{background:radial-gradient(circle, rgba(212,169,40,.14) 0%, rgba(212,169,40,.05) 36%, rgba(212,169,40,0) 72%) !important;}
+</style>
+
 </head>
 <body>
 <div class="topbar">
@@ -4638,6 +4648,91 @@ document.addEventListener('DOMContentLoaded', function(){
   window.applyHouseThemeTint = applyHouseThemeTint;
   document.addEventListener('DOMContentLoaded', applyHouseThemeTint);
   setInterval(applyHouseThemeTint, 1200);
+})();
+</script>
+
+
+<script>
+(function(){
+  const DARK_MAIN = '#111826';
+  const DARK_INNER = '#151f2f';
+  const BORDER = 'rgba(255,255,255,.08)';
+  const TEXT = '#eef3fb';
+  const MUTED = '#93a0b3';
+
+  function forceDark(el, bg=DARK_MAIN){
+    if(!el) return;
+    el.style.setProperty('background', bg, 'important');
+    el.style.setProperty('background-color', bg, 'important');
+    el.style.setProperty('background-image', 'none', 'important');
+    el.style.setProperty('color', TEXT, 'important');
+    el.style.setProperty('border-color', BORDER, 'important');
+  }
+  function forceMuted(el){
+    if(!el) return;
+    el.style.setProperty('color', MUTED, 'important');
+  }
+
+  function applySpecificDarkFixes(){
+    // Middle player info / empire preview
+    document.querySelectorAll('.heroArt.empirePreview').forEach(el => forceDark(el, '#0f1724'));
+    document.querySelectorAll('.empirePreviewInner').forEach(el => {
+      el.style.setProperty('background', 'transparent', 'important');
+      el.style.setProperty('background-image', 'none', 'important');
+      el.style.setProperty('border', 'none', 'important');
+      el.style.setProperty('color', TEXT, 'important');
+    });
+    document.querySelectorAll('.empirePreviewCard').forEach(el => forceDark(el, DARK_INNER));
+    document.querySelectorAll('.empireMini').forEach(el => forceDark(el, DARK_INNER));
+    document.querySelectorAll('.empirePreviewFooter,.empirePreviewSub,.empirePreviewLabel').forEach(forceMuted);
+    document.querySelectorAll('.empirePreviewValue').forEach(el => el.style.setProperty('color', TEXT, 'important'));
+    document.querySelectorAll('.glow,.g1,.g2').forEach(el => {
+      el.style.setProperty('background', 'radial-gradient(circle, rgba(212,169,40,.14) 0%, rgba(212,169,40,.05) 36%, rgba(212,169,40,0) 72%)', 'important');
+      el.style.setProperty('filter', 'blur(34px)', 'important');
+      el.style.setProperty('opacity', '.55', 'important');
+      el.style.setProperty('mix-blend-mode', 'screen', 'important');
+    });
+
+    // Hero stat cards / pills
+    document.querySelectorAll('.heroCard').forEach(el => forceDark(el, DARK_INNER));
+    document.querySelectorAll('.heroCard .label').forEach(forceMuted);
+    document.querySelectorAll('.heroCard .value').forEach(el => el.style.setProperty('color', TEXT, 'important'));
+    document.querySelectorAll('.pill').forEach(el => forceDark(el, DARK_INNER));
+
+    // Stock list + stock detail + common white cards
+    document.querySelectorAll('.stockRow,.watchlistRow,.newsCard,.loanCard,.metric,.statBox,.leaderMiniRow,.miniLeadRow').forEach(el => forceDark(el, DARK_INNER));
+    document.querySelectorAll('#stockDetailCard,#stockTradeCard,#portfolioCard,#overviewPanel,#assetsPanel,#newsPanel,#identityPanel,#statusPanel,#residencePanel,#badgePanel,#empirePanel,#leaderMini,#onlinePlayersGame,#watchlist').forEach(el => forceDark(el, DARK_MAIN));
+
+    // Top-right player chip / middle player info areas / likely offenders
+    document.querySelectorAll('#socialChip, #socialChipName, #socialChipSub, #userProfileCard, #socialCard, #heroCard').forEach((el, i) => {
+      forceDark(el, i === 0 ? DARK_MAIN : DARK_INNER);
+    });
+
+    // Common nested white boxes inside cards
+    document.querySelectorAll('.heroCard > div, .card > div, .panel > div, .profileCard > div, .railCard > div, .shopCard > div, .socialCard > div').forEach(el => {
+      const cls = el.className || '';
+      if(!String(cls).includes('label') && !String(cls).includes('value')){
+        el.style.setProperty('background-color', DARK_INNER, 'important');
+        el.style.setProperty('background-image', 'none', 'important');
+        el.style.setProperty('border-color', BORDER, 'important');
+        el.style.setProperty('color', TEXT, 'important');
+      }
+    });
+
+    // Any direct bright inline backgrounds still hanging around in game
+    document.querySelectorAll('[style*="#fff"],[style*="#ffffff"],[style*="#f7f9fc"],[style*="#f8fafc"],[style*="#eef2f6"],[style*="rgb(255"]').forEach(el => {
+      forceDark(el, DARK_INNER);
+    });
+
+    // Decorative images if they are causing wash
+    document.querySelectorAll('.decorativeGraph,.graphImage,.placeholderGraph,.chartDecor,.ambientImage').forEach(el => {
+      el.style.setProperty('display', 'none', 'important');
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', applySpecificDarkFixes);
+  window.addEventListener('load', applySpecificDarkFixes);
+  setInterval(applySpecificDarkFixes, 800);
 })();
 </script>
 
