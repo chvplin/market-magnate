@@ -1244,6 +1244,173 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   height:120px;border-radius:14px;border:1px solid var(--line);margin-bottom:12px;
 }
 
+
+/* v66 animated game loading screen */
+.gameLoadingOverlay{
+  position:fixed;
+  inset:0;
+  z-index:999999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  background:
+    radial-gradient(circle at top left, rgba(24,119,242,.18), transparent 28%),
+    radial-gradient(circle at top right, rgba(66,183,42,.10), transparent 24%),
+    linear-gradient(180deg,#08111f 0%, #0d1624 48%, #101b2b 100%);
+  opacity:1;
+  visibility:visible;
+  transition:opacity .35s ease, visibility .35s ease;
+}
+.gameLoadingOverlay.is-hidden{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+}
+.gameLoadingInner{
+  width:min(100%, 760px);
+  background:linear-gradient(180deg, rgba(20,29,43,.96), rgba(13,20,30,.96));
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 24px 60px rgba(0,0,0,.38);
+  border-radius:24px;
+  padding:26px;
+  color:#eef3fb;
+}
+.gameLoadingBrand{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-bottom:18px;
+}
+.gameLoadingLogo{
+  width:54px;height:54px;border-radius:16px;
+  display:grid;place-items:center;
+  background:linear-gradient(180deg,#7cc2ff,#2f7bff);
+  color:white;font-weight:900;font-size:1.45rem;
+  box-shadow:0 12px 26px rgba(47,123,255,.28);
+}
+.gameLoadingTitle{
+  font-size:1.35rem;
+  font-weight:900;
+  letter-spacing:.01em;
+}
+.gameLoadingSubtitle{
+  color:#98a7ba;
+  margin-top:2px;
+}
+.gameLoadingChart{
+  position:relative;
+  height:190px;
+  border-radius:18px;
+  overflow:hidden;
+  background:linear-gradient(180deg, rgba(10,16,25,.92), rgba(16,25,38,.96));
+  border:1px solid rgba(255,255,255,.07);
+}
+.gameLoadingGrid{
+  position:absolute; inset:0;
+  background:
+    linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+  background-size: 100% 24px, 36px 100%;
+  mask-image:linear-gradient(180deg, rgba(0,0,0,.95), rgba(0,0,0,.6));
+}
+.gameLoadingLineWrap{
+  position:absolute; inset:0;
+}
+.gameLoadingSvg{
+  width:100%; height:100%;
+}
+.gameLoadingLine1,
+.gameLoadingLine2{
+  fill:none;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.gameLoadingLine1{
+  stroke:#7cc2ff;
+  stroke-width:5;
+  filter:drop-shadow(0 0 12px rgba(124,194,255,.30));
+  stroke-dasharray:900;
+  stroke-dashoffset:900;
+  animation:gameLoadLine 2.6s ease infinite;
+}
+.gameLoadingLine2{
+  stroke:#57d16c;
+  stroke-width:4;
+  opacity:.72;
+  filter:drop-shadow(0 0 10px rgba(87,209,108,.22));
+  stroke-dasharray:900;
+  stroke-dashoffset:900;
+  animation:gameLoadLine 2.6s ease .4s infinite;
+}
+.gameLoadingGlow{
+  position:absolute;
+  inset:auto 0 0 0;
+  height:45%;
+  background:linear-gradient(180deg, rgba(124,194,255,0), rgba(124,194,255,.08));
+}
+@keyframes gameLoadLine{
+  0%{stroke-dashoffset:900}
+  45%,100%{stroke-dashoffset:0}
+}
+.gameLoadingTicker{
+  margin-top:16px;
+  overflow:hidden;
+  white-space:nowrap;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.07);
+  background:rgba(10,16,25,.72);
+}
+.gameLoadingTickerTrack{
+  display:inline-flex;
+  gap:34px;
+  padding:12px 0 12px 18px;
+  animation:gameTicker 16s linear infinite;
+  color:#d7e4f8;
+  font-weight:800;
+}
+.gameLoadingTickerTrack span{
+  position:relative;
+}
+.gameLoadingTickerTrack span::before{
+  content:"•";
+  color:#57d16c;
+  margin-right:10px;
+}
+@keyframes gameTicker{
+  from{ transform:translateX(0); }
+  to{ transform:translateX(-35%); }
+}
+.gameLoadingProgressWrap{
+  margin-top:18px;
+}
+.gameLoadingProgressBar{
+  height:10px;
+  background:#0c1320;
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:999px;
+  overflow:hidden;
+}
+.gameLoadingProgress{
+  height:100%;
+  width:6%;
+  border-radius:999px;
+  background:linear-gradient(90deg,#7cc2ff,#57d16c);
+  box-shadow:0 0 18px rgba(124,194,255,.25);
+  transition:width .2s ease;
+}
+.gameLoadingStatus{
+  margin-top:10px;
+  color:#98a7ba;
+  font-size:.95rem;
+}
+@media (max-width:700px){
+  .gameLoadingInner{padding:20px;border-radius:20px}
+  .gameLoadingChart{height:160px}
+  .gameLoadingTitle{font-size:1.15rem}
+  .gameLoadingSubtitle,.gameLoadingStatus{font-size:.9rem}
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -4013,5 +4180,112 @@ document.addEventListener('DOMContentLoaded', function(){
     </div>
   </div>
 </div>
+
+<div id="gameLoadingOverlay" class="gameLoadingOverlay" aria-live="polite" aria-label="Loading game">
+  <div class="gameLoadingInner">
+    <div class="gameLoadingBrand">
+      <div class="gameLoadingLogo">▲</div>
+      <div>
+        <div class="gameLoadingTitle">Market Magnate</div>
+        <div class="gameLoadingSubtitle">Loading the trading floor...</div>
+      </div>
+    </div>
+
+    <div class="gameLoadingChart">
+      <div class="gameLoadingGrid"></div>
+      <div class="gameLoadingLineWrap">
+        <svg class="gameLoadingSvg" viewBox="0 0 600 160" preserveAspectRatio="none" aria-hidden="true">
+          <polyline class="gameLoadingLine1" points="0,125 40,118 85,122 125,101 165,109 210,72 255,82 300,52 350,63 390,42 440,60 485,34 540,24 600,18"></polyline>
+          <polyline class="gameLoadingLine2" points="0,145 50,140 95,142 135,128 180,135 225,110 270,120 315,92 360,102 405,82 455,96 500,70 550,60 600,48"></polyline>
+        </svg>
+      </div>
+      <div class="gameLoadingGlow"></div>
+    </div>
+
+    <div class="gameLoadingTicker">
+      <div class="gameLoadingTickerTrack">
+        <span>BLZN +2.4%</span>
+        <span>QNTX +1.8%</span>
+        <span>NRVA -0.6%</span>
+        <span>Loading market data</span>
+        <span>Preparing portfolio</span>
+        <span>Connecting leaderboard</span>
+        <span>BLZN +2.4%</span>
+        <span>QNTX +1.8%</span>
+        <span>NRVA -0.6%</span>
+      </div>
+    </div>
+
+    <div class="gameLoadingProgressWrap">
+      <div class="gameLoadingProgressBar"><div id="gameLoadingProgress" class="gameLoadingProgress"></div></div>
+      <div id="gameLoadingStatus" class="gameLoadingStatus">Syncing account and market data...</div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+(function(){
+  const overlay = document.getElementById('gameLoadingOverlay');
+  const bar = document.getElementById('gameLoadingProgress');
+  const statusEl = document.getElementById('gameLoadingStatus');
+  if(!overlay || !bar || !statusEl) return;
+
+  const started = performance.now();
+  const minDuration = 2000;
+  const showBecauseNavigation = (() => {
+    try { return sessionStorage.getItem('MM_SHOW_GAME_LOADING') === '1'; }
+    catch (e) { return false; }
+  })();
+
+  const loadingStates = [
+    'Booting market simulation...',
+    'Syncing account and market data...',
+    'Connecting live leaderboard...',
+    'Loading assets and UI panels...',
+    'Opening the trading floor...'
+  ];
+
+  let progress = 6;
+  let stateIndex = 0;
+  statusEl.textContent = loadingStates[stateIndex];
+
+  const tick = setInterval(() => {
+    progress = Math.min(progress + (progress < 72 ? 7 : progress < 90 ? 2.2 : .8), 94);
+    bar.style.width = progress + '%';
+    if (progress > 22 && stateIndex < 1) stateIndex = 1;
+    if (progress > 46 && stateIndex < 2) stateIndex = 2;
+    if (progress > 68 && stateIndex < 3) stateIndex = 3;
+    if (progress > 84 && stateIndex < 4) stateIndex = 4;
+    statusEl.textContent = loadingStates[stateIndex];
+  }, 180);
+
+  function finishLoading(){
+    const elapsed = performance.now() - started;
+    const remaining = Math.max(0, minDuration - elapsed);
+    setTimeout(() => {
+      clearInterval(tick);
+      statusEl.textContent = 'Ready.';
+      bar.style.width = '100%';
+      overlay.classList.add('is-hidden');
+      try { sessionStorage.removeItem('MM_SHOW_GAME_LOADING'); } catch (e) {}
+      setTimeout(() => {
+        if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+      }, 450);
+    }, remaining);
+  }
+
+  if(!showBecauseNavigation){
+    // still show on direct loads, but behave the same way
+  }
+
+  if (document.readyState === 'complete') {
+    finishLoading();
+  } else {
+    window.addEventListener('load', finishLoading, { once: true });
+  }
+})();
+</script>
+
 </body>
 </html>

@@ -323,6 +323,7 @@ async function getUser() {
       }
     } catch (e) {}
 
+    try { sessionStorage.setItem("MM_SHOW_GAME_LOADING", "1"); } catch (e) {}
     flash(el.authMessage(), "Signed in. Redirecting to game...");
     await refreshAuthUI();
     setTimeout(() => { window.location.href = "./game.html"; }, 500);
