@@ -331,3 +331,28 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   border-color:#bfd3f7 !important;
 }
 
+
+
+/* v69 profile name spacing fix */
+.profileHeader{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.profileHeaderText{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+.profileHeaderText .displayName{
+  margin-top:6px;
+}
+
+/* fallback if classes differ */
+.profileCard h2,
+.profileCard .name{
+  margin-top:6px !important;
+}
+
