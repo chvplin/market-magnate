@@ -1245,7 +1245,8 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 }
 
 
-/* v66 animated game loading screen */
+
+/* v68 animated personalized game loading screen */
 .gameLoadingOverlay{
   position:fixed;
   inset:0;
@@ -1260,7 +1261,13 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
     linear-gradient(180deg,#08111f 0%, #0d1624 48%, #101b2b 100%);
   opacity:1;
   visibility:visible;
-  transition:opacity .35s ease, visibility .35s ease;
+  transition:opacity .35s ease, visibility .35s ease, background .25s ease;
+}
+.gameLoadingOverlay.is-crash{
+  background:
+    radial-gradient(circle at top left, rgba(255,84,84,.18), transparent 28%),
+    radial-gradient(circle at top right, rgba(255,168,48,.08), transparent 24%),
+    linear-gradient(180deg,#170b0d 0%, #241015 48%, #2a1518 100%);
 }
 .gameLoadingOverlay.is-hidden{
   opacity:0;
@@ -1275,6 +1282,10 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   border-radius:24px;
   padding:26px;
   color:#eef3fb;
+  overflow:hidden;
+}
+.gameLoadingOverlay.is-crash .gameLoadingInner{
+  background:linear-gradient(180deg, rgba(51,21,28,.94), rgba(27,14,18,.96));
 }
 .gameLoadingBrand{
   display:flex;
@@ -1289,15 +1300,12 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   color:white;font-weight:900;font-size:1.45rem;
   box-shadow:0 12px 26px rgba(47,123,255,.28);
 }
-.gameLoadingTitle{
-  font-size:1.35rem;
-  font-weight:900;
-  letter-spacing:.01em;
+.gameLoadingOverlay.is-crash .gameLoadingLogo{
+  background:linear-gradient(180deg,#ffb86b,#ff5252);
+  box-shadow:0 12px 26px rgba(255,82,82,.28);
 }
-.gameLoadingSubtitle{
-  color:#98a7ba;
-  margin-top:2px;
-}
+.gameLoadingTitle{ font-size:1.35rem; font-weight:900; letter-spacing:.01em; }
+.gameLoadingSubtitle{ color:#98a7ba; margin-top:2px; }
 .gameLoadingChart{
   position:relative;
   height:190px;
@@ -1305,6 +1313,9 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   overflow:hidden;
   background:linear-gradient(180deg, rgba(10,16,25,.92), rgba(16,25,38,.96));
   border:1px solid rgba(255,255,255,.07);
+}
+.gameLoadingOverlay.is-crash .gameLoadingChart{
+  background:linear-gradient(180deg, rgba(28,12,16,.92), rgba(47,16,18,.96));
 }
 .gameLoadingGrid{
   position:absolute; inset:0;
@@ -1314,44 +1325,77 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   background-size: 100% 24px, 36px 100%;
   mask-image:linear-gradient(180deg, rgba(0,0,0,.95), rgba(0,0,0,.6));
 }
-.gameLoadingLineWrap{
-  position:absolute; inset:0;
-}
-.gameLoadingSvg{
-  width:100%; height:100%;
-}
-.gameLoadingLine1,
-.gameLoadingLine2{
-  fill:none;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-}
+.gameLoadingLineWrap{ position:absolute; inset:0; }
+.gameLoadingSvg{ width:100%; height:100%; }
+.gameLoadingLine1,.gameLoadingLine2{ fill:none; stroke-linecap:round; stroke-linejoin:round; }
 .gameLoadingLine1{
-  stroke:#7cc2ff;
-  stroke-width:5;
+  stroke:#7cc2ff; stroke-width:5;
   filter:drop-shadow(0 0 12px rgba(124,194,255,.30));
-  stroke-dasharray:900;
-  stroke-dashoffset:900;
+  stroke-dasharray:900; stroke-dashoffset:900;
   animation:gameLoadLine 2.6s ease infinite;
 }
 .gameLoadingLine2{
-  stroke:#57d16c;
-  stroke-width:4;
-  opacity:.72;
+  stroke:#57d16c; stroke-width:4; opacity:.72;
   filter:drop-shadow(0 0 10px rgba(87,209,108,.22));
-  stroke-dasharray:900;
-  stroke-dashoffset:900;
+  stroke-dasharray:900; stroke-dashoffset:900;
   animation:gameLoadLine 2.6s ease .4s infinite;
 }
+.gameLoadingOverlay.is-crash .gameLoadingLine1{
+  stroke:#ff8484;
+  filter:drop-shadow(0 0 12px rgba(255,132,132,.30));
+}
+.gameLoadingOverlay.is-crash .gameLoadingLine2{
+  stroke:#ffb86b;
+  filter:drop-shadow(0 0 10px rgba(255,184,107,.22));
+}
 .gameLoadingGlow{
-  position:absolute;
-  inset:auto 0 0 0;
-  height:45%;
+  position:absolute; inset:auto 0 0 0; height:45%;
   background:linear-gradient(180deg, rgba(124,194,255,0), rgba(124,194,255,.08));
+}
+.gameLoadingOverlay.is-crash .gameLoadingGlow{
+  background:linear-gradient(180deg, rgba(255,120,120,0), rgba(255,120,120,.10));
+}
+.gameLoadingCrashFlash{
+  position:absolute; inset:0;
+  background:rgba(255,64,64,.12);
+  opacity:0; pointer-events:none;
+}
+.gameLoadingOverlay.is-crash .gameLoadingCrashFlash{
+  animation:gameCrashFlash .55s ease 2;
+}
+@keyframes gameCrashFlash{
+  0%,100%{opacity:0;}
+  35%{opacity:.9;}
 }
 @keyframes gameLoadLine{
   0%{stroke-dashoffset:900}
   45%,100%{stroke-dashoffset:0}
+}
+.gameLoadingStats{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  margin-top:16px;
+}
+.gameLoadingStat{
+  background:rgba(10,16,25,.72);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:16px;
+  padding:14px;
+}
+.gameLoadingOverlay.is-crash .gameLoadingStat{
+  background:rgba(28,12,16,.72);
+}
+.gameLoadingStatLabel{
+  color:#98a7ba;
+  font-size:.78rem;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+.gameLoadingStatValue{
+  margin-top:8px;
+  font-weight:900;
+  font-size:1.02rem;
 }
 .gameLoadingTicker{
   margin-top:16px;
@@ -1361,6 +1405,9 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   border:1px solid rgba(255,255,255,.07);
   background:rgba(10,16,25,.72);
 }
+.gameLoadingOverlay.is-crash .gameLoadingTicker{
+  background:rgba(28,12,16,.72);
+}
 .gameLoadingTickerTrack{
   display:inline-flex;
   gap:34px;
@@ -1369,21 +1416,20 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   color:#d7e4f8;
   font-weight:800;
 }
-.gameLoadingTickerTrack span{
-  position:relative;
-}
+.gameLoadingTickerTrack span{ position:relative; }
 .gameLoadingTickerTrack span::before{
   content:"•";
   color:#57d16c;
   margin-right:10px;
 }
+.gameLoadingOverlay.is-crash .gameLoadingTickerTrack span::before{
+  color:#ff7f7f;
+}
 @keyframes gameTicker{
   from{ transform:translateX(0); }
   to{ transform:translateX(-35%); }
 }
-.gameLoadingProgressWrap{
-  margin-top:18px;
-}
+.gameLoadingProgressWrap{ margin-top:18px; }
 .gameLoadingProgressBar{
   height:10px;
   background:#0c1320;
@@ -1392,12 +1438,14 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   overflow:hidden;
 }
 .gameLoadingProgress{
-  height:100%;
-  width:6%;
-  border-radius:999px;
+  height:100%; width:6%; border-radius:999px;
   background:linear-gradient(90deg,#7cc2ff,#57d16c);
   box-shadow:0 0 18px rgba(124,194,255,.25);
   transition:width .2s ease;
+}
+.gameLoadingOverlay.is-crash .gameLoadingProgress{
+  background:linear-gradient(90deg,#ff9b6b,#ff5d5d);
+  box-shadow:0 0 18px rgba(255,93,93,.25);
 }
 .gameLoadingStatus{
   margin-top:10px;
@@ -1406,6 +1454,11 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 }
 @media (max-width:700px){
   .gameLoadingInner{padding:20px;border-radius:20px}
+  .gameLoadingChart{height:160px}
+  .gameLoadingTitle{font-size:1.15rem}
+  .gameLoadingSubtitle,.gameLoadingStatus{font-size:.9rem}
+  .gameLoadingStats{grid-template-columns:1fr}
+}
   .gameLoadingChart{height:160px}
   .gameLoadingTitle{font-size:1.15rem}
   .gameLoadingSubtitle,.gameLoadingStatus{font-size:.9rem}
@@ -4195,15 +4248,65 @@ document.addEventListener('DOMContentLoaded', function(){
   </div>
 </div>
 
+
 <div id="gameLoadingOverlay" class="gameLoadingOverlay" aria-live="polite" aria-label="Loading game">
   <div class="gameLoadingInner">
     <div class="gameLoadingBrand">
       <div class="gameLoadingLogo">▲</div>
       <div>
         <div class="gameLoadingTitle">Market Magnate</div>
-        <div class="gameLoadingSubtitle">Loading the trading floor...</div>
+        <div class="gameLoadingSubtitle" id="gameLoadingSubtitle">Loading the trading floor...</div>
       </div>
     </div>
+
+    <div class="gameLoadingChart">
+      <div class="gameLoadingGrid"></div>
+      <div class="gameLoadingLineWrap">
+        <svg class="gameLoadingSvg" viewBox="0 0 600 160" preserveAspectRatio="none" aria-hidden="true">
+          <polyline class="gameLoadingLine1" points="0,125 40,118 85,122 125,101 165,109 210,72 255,82 300,52 350,63 390,42 440,60 485,34 540,24 600,18"></polyline>
+          <polyline class="gameLoadingLine2" points="0,145 50,140 95,142 135,128 180,135 225,110 270,120 315,92 360,102 405,82 455,96 500,70 550,60 600,48"></polyline>
+        </svg>
+      </div>
+      <div class="gameLoadingGlow"></div>
+      <div class="gameLoadingCrashFlash" id="gameLoadingCrashFlash"></div>
+    </div>
+
+    <div class="gameLoadingStats">
+      <div class="gameLoadingStat">
+        <div class="gameLoadingStatLabel">Investor</div>
+        <div class="gameLoadingStatValue" id="gameLoadingPlayer">Loading...</div>
+      </div>
+      <div class="gameLoadingStat">
+        <div class="gameLoadingStatLabel">Last Net Worth</div>
+        <div class="gameLoadingStatValue" id="gameLoadingWorth">$0</div>
+      </div>
+      <div class="gameLoadingStat">
+        <div class="gameLoadingStatLabel">Market State</div>
+        <div class="gameLoadingStatValue" id="gameLoadingState">Bullish Open</div>
+      </div>
+    </div>
+
+    <div class="gameLoadingTicker">
+      <div class="gameLoadingTickerTrack" id="gameLoadingTickerTrack">
+        <span>BLZN +2.4%</span>
+        <span>QNTX +1.8%</span>
+        <span>NRVA -0.6%</span>
+        <span>Loading market data</span>
+        <span>Preparing portfolio</span>
+        <span>Connecting leaderboard</span>
+        <span>BLZN +2.4%</span>
+        <span>QNTX +1.8%</span>
+        <span>NRVA -0.6%</span>
+      </div>
+    </div>
+
+    <div class="gameLoadingProgressWrap">
+      <div class="gameLoadingProgressBar"><div id="gameLoadingProgress" class="gameLoadingProgress"></div></div>
+      <div id="gameLoadingStatus" class="gameLoadingStatus">Syncing account and market data...</div>
+    </div>
+  </div>
+</div>
+
 
     <div class="gameLoadingChart">
       <div class="gameLoadingGrid"></div>
@@ -4238,40 +4341,110 @@ document.addEventListener('DOMContentLoaded', function(){
 </div>
 
 
+
 <script>
 (function(){
   const overlay = document.getElementById('gameLoadingOverlay');
   const bar = document.getElementById('gameLoadingProgress');
   const statusEl = document.getElementById('gameLoadingStatus');
+  const subtitleEl = document.getElementById('gameLoadingSubtitle');
+  const playerEl = document.getElementById('gameLoadingPlayer');
+  const worthEl = document.getElementById('gameLoadingWorth');
+  const stateEl = document.getElementById('gameLoadingState');
+  const tickerEl = document.getElementById('gameLoadingTickerTrack');
   if(!overlay || !bar || !statusEl) return;
 
   const started = performance.now();
   const minDuration = 2000;
-  const showBecauseNavigation = (() => {
-    try { return sessionStorage.getItem('MM_SHOW_GAME_LOADING') === '1'; }
-    catch (e) { return false; }
-  })();
 
-  const loadingStates = [
+  let hint = { username:'', display_name:'', net_worth:0 };
+  try{
+    hint = Object.assign(hint, JSON.parse(sessionStorage.getItem('MM_LOADING_HINT') || '{}') || {});
+  }catch(e){}
+
+  if(!hint.display_name && !hint.username){
+    try{
+      const p = JSON.parse(localStorage.getItem('MM_PROFILE_HINT') || 'null');
+      if(p){
+        hint.username = p.username || '';
+        hint.display_name = p.display_name || p.username || '';
+      }
+    }catch(e){}
+  }
+
+  playerEl.textContent = hint.display_name || hint.username || 'Anonymous Trader';
+  subtitleEl.textContent = `Syncing ${(hint.display_name || hint.username || 'your')} portfolio...`;
+
+  let targetWorth = Number(hint.net_worth || 0);
+  let shownWorth = Math.max(0, Math.round(targetWorth * 0.78));
+  const fmt = (n) => {
+    if (Math.abs(n) >= 1e12) return '$' + (n/1e12).toFixed(2).replace(/\.00$/,'') + 'T';
+    if (Math.abs(n) >= 1e9) return '$' + (n/1e9).toFixed(2).replace(/\.00$/,'') + 'B';
+    if (Math.abs(n) >= 1e6) return '$' + (n/1e6).toFixed(2).replace(/\.00$/,'') + 'M';
+    if (Math.abs(n) >= 1e3) return '$' + (n/1e3).toFixed(1).replace(/\.0$/,'') + 'K';
+    return '$' + Math.round(n).toLocaleString();
+  };
+
+  const crashRoll = Math.random();
+  const isCrash = crashRoll < 0.08; // rare market crash
+  if(isCrash){
+    overlay.classList.add('is-crash');
+    stateEl.textContent = 'Flash Crash';
+    statusEl.textContent = 'Markets are opening under pressure...';
+    if(tickerEl){
+      tickerEl.innerHTML = `
+        <span>BLZN -7.4%</span>
+        <span>QNTX -5.8%</span>
+        <span>NRVA -3.6%</span>
+        <span>Volatility spike detected</span>
+        <span>Risk models recalibrating</span>
+        <span>Connecting live market panic</span>
+        <span>BLZN -7.4%</span>
+        <span>QNTX -5.8%</span>
+        <span>NRVA -3.6%</span>`;
+    }
+  } else {
+    stateEl.textContent = 'Bullish Open';
+  }
+
+  const loadingStates = isCrash ? [
     'Booting market simulation...',
-    'Syncing account and market data...',
+    `Checking ${(hint.display_name || hint.username || 'player')} liquidity...`,
+    'Risk controls recalibrating...',
     'Connecting live leaderboard...',
-    'Loading assets and UI panels...',
+    'Reopening the trading floor...'
+  ] : [
+    'Booting market simulation...',
+    `Syncing ${(hint.display_name || hint.username || 'player')} portfolio...`,
+    'Loading market headlines...',
+    'Connecting live leaderboard...',
     'Opening the trading floor...'
   ];
 
   let progress = 6;
   let stateIndex = 0;
   statusEl.textContent = loadingStates[stateIndex];
+  worthEl.textContent = fmt(shownWorth);
 
   const tick = setInterval(() => {
     progress = Math.min(progress + (progress < 72 ? 7 : progress < 90 ? 2.2 : .8), 94);
     bar.style.width = progress + '%';
+
     if (progress > 22 && stateIndex < 1) stateIndex = 1;
     if (progress > 46 && stateIndex < 2) stateIndex = 2;
     if (progress > 68 && stateIndex < 3) stateIndex = 3;
     if (progress > 84 && stateIndex < 4) stateIndex = 4;
     statusEl.textContent = loadingStates[stateIndex];
+
+    // Net worth ticks toward target, with slight jitter
+    const diff = targetWorth - shownWorth;
+    if (Math.abs(diff) > 1) {
+      shownWorth += diff * 0.18 + (isCrash ? -Math.abs(targetWorth)*0.002 : Math.abs(targetWorth)*0.0015) * (Math.random() - 0.4);
+      if ((!isCrash && shownWorth > targetWorth) || (isCrash && shownWorth < targetWorth*0.94)) shownWorth = targetWorth;
+    } else {
+      shownWorth = targetWorth;
+    }
+    worthEl.textContent = fmt(Math.max(0, shownWorth));
   }, 180);
 
   function finishLoading(){
@@ -4279,18 +4452,18 @@ document.addEventListener('DOMContentLoaded', function(){
     const remaining = Math.max(0, minDuration - elapsed);
     setTimeout(() => {
       clearInterval(tick);
-      statusEl.textContent = 'Ready.';
+      statusEl.textContent = isCrash ? 'Survived the open.' : 'Ready.';
       bar.style.width = '100%';
+      worthEl.textContent = fmt(targetWorth);
       overlay.classList.add('is-hidden');
-      try { sessionStorage.removeItem('MM_SHOW_GAME_LOADING'); } catch (e) {}
+      try {
+        sessionStorage.removeItem('MM_SHOW_GAME_LOADING');
+        sessionStorage.removeItem('MM_LOADING_HINT');
+      } catch (e) {}
       setTimeout(() => {
         if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
       }, 450);
     }, remaining);
-  }
-
-  if(!showBecauseNavigation){
-    // still show on direct loads, but behave the same way
   }
 
   if (document.readyState === 'complete') {
@@ -4300,6 +4473,7 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 })();
 </script>
+
 
 </body>
 </html>

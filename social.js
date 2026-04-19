@@ -323,7 +323,21 @@ async function getUser() {
       }
     } catch (e) {}
 
-    try { sessionStorage.setItem("MM_SHOW_GAME_LOADING", "1"); } catch (e) {}
+    try {
+      sessionStorage.setItem("MM_SHOW_GAME_LOADING", "1");
+      const user = await getUser().catch(() => null);
+      let profileHint = null;
+      if (user) {
+        const prof = await window.mmSupabase.from("profiles").select("username,display_name").eq("id", user.id).maybeSingle();
+        profileHint = prof?.data || null;
+        const stats = await window.mmSupabase.from("player_stats").select("net_worth").eq("user_id", user.id).maybeSingle();
+        sessionStorage.setItem("MM_LOADING_HINT", JSON.stringify({
+          username: profileHint?.username || "",
+          display_name: profileHint?.display_name || profileHint?.username || "",
+          net_worth: Number(stats?.data?.net_worth || 0)
+        }));
+      }
+    } catch (e) {}
     flash(el.authMessage(), "Signed in. Redirecting to game...");
     await refreshAuthUI();
     setTimeout(() => { window.location.href = "./game.html"; }, 500);
