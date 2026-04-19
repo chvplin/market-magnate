@@ -1717,14 +1717,14 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   position:fixed;
   left:16px;
   top:16px;
-  width:min(440px, calc(100vw - 32px));
-  max-height:min(78vh, 600px);
+  width:min(580px, calc(100vw - 28px));
+  max-height:min(88vh, 720px);
   overflow:auto;
-  border-radius:18px;
+  border-radius:20px;
   background:linear-gradient(180deg, rgba(17,24,38,.985), rgba(11,17,26,.99));
   border:1px solid rgba(255,255,255,.12);
   box-shadow:0 18px 50px rgba(0,0,0,.35), 0 0 0 1px rgba(0,0,0,.12);
-  padding:18px 18px 16px;
+  padding:22px 22px 18px;
   color:#eef3fb;
   opacity:0;
   transform:translateY(-6px) scale(.98);
@@ -1755,33 +1755,37 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 .playerQuickViewClose:hover{ background:#223047; }
 .playerQuickViewBody{ position:relative; }
 .playerQuickViewBanner{
-  min-height:104px;
-  border-radius:14px;
+  min-height:120px;
+  border-radius:16px;
   border:1px solid rgba(255,255,255,.08);
-  margin-bottom:14px;
+  margin-bottom:16px;
   background:linear-gradient(135deg,#1877f2,#42b72a);
   box-shadow:0 10px 24px rgba(0,0,0,.2);
 }
 .playerQuickViewHeader{
   display:flex;
   align-items:center;
-  gap:14px;
-  margin-bottom:12px;
+  gap:16px;
+  margin-bottom:14px;
 }
 .playerQuickViewAvatar{
-  width:72px;
-  height:72px;
-  border-radius:18px;
+  width:96px;
+  height:108px;
+  border-radius:20px;
   display:grid;
   place-items:center;
-  font-size:2.05rem;
+  font-size:2.35rem;
   background:#182233;
   border:2px solid rgba(255,255,255,.92);
   box-shadow:0 10px 26px rgba(0,0,0,.24);
   flex:0 0 auto;
+  overflow:visible;
+}
+.playerQuickViewAvatar.mmQuickAvatar .mmAvatarHost--quick{
+  transform:scale(calc(var(--mm-scale,1) * 0.56)) !important;
 }
 .playerQuickViewName{
-  font-size:1.32rem;
+  font-size:1.42rem;
   font-weight:900;
   color:#f7fbff;
 }
@@ -1795,6 +1799,33 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   margin-top:10px;
 }
 .playerQuickViewSubtle{ color:#93a0b3; }
+.playerQuickViewSection{
+  margin-top:18px;
+  padding-top:16px;
+  border-top:1px solid rgba(255,255,255,.1);
+}
+.playerQuickViewSection:first-of-type{
+  border-top:none;
+  padding-top:0;
+  margin-top:14px;
+}
+.playerQuickViewSectionTitle{
+  font-size:.72rem;
+  font-weight:900;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:#7b8aa0;
+  margin-bottom:10px;
+}
+.playerQuickViewMetaRow{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px 18px;
+  font-size:.88rem;
+  color:#c5d4ea;
+  margin-top:6px;
+}
+.playerQuickViewMetaRow b{ color:#f0f6ff; font-weight:800; }
 .playerQuickViewStats{
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
@@ -1805,8 +1836,50 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   background:#151f2f;
   border:1px solid rgba(255,255,255,.08);
   border-radius:16px;
-  padding:14px;
+  padding:14px 12px;
 }
+.playerQuickViewStat--wide{
+  grid-column:1 / -1;
+}
+.playerQuickViewGrid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+.playerQuickViewCell{
+  background:#151f2f;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:12px;
+  padding:11px 12px;
+  font-size:.86rem;
+  color:#c5d4ea;
+  line-height:1.45;
+}
+.playerQuickViewCell strong{
+  display:block;
+  margin-top:4px;
+  font-size:1rem;
+  font-weight:900;
+  color:#f7fbff;
+}
+.playerQuickViewFooter{
+  margin-top:18px;
+  padding-top:14px;
+  border-top:1px solid rgba(255,255,255,.1);
+}
+.playerQuickViewHubLink{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-weight:850;
+  font-size:.9rem;
+  color:#8ec5ff;
+  text-decoration:none;
+  padding:8px 4px;
+  border-radius:10px;
+}
+.playerQuickViewHubLink:hover{ color:#cfe8ff; text-decoration:underline; }
+.playerQuickViewNote{ line-height:1.5; color:#b9c9e2; }
 .playerQuickViewStatLabel{
   color:#93a0b3;
   font-size:.75rem;
@@ -1825,6 +1898,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 }
 @media (max-width:700px){
   .playerQuickViewStats{grid-template-columns:1fr 1fr;}
+  .playerQuickViewGrid{grid-template-columns:1fr;}
 }
 
 </style>
@@ -5339,7 +5413,7 @@ document.addEventListener('DOMContentLoaded', function(){
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const margin = 12;
-    const cw = Math.min(440, Math.max(300, box.width), vw - margin * 2);
+    const cw = Math.min(600, Math.max(380, Math.max(box.width * 1.12, 400)), vw - margin * 2);
     card.style.width = cw + 'px';
     let left = box.left;
     left = Math.min(Math.max(margin, left), vw - cw - margin);
@@ -5434,11 +5508,10 @@ document.addEventListener('DOMContentLoaded', function(){
 
   async function fetchPlayerQuickView(username, opts){
     if (!window.mmSupabase || !username) return null;
-    const leaderDna = opts && opts.leaderAvatarDna != null && opts.leaderAvatarDna !== '' ? opts.leaderAvatarDna : null;
     try{
       const profRes = await window.mmSupabase
         .from('profiles')
-        .select('id,username,display_name,bio,favorite_stock,profile_theme,avatar_url,banner_url')
+        .select('*')
         .eq('username', username)
         .maybeSingle();
       const profile = profRes?.data || null;
@@ -5453,8 +5526,9 @@ document.addEventListener('DOMContentLoaded', function(){
           .maybeSingle();
         stats = statsRes?.data || null;
       }catch(e){}
-      if(leaderDna != null && (!stats || stats.avatar_dna == null || stats.avatar_dna === '')){
-        stats = Object.assign({}, stats || {}, { avatar_dna: leaderDna });
+      const lr = opts && opts.leaderRow;
+      if(lr && typeof lr === 'object'){
+        stats = Object.assign({}, lr, stats || {});
       }
       try{
         const selfU = window.mmSocial && window.mmSocial.profile && window.mmSocial.profile.username;
@@ -5479,6 +5553,32 @@ document.addEventListener('DOMContentLoaded', function(){
     }catch(e){ return null; }
   }
 
+  function fmtQuickDate(iso){
+    if(!iso) return '—';
+    try{
+      const d = new Date(iso);
+      if(!Number.isFinite(d.getTime())) return '—';
+      return d.toLocaleString(undefined, { month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    }catch(e){ return '—'; }
+  }
+  function fmtNumQuick(n){
+    const x = Math.round(Number(n) || 0);
+    try{ return x.toLocaleString(); }catch(e){ return String(x); }
+  }
+  function quickBannerLabel(key){
+    if(typeof getBannerDef === 'function'){
+      try{
+        const d = getBannerDef(key || 'default_banner');
+        if(d && d.name) return d.name;
+      }catch(e){}
+    }
+    const k = String(key || 'default_banner');
+    if(k.indexOf('gold') >= 0) return 'Gold Lux';
+    if(k.indexOf('neon') >= 0) return 'Neon Grid';
+    if(k.indexOf('midnight') >= 0) return 'Midnight Tape';
+    return 'Market Default';
+  }
+
   function renderPlayerQuickView(payload){
     const body = q('#playerQuickViewBody');
     if (!body) return;
@@ -5498,10 +5598,28 @@ document.addEventListener('DOMContentLoaded', function(){
     const dnaFromCloud = parseAvatarDnaField(s.avatar_dna);
     const dnaFallback = typeof window.deterministicAvatarDNA === 'function' ? window.deterministicAvatarDNA(handleRaw) : null;
     const dna = dnaFromCloud || dnaFallback;
-    const useFig = !!(dna && typeof window.MM_applyAvatarDNA === 'function');
+    const applyFn = (window.MM_AVATAR && window.MM_AVATAR.applyAvatarDNAToHost) || window.MM_applyAvatarDNA;
+    const useFig = !!(dna && typeof applyFn === 'function');
+    const themeLabel = escapeHtml(String(p.profile_theme || 'default').replace(/_/g, ' '));
+    const bannerLabel = escapeHtml(quickBannerLabel(p.banner_url));
+    const visPublic = p.is_public !== false && p.is_public !== 0;
+    const visLabel = escapeHtml(visPublic ? 'Visible on leaderboard' : 'Private profile');
+    const pid = p.id ? String(p.id) : '';
+    const pidShort = pid.length > 10 ? escapeHtml(pid.slice(0, 8) + '…') : escapeHtml(pid || '—');
+    const cashV = s.cash != null && s.cash !== '' ? fmtMoneySafe(s.cash) : '—';
+    const profitV = s.total_profit != null ? fmtMoneySafe(s.total_profit) : (s.totalProfit != null ? fmtMoneySafe(s.totalProfit) : '—');
+    const tradesV = s.lifetime_trades != null ? fmtNumQuick(s.lifetime_trades) : (s.lifetimeTrades != null ? fmtNumQuick(s.lifetimeTrades) : '—');
+    const xpV = s.xp != null ? fmtNumQuick(s.xp) : '—';
+    const hiV = s.highest_net_worth != null ? fmtMoneySafe(s.highest_net_worth) : (s.highestNetWorth != null ? fmtMoneySafe(s.highestNetWorth) : '—');
+    const syncRaw = s.updated_at || s.updatedAt || s.last_seen || s.last_active || null;
+    const syncLabel = escapeHtml(fmtQuickDate(syncRaw));
+    const charLine = useFig
+      ? (dnaFromCloud ? 'Full character DNA synced from their last cloud save.' : 'Character look is generated from their username until they sync a custom look.')
+      : 'Classic emoji avatar from their Hub profile.';
+    const hubHref = './index.html?u=' + encodeURIComponent(handleRaw);
     const avatarHtml = useFig
-      ? '<div class="playerQuickViewAvatar mmQuickAvatar"><div class="mmAvatarHost mmAvatarHost--quick pvQuickAvatarHost"></div></div>'
-      : '<div class="playerQuickViewAvatar">' + escapeHtml(p.avatar_url || '💹') + '</div>';
+      ? '<div class="playerQuickViewAvatar mmQuickAvatar pvAvatarLg"><div class="mmAvatarHost mmAvatarHost--quick pvQuickAvatarHost"></div></div>'
+      : '<div class="playerQuickViewAvatar pvAvatarLg">' + escapeHtml(p.avatar_url || '💹') + '</div>';
     body.innerHTML = ''
       + '<div class="playerQuickViewBanner" style="background:' + banner + '"></div>'
       + '<div class="playerQuickViewHeader">'
@@ -5509,21 +5627,43 @@ document.addEventListener('DOMContentLoaded', function(){
       +   '<div>'
       +     '<div class="playerQuickViewName">' + disp + '</div>'
       +     '<div class="playerQuickViewHandle">@' + handle + '</div>'
+      +     '<div class="playerQuickViewMetaRow"><span><span class="playerQuickViewSubtle">Theme</span> <b>' + themeLabel + '</b></span><span><span class="playerQuickViewSubtle">Banner</span> <b>' + bannerLabel + '</b></span></div>'
+      +     '<div class="playerQuickViewMetaRow"><span><span class="playerQuickViewSubtle">Visibility</span> <b>' + visLabel + '</b></span><span><span class="playerQuickViewSubtle">Player ref</span> <b>' + pidShort + '</b></span></div>'
       +   '</div>'
       + '</div>'
       + '<div class="playerQuickViewBio">' + bioHtml + '</div>'
       + '<div class="playerQuickViewBio"><span class="playerQuickViewSubtle">Favorite stock:</span> <b>' + fav + '</b></div>'
-      + '<div class="playerQuickViewStats">'
-      +   '<div class="playerQuickViewStat"><div class="playerQuickViewStatLabel">Net Worth</div><div class="playerQuickViewStatValue">' + fmtMoneySafe(s.net_worth || 0) + '</div></div>'
-      +   '<div class="playerQuickViewStat"><div class="playerQuickViewStatLabel">Prestige</div><div class="playerQuickViewStatValue">' + escapeHtml(String(Math.round(Number(s.prestige || 0)))) + '</div></div>'
-      +   '<div class="playerQuickViewStat"><div class="playerQuickViewStatLabel">Empire</div><div class="playerQuickViewStatValue">' + empire + '</div></div>'
+      + '<div class="playerQuickViewSection">'
+      +   '<div class="playerQuickViewSectionTitle">Empire snapshot</div>'
+      +   '<div class="playerQuickViewStats">'
+      +     '<div class="playerQuickViewStat"><div class="playerQuickViewStatLabel">Net worth</div><div class="playerQuickViewStatValue">' + fmtMoneySafe(s.net_worth || 0) + '</div></div>'
+      +     '<div class="playerQuickViewStat"><div class="playerQuickViewStatLabel">Prestige (LP)</div><div class="playerQuickViewStatValue">' + escapeHtml(String(Math.round(Number(s.prestige || 0)))) + '</div></div>'
+      +     '<div class="playerQuickViewStat"><div class="playerQuickViewStatLabel">Empire stage</div><div class="playerQuickViewStatValue">' + empire + '</div></div>'
+      +   '</div>'
+      + '</div>'
+      + '<div class="playerQuickViewSection">'
+      +   '<div class="playerQuickViewSectionTitle">Trading & progression</div>'
+      +   '<div class="playerQuickViewGrid">'
+      +     '<div class="playerQuickViewCell">Cash on hand<strong>' + cashV + '</strong></div>'
+      +     '<div class="playerQuickViewCell">Lifetime profit<strong>' + profitV + '</strong></div>'
+      +     '<div class="playerQuickViewCell">Lifetime trades<strong>' + tradesV + '</strong></div>'
+      +     '<div class="playerQuickViewCell">XP total<strong>' + xpV + '</strong></div>'
+      +     '<div class="playerQuickViewCell">Peak net worth<strong>' + hiV + '</strong></div>'
+      +     '<div class="playerQuickViewCell">Cloud stats sync<strong>' + syncLabel + '</strong></div>'
+      +   '</div>'
+      + '</div>'
+      + '<div class="playerQuickViewSection">'
+      +   '<div class="playerQuickViewSectionTitle">Character</div>'
+      +   '<div class="playerQuickViewCell playerQuickViewNote">' + escapeHtml(charLine) + '</div>'
+      + '</div>'
+      + '<div class="playerQuickViewFooter">'
+      +   '<a class="playerQuickViewHubLink" href="' + String(hubHref).replace(/"/g, '') + '" target="_blank" rel="noopener noreferrer">Open full profile in Social Hub →</a>'
       + '</div>';
     if(useFig){
       const host = body.querySelector('.pvQuickAvatarHost');
       const paint = function(){
         if(!host) return;
-        const apply = (window.MM_AVATAR && window.MM_AVATAR.applyAvatarDNAToHost) || window.MM_applyAvatarDNA;
-        if(typeof apply === 'function') apply(host, dna, {});
+        if(typeof applyFn === 'function') applyFn(host, dna, {});
       };
       requestAnimationFrame(function(){
         requestAnimationFrame(paint);
@@ -5541,17 +5681,16 @@ document.addEventListener('DOMContentLoaded', function(){
     if (!body) return;
     body.innerHTML = '<div class="playerQuickViewLoading">Loading profile…</div>';
     openPlayerQuickView(anchorRow);
-    let leaderDna = null;
+    let leaderRow = null;
     try{
       const rows = window.mmSocial && window.mmSocial.leaderRows;
       if(Array.isArray(rows)){
-        const row = rows.find(function(r){
+        leaderRow = rows.find(function(r){
           return String(r.username || '').trim().toLowerCase() === u.toLowerCase();
-        });
-        if(row && row.avatar_dna != null && row.avatar_dna !== '') leaderDna = row.avatar_dna;
+        }) || null;
       }
     }catch(e){}
-    const payload = await fetchPlayerQuickView(u, { leaderAvatarDna: leaderDna });
+    const payload = await fetchPlayerQuickView(u, { leaderRow: leaderRow });
     if(seq !== mmQuickViewSeq) return;
     renderPlayerQuickView(payload);
   }
