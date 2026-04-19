@@ -24,10 +24,10 @@
   --orange:#ff9f43;
   --shadow:0 10px 28px rgba(24,119,242,.10), 0 3px 10px rgba(0,0,0,.06);
   --radius:14px;
-  --mm-topbar-h:76px;
+  --mm-topbar-h:68px;
 }
 @media (max-width:560px){
-  :root{ --mm-topbar-h:68px; }
+  :root{ --mm-topbar-h:62px; }
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:var(--text);background:
@@ -36,25 +36,45 @@ body:before{content:"";position:fixed;inset:0;background:
 radial-gradient(circle at top left, rgba(24,119,242,.08), transparent 28%),
 radial-gradient(circle at top right, rgba(66,183,42,.05), transparent 22%),
 linear-gradient(180deg, transparent, rgba(255,255,255,.35));pointer-events:none}
+@media (prefers-reduced-motion: no-preference){
+  body.mm-motion:before{animation:mmAuroraDrift 56s ease-in-out infinite alternate}
+}
+@keyframes mmAuroraDrift{
+  0%{transform:scale(1) translate(0,0);opacity:1;filter:hue-rotate(0deg)}
+  100%{transform:scale(1.04) translate(1.2%,-0.8%);opacity:.92;filter:hue-rotate(14deg)}
+}
 button,input,select{font:inherit}
 button{cursor:pointer;border:none;color:var(--text)}
-.topbar{position:sticky;top:0;z-index:130;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 18px;background:rgba(245,247,250,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);box-shadow:0 4px 16px rgba(0,0,0,.04)}
-.topLeft,.topRight{display:flex;align-items:center;gap:12px}
-.mmMark{width:46px;height:46px;border-radius:11px;background:linear-gradient(135deg,#0f8bff,#1dc86a);color:#fff;display:grid;place-items:center;font-weight:900;font-size:1.1rem;box-shadow:0 10px 22px rgba(24,119,242,.22);position:relative;overflow:hidden}
+.topbar{position:sticky;top:0;z-index:130;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 14px;background:rgba(245,247,250,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);box-shadow:0 4px 16px rgba(0,0,0,.04);width:100%;max-width:100%;box-sizing:border-box;overflow-x:hidden}
+.topLeft{display:flex;align-items:center;gap:10px;flex:1 1 auto;min-width:0;max-width:100%}
+.topRight{display:flex;align-items:center;gap:10px;flex:0 0 auto;min-width:0}
+.mmMark{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#0f8bff,#1dc86a);color:#fff;display:grid;place-items:center;font-weight:900;font-size:1rem;box-shadow:0 8px 18px rgba(24,119,242,.2);position:relative;overflow:hidden}
+@media (prefers-reduced-motion: no-preference){
+  body.mm-motion .mmMark{animation:mmMarkShine 4.5s ease-in-out infinite}
+}
+@keyframes mmMarkShine{
+  0%,100%{filter:brightness(1) saturate(1)}
+  50%{filter:brightness(1.08) saturate(1.12)}
+}
 .mmMark:before{content:"";position:absolute;inset:9px 11px 12px 11px;background:
 linear-gradient(90deg,transparent 0 6%, rgba(255,255,255,.14) 6% 8%, transparent 8% 26%, rgba(255,255,255,.14) 26% 28%, transparent 28% 46%, rgba(255,255,255,.14) 46% 48%, transparent 48% 100%);
 border-radius:8px}
 .mmMark span{position:relative;z-index:1;letter-spacing:.02em;text-shadow:0 1px 2px rgba(0,0,0,.12)}
-.searchWrap{position:relative;flex:1;min-width:0;max-width:min(560px,52vw)}
+.searchWrap{position:relative;flex:1 1 auto;min-width:0;max-width:min(560px,min(52vw,calc(100vw - 340px)))}
+.speedDock{display:flex;align-items:center;gap:5px;flex:0 0 auto;flex-shrink:0;margin-left:2px}
+.speedHint{font-size:.68rem;font-weight:800;color:#64748b;letter-spacing:.06em;white-space:nowrap;line-height:1;user-select:none}
+@media (max-width:480px){
+  .speedHint{font-size:.62rem;letter-spacing:.02em}
+}
 .searchBar{
   display:flex;
   align-items:center;
-  gap:11px;
+  gap:9px;
   background:linear-gradient(180deg,#ffffff 0%,#f1f6fc 100%);
   border:2px solid #8eb4eb;
   border-radius:999px;
-  padding:11px 16px;
-  min-width:min(440px,46vw);
+  padding:8px 14px;
+  min-width:0;
   color:#334155;
   box-shadow:
     0 1px 0 rgba(255,255,255,.95) inset,
@@ -69,7 +89,7 @@ border-radius:8px}
     0 0 0 3px rgba(24,119,242,.2),
     0 8px 26px rgba(24,119,242,.14);
 }
-.searchBar input{border:none;outline:none;background:transparent;width:100%;font-size:.96rem;color:var(--text);font-weight:500}
+.searchBar input{border:none;outline:none;background:transparent;flex:1 1 auto;min-width:0;width:0;font-size:.96rem;color:var(--text);font-weight:500}
 .searchBar input::placeholder{color:#5c6b80;opacity:.92}
 .searchResults{position:absolute;top:calc(100% + 10px);left:0;right:0;background:#f8fafc;border:1px solid var(--line);border-radius:11px;box-shadow:0 16px 40px rgba(0,0,0,.12);padding:10px;display:none;max-height:min(70vh,520px);overflow:auto;z-index:150}
 .searchResults.open{display:block}
@@ -81,11 +101,11 @@ border-radius:8px}
 .searchItemMain b{display:block;font-size:.95rem}
 .searchItemMain span{display:block;color:var(--muted);font-size:.84rem;margin-top:3px}
 .searchItemMeta{font-size:.84rem;color:#44556f;font-weight:800}
-.circleBtn{width:42px;height:42px;border-radius:999px;background:#dbe3ec;display:grid;place-items:center;font-size:1.15rem}
+.circleBtn{width:38px;height:38px;border-radius:999px;background:#dbe3ec;display:grid;place-items:center;font-size:1.05rem}
 .menuToggle{display:none}
 .app{max-width:1560px;margin:0 auto;padding:18px;display:grid;grid-template-columns:290px minmax(0,1fr) 270px;gap:18px;align-items:start}
-.sidebar,.content,.rightRail{min-height:calc(100vh - 98px)}
-.sidebar{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;box-shadow:var(--shadow);position:sticky;top:82px;display:flex;flex-direction:column;gap:14px}
+.sidebar,.content,.rightRail{min-height:calc(100vh - 88px)}
+.sidebar{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;box-shadow:var(--shadow);position:sticky;top:calc(var(--mm-topbar-h) + 6px);display:flex;flex-direction:column;gap:14px}
 .brand{padding:18px;border-radius:15px;background:linear-gradient(180deg,#1877f2,#1666cf);position:relative;overflow:hidden;border:1px solid rgba(24,119,242,.18);color:#fff}
 .brand:after{content:"";position:absolute;right:-22px;top:-28px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle, rgba(255,255,255,.30), transparent 65%)}
 .logo{display:flex;align-items:center;gap:12px;font-weight:900;font-size:1.2rem;letter-spacing:.02em}
@@ -107,7 +127,7 @@ linear-gradient(180deg,#2c7df0,#145dcb);position:relative;overflow:hidden}
 .stat .v{font-size:1.02rem;font-weight:800;margin-top:6px}
 .menu{display:grid;gap:10px}
 .menuBtn{padding:14px 16px;border-radius:13px;background:var(--panel2);text-align:left;display:flex;align-items:center;gap:12px;border:1px solid var(--line);transition:.18s transform,.18s filter,.18s background}
-.menuBtn:hover{transform:translateY(-1px);filter:brightness(1.02)}
+.menuBtn:hover{filter:brightness(1.03);box-shadow:0 6px 18px rgba(24,119,242,.1)}
 .menuBtn.active{background:linear-gradient(180deg,#e9f2ff,#dbe9ff);border-color:#b9d2fb;box-shadow:0 8px 22px rgba(24,119,242,.14)}
 .sidebar.collapsed{width:92px;padding:14px 10px}
 .sidebar.collapsed .brand,.sidebar.collapsed .menuText,.sidebar.collapsed .bigCash .sub,.sidebar.collapsed .miniStats,.sidebar.collapsed .sideActions{display:none}
@@ -124,7 +144,7 @@ linear-gradient(180deg,#2c7df0,#145dcb);position:relative;overflow:hidden}
 .heroBtn{background:#1877f2;color:#fff}
 .dangerBtn{background:#ffe8ea;border:1px solid #f4c8cf;color:#b42334}
 .content{display:flex;flex-direction:column;gap:18px}
-.rightRail{position:sticky;top:82px;display:flex;flex-direction:column;gap:16px}
+.rightRail{position:sticky;top:calc(var(--mm-topbar-h) + 6px);display:flex;flex-direction:column;gap:16px}
 .railCard{padding:16px;border-radius:11px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow)}
 .railTitle{font-size:1rem;font-weight:900;margin-bottom:10px}
 .feedMini{display:grid;gap:10px}
@@ -136,8 +156,17 @@ linear-gradient(180deg,#2c7df0,#145dcb);position:relative;overflow:hidden}
 .heroLeft{display:flex;flex-direction:column;gap:16px}
 .pillRow{display:flex;flex-wrap:wrap;gap:10px}
 .pill{padding:9px 14px;border-radius:999px;background:#eef3f8;border:1px solid var(--line);font-size:.9rem;color:#243244}
-.topbarStats{display:flex;align-items:center;gap:8px;flex-wrap:wrap;max-width:min(46vw,380px)}
-.topbarStats .pill{white-space:nowrap}
+.topbarStats{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;flex:0 0 auto;min-width:min-content}
+.topbarStats .pill{white-space:nowrap;padding:7px 11px;font-size:.85rem}
+#datePill,#topbarCashPill,#topbarNetPill{flex:0 0 auto}
+@media (max-width:1100px){
+  #datePill{max-width:min(300px,56vw);overflow:hidden;text-overflow:ellipsis}
+  #topbarCashPill,#topbarNetPill{max-width:min(180px,40vw);overflow:hidden;text-overflow:ellipsis}
+}
+@media (prefers-reduced-motion: no-preference){
+  body.mm-motion .topbarStats .pill{transition:transform .22s cubic-bezier(.2,.85,.2,1),box-shadow .25s ease}
+  body.mm-motion .topbarStats .pill:hover{box-shadow:0 6px 18px rgba(24,119,242,.14)}
+}
 .heroTitle{font-size:2.2rem;font-weight:950;line-height:1.04;margin:0}
 .heroText{color:#4b4f56;max-width:760px;line-height:1.55}
 .heroActions{display:flex;flex-wrap:wrap;gap:12px}
@@ -160,7 +189,14 @@ linear-gradient(180deg,#2c7df0,#145dcb);position:relative;overflow:hidden}
 .heroCard{padding:14px;border-radius:13px;background:var(--panel2);border:1px solid var(--line)}
 .heroCard .label{font-size:.75rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
 .heroCard .value{margin-top:7px;font-size:1.15rem;font-weight:900}
-.panel{padding:18px;border-radius:10px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow)}
+@media (prefers-reduced-motion: no-preference){
+  body.mm-motion .heroCard{transition:transform .28s cubic-bezier(.2,.85,.2,1),box-shadow .3s ease,border-color .25s ease}
+  body.mm-motion .heroCard:hover{box-shadow:0 12px 30px rgba(24,119,242,.12)}
+}
+.panel{padding:18px;border-radius:10px;background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);transition:transform .32s cubic-bezier(.2,.85,.2,1),box-shadow .32s ease,border-color .25s ease}
+@media (prefers-reduced-motion: no-preference){
+  body.mm-motion .panel:hover{box-shadow:0 16px 44px rgba(24,119,242,.1),var(--shadow)}
+}
 .flashHit{animation:flashHit 1.6s ease}
 @keyframes flashHit{0%{box-shadow:0 0 0 0 rgba(24,119,242,.28);transform:scale(1)}30%{box-shadow:0 0 0 8px rgba(24,119,242,.12);transform:scale(1.01)}100%{box-shadow:var(--shadow);transform:scale(1)}}
 .panelHead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
@@ -169,9 +205,16 @@ linear-gradient(180deg,#2c7df0,#145dcb);position:relative;overflow:hidden}
 .hidden{display:none!important}
 .stocksWrap{display:grid;grid-template-columns:380px minmax(0,1fr);gap:18px}
 .stockList{display:flex;flex-direction:column;gap:10px;max-height:900px;overflow:auto;padding-right:4px}
-.stockItem{padding:14px;border-radius:13px;background:var(--panel2);border:1px solid var(--line);display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;transition:.16s transform,.16s background}
-.stockItem:hover{transform:translateY(-1px);background:#f6faff}
+.stockItem{padding:14px;border-radius:13px;background:var(--panel2);border:1px solid var(--line);display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;transition:transform .22s cubic-bezier(.2,.85,.2,1),background .22s ease,box-shadow .28s ease,border-color .22s ease}
+.stockItem:hover{background:#f6faff;box-shadow:0 8px 22px rgba(24,119,242,.1)}
 .stockItem.active{background:linear-gradient(180deg,#e9f2ff,#f4f9ff);outline:2px solid rgba(24,119,242,.18)}
+@media (prefers-reduced-motion: no-preference){
+  body.mm-motion .stockItem.active{animation:mmStockPickGlow 3.8s ease-in-out infinite}
+}
+@keyframes mmStockPickGlow{
+  0%,100%{box-shadow:0 2px 10px rgba(24,119,242,.04)}
+  50%{box-shadow:0 10px 32px rgba(24,119,242,.12),0 0 0 1px rgba(24,119,242,.1)}
+}
 .ticker{width:50px;height:50px;border-radius:10px;display:grid;place-items:center;font-weight:900;background:linear-gradient(145deg,#1877f2,#42b72a);color:#fff}
 .stockMain b{display:block;font-size:1rem}
 .stockMain span{display:block;font-size:.84rem;color:#58606b;margin-top:4px}
@@ -183,16 +226,29 @@ linear-gradient(180deg,#2c7df0,#145dcb);position:relative;overflow:hidden}
 .neutral{color:var(--yellow)}
 .stockDetail{display:flex;flex-direction:column;gap:14px}
 .detailTop{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}
-.detailCard{padding:16px;border-radius:11px;background:var(--panel2);border:1px solid var(--line)}
-.canvasWrap{height:220px;border-radius:13px;background:linear-gradient(180deg,#f8fbff,#eff4fb);padding:10px;border:1px solid var(--line)}
+.detailCard{padding:16px;border-radius:11px;background:var(--panel2);border:1px solid var(--line);transition:transform .26s cubic-bezier(.2,.85,.2,1),box-shadow .28s ease}
+@media (prefers-reduced-motion: no-preference){
+  body.mm-motion .detailCard:hover{box-shadow:0 10px 26px rgba(24,119,242,.1)}
+}
+.canvasWrap{height:220px;border-radius:13px;background:linear-gradient(180deg,#f8fbff,#eff4fb);padding:10px;border:1px solid var(--line);position:relative;overflow:hidden}
+.canvasWrap::after{content:"";position:absolute;inset:0;border-radius:12px;pointer-events:none;opacity:0;background:linear-gradient(125deg,transparent 40%,rgba(24,119,242,.07) 50%,transparent 60%);background-size:220% 220%;z-index:1}
+@media (prefers-reduced-motion: no-preference){
+  body.mm-motion .canvasWrap::after{opacity:1;animation:mmChartSheen 7s ease-in-out infinite}
+}
+@keyframes mmChartSheen{
+  0%{background-position:0% 50%}
+  100%{background-position:100% 50%}
+}
+.canvasWrap canvas{position:relative;z-index:2}
 canvas{width:100%;height:100%}
 .metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
 .metric{padding:12px;border-radius:11px;background:#fff;border:1px solid var(--line)}
 .metric .k{font-size:.74rem;color:var(--muted);text-transform:uppercase;letter-spacing:.11em}
 .metric .v{margin-top:6px;font-weight:900}
 .tradeButtons{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px}
-.tradeBtn{padding:16px;border-radius:10px;font-size:1rem;font-weight:900;transition:.18s transform,.18s filter}
-.tradeBtn:hover{transform:translateY(-1px);filter:brightness(1.03)}
+.tradeBtn{padding:16px;border-radius:10px;font-size:1rem;font-weight:900;transition:transform .2s cubic-bezier(.2,.85,.2,1),filter .2s ease,box-shadow .25s ease}
+.tradeBtn:hover{filter:brightness(1.05);box-shadow:0 8px 22px rgba(0,0,0,.12)}
+.tradeBtn:active{transform:scale(.985)}
 .buyBtn{background:#42b72a;color:#fff}
 .sellBtn{background:#e04f5f;color:#fff}
 .qtyRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
@@ -222,7 +278,10 @@ canvas{width:100%;height:100%}
 .shopTab{padding:10px 14px;border-radius:999px;background:#edf2f8;border:1px solid var(--line);font-weight:800}
 .shopTab.active{background:#1877f2;color:#fff;border-color:#1877f2}
 .shopGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.shopCard{padding:16px;border-radius:13px;background:#f7f9fc;border:1px solid var(--line);display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center}
+.shopCard{padding:16px;border-radius:13px;background:#f7f9fc;border:1px solid var(--line);display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;transition:transform .22s cubic-bezier(.2,.85,.2,1),box-shadow .28s ease,border-color .22s ease}
+@media (prefers-reduced-motion: no-preference){
+  body.mm-motion .shopCard:hover{box-shadow:0 12px 32px rgba(24,119,242,.1)}
+}
 .shopCard .ico{width:54px;height:54px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(145deg,#1877f2,#42b72a);font-size:1.35rem;color:#fff}
 .shopCard h4{margin:0;font-size:1rem}
 .shopCard p{margin:4px 0 0;color:#59616b;font-size:.85rem;line-height:1.4}
@@ -261,7 +320,7 @@ canvas{width:100%;height:100%}
   display:block;
   position:fixed;
   left:0;right:0;
-  top:var(--mm-topbar-h,76px);
+  top:var(--mm-topbar-h,68px);
   z-index:200;
   padding:7px 12px 8px;
   background:linear-gradient(90deg,#0a1020 0%,#152a4a 42%,#0a1020 100%);
@@ -339,25 +398,59 @@ canvas{width:100%;height:100%}
 
 .mobileNav{display:none}
 .mobileQuickTrade{display:none}
-.casinoShell{display:grid;gap:16px}
+.casinoShell{display:grid;gap:16px;position:relative;border-radius:16px;padding:14px 14px 18px;overflow:hidden;
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(251,191,36,.14), transparent 45%),
+    radial-gradient(ellipse at 20% 120%, rgba(34,197,94,.08), transparent 42%),
+    radial-gradient(ellipse at 80% 110%, rgba(59,130,246,.09), transparent 40%),
+    linear-gradient(165deg,#0f172a 0%,#1e293b 38%,#0b1220 100%);
+  border:1px solid rgba(251,191,36,.22);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 18px 50px rgba(0,0,0,.2)}
+.casinoShell:before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.04) 1px,transparent 1px);background-size:14px 14px;opacity:.45;pointer-events:none}
 .casinoBankRow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:4px}
-.casinoCard{background:var(--panel2);border:1px solid var(--line);border-radius:13px;padding:14px 16px}
-.casinoCard h4{margin:0 0 8px;font-size:1rem}
+.casinoMasthead{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:center;gap:10px 14px;padding:10px 8px 14px;margin:-6px -6px 8px;border-radius:14px;background:linear-gradient(180deg,rgba(15,23,42,.55),rgba(15,23,42,.15));border:1px solid rgba(255,255,255,.08);position:relative;z-index:1}
+.casinoMasthead img{height:72px;width:auto;border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.12);object-fit:contain;background:rgba(0,0,0,.2)}
+.casinoMastheadCaption{font-size:.72rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#94a3b8;width:100%;text-align:center;margin:0 0 2px}
+.casinoCard{background:rgba(248,250,252,.97);border:1px solid rgba(148,163,184,.35);border-radius:14px;padding:16px 18px;position:relative;z-index:1;box-shadow:0 8px 28px rgba(0,0,0,.12)}
+.casinoCard h4{margin:0 0 8px;font-size:1.05rem;font-weight:950;color:#0f172a}
 .casinoField{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px}
 .casinoField label{font-size:.82rem;font-weight:800;color:var(--muted)}
 .casinoField input{width:120px;padding:8px 10px;border-radius:10px;border:1px solid var(--line)}
+.bjFelt{margin-top:12px;padding:14px 14px 16px;border-radius:14px;background:
+  radial-gradient(ellipse 90% 120% at 50% 0%,rgba(34,197,94,.12),transparent 55%),
+  linear-gradient(180deg,#14532d 0%,#166534 35%,#14532d 100%);
+  border:1px solid rgba(34,197,94,.35);box-shadow:inset 0 2px 0 rgba(255,255,255,.08),0 12px 28px rgba(0,0,0,.25)}
+.bjFelt .layoutHint{color:rgba(220,252,231,.82)}
 .bjRow{display:grid;gap:10px;margin-top:10px}
-.bjRow b{font-size:.85rem;color:var(--muted)}
-.bjHand{display:flex;flex-wrap:wrap;gap:8px;min-height:68px;align-items:center}
-.bjCard{width:46px;height:64px;border-radius:9px;background:#fff;border:1px solid #c5ced8;display:grid;place-items:center;font-weight:900;font-size:.95rem;box-shadow:0 2px 0 rgba(0,0,0,.05)}
-.bjCard.red{color:#c42b2b}
-.bjCard.back{background:linear-gradient(145deg,#3d4f7a,#1e2d52);color:#e8eefc;font-size:.62rem;font-weight:800}
+.bjFelt .bjRow b{font-size:.86rem;color:#dcfce7;text-shadow:0 1px 2px rgba(0,0,0,.35)}
+.bjHand{display:flex;flex-wrap:wrap;gap:10px;min-height:72px;align-items:center}
+.bjCard{width:52px;height:74px;border-radius:10px;background:linear-gradient(180deg,#fff,#f1f5f9);border:1px solid #94a3b8;display:grid;place-items:center;font-weight:900;font-size:1.05rem;box-shadow:0 4px 0 rgba(15,23,42,.12),0 8px 18px rgba(0,0,0,.15);position:relative;overflow:hidden}
+.bjCard.red{color:#b91c1c}
+.bjCard .bjMark{position:absolute;top:5px;left:6px;font-size:.72rem;line-height:1;font-weight:900;display:flex;flex-direction:column;align-items:center;gap:1px}
+.bjCard .bjMark.br{top:auto;left:auto;bottom:5px;right:6px;transform:rotate(180deg)}
+.bjCard.back{
+  background:
+    repeating-linear-gradient(45deg,rgba(255,255,255,.07) 0 5px,transparent 5px 10px),
+    repeating-linear-gradient(-45deg,rgba(0,0,0,.12) 0 4px,transparent 4px 9px),
+    radial-gradient(circle at 35% 30%,rgba(59,130,246,.35),transparent 55%),
+    linear-gradient(145deg,#1e3a8a 0%,#172554 45%,#0f172a 100%);
+  color:transparent;font-size:0;border-color:#334155;
+  box-shadow:0 4px 0 rgba(0,0,0,.25),0 10px 22px rgba(0,0,0,.35)
+}
 .casinoActions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.slotRow{display:flex;gap:14px;align-items:center;justify-content:center;font-size:2.1rem;letter-spacing:.08em;margin:14px 0;padding:16px;border-radius:12px;background:#0f172a;color:#f8fafc;border:1px solid #1e293b}
+.slotCabinet{margin:16px 0;padding:14px 16px 18px;border-radius:16px;background:linear-gradient(180deg,#334155,#1e293b);border:2px solid #64748b;box-shadow:inset 0 2px 0 rgba(255,255,255,.1),0 14px 36px rgba(0,0,0,.35)}
+.slotCabinet:before{content:'SLOTS';display:block;text-align:center;font-size:.62rem;font-weight:950;letter-spacing:.35em;color:#94a3b8;margin-bottom:10px}
+.slotReels{display:flex;gap:12px;align-items:center;justify-content:center}
+.slotWindow{flex:1 1 0;min-width:0;max-width:120px;aspect-ratio:1/1.15;display:grid;place-items:center;border-radius:12px;background:linear-gradient(180deg,#0f172a,#020617);border:3px solid #475569;box-shadow:inset 0 4px 18px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.06)}
+.slotWindow .slotSym{font-size:2.35rem;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
 .slotHint{font-size:.86rem;color:var(--muted);margin-top:6px}
-.wheelFace{width:min(280px,88vw);height:min(280px,88vw);margin:12px auto;border-radius:50%;border:10px solid #1e293b;background:conic-gradient(from 0deg,#ef4444 0 30deg,#22c55e 30deg 60deg,#eab308 60deg 90deg,#3b82f6 90deg 120deg,#a855f7 120deg 150deg,#f97316 150deg 180deg,#14b8a6 180deg 210deg,#ec4899 210deg 240deg,#64748b 240deg 270deg,#f59e0b 270deg 300deg,#10b981 300deg 330deg,#6366f1 330deg 360deg);position:relative;box-shadow:0 16px 40px rgba(0,0,0,.18)}
-.wheelPointer{position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-bottom:18px solid #0f172a;z-index:2}
-.wheelLabel{position:absolute;inset:0;display:grid;place-items:center;font-weight:950;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5);font-size:1.35rem;pointer-events:none}
+.coinArena{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:18px;margin:16px 0;padding:18px;border-radius:16px;background:radial-gradient(circle at 30% 30%,rgba(251,191,36,.25),transparent 45%),linear-gradient(145deg,#1e293b,#0f172a);border:1px solid rgba(251,191,36,.25)}
+.coinArena svg{width:min(120px,38vw);height:auto;filter:drop-shadow(0 10px 20px rgba(0,0,0,.4))}
+.wheelStage{margin:14px auto;padding:18px;border-radius:20px;max-width:min(320px,92vw);background:radial-gradient(circle at 50% 20%,rgba(251,191,36,.2),transparent 50%),linear-gradient(180deg,#292524,#1c1917);border:2px solid rgba(245,158,11,.35);box-shadow:0 16px 40px rgba(0,0,0,.35)}
+.wheelFace{width:min(260px,82vw);height:min(260px,82vw);margin:0 auto;border-radius:50%;border:12px solid #44403c;background:conic-gradient(from 0deg,#ef4444 0 30deg,#22c55e 30deg 60deg,#eab308 60deg 90deg,#3b82f6 90deg 120deg,#a855f7 120deg 150deg,#f97316 150deg 180deg,#14b8a6 180deg 210deg,#ec4899 210deg 240deg,#64748b 240deg 270deg,#f59e0b 270deg 300deg,#10b981 300deg 330deg,#6366f1 330deg 360deg);position:relative;box-shadow:0 0 0 4px rgba(251,191,36,.25),0 20px 50px rgba(0,0,0,.45),inset 0 0 40px rgba(0,0,0,.15)}
+.wheelPointer{position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-bottom:22px solid #fbbf24;z-index:2;filter:drop-shadow(0 2px 4px rgba(0,0,0,.4))}
+.wheelLabel{position:absolute;inset:0;display:grid;place-items:center;font-weight:950;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.55);font-size:1.45rem;pointer-events:none}
+#casinoView.panel{background:linear-gradient(180deg,#f8fafc,#eef2f6)}
 @media (max-width:760px){
   body{padding-bottom:140px}
   .topbar{padding-top:max(10px, env(safe-area-inset-top));}
@@ -567,9 +660,9 @@ canvas{width:100%;height:100%}
   user-select:none;
   -webkit-user-select:none;
   border:none;
-  height:38px;
-  min-width:62px;
-  padding:0 12px;
+  height:34px;
+  min-width:56px;
+  padding:0 11px;
   border-radius:999px;
   background:linear-gradient(180deg,#1d6fe8,#1457b8);
   color:#fff;
@@ -596,8 +689,8 @@ canvas{width:100%;height:100%}
 
 
 #speedBtnTop{
-  margin-left:8px;
-  height:36px;
+  margin-left:0;
+  height:34px;
   min-width:52px;
   border-radius:999px;
   border:none;
@@ -620,7 +713,9 @@ header, .topbar{
   align-items:center !important;
   gap:10px !important;
   flex-wrap:nowrap !important;
-  overflow:visible !important;
+  overflow-x:hidden !important;
+  max-width:100% !important;
+  box-sizing:border-box !important;
   background:rgba(235,238,242,.96) !important;
   backdrop-filter:blur(10px) !important;
 }
@@ -646,9 +741,9 @@ header, .topbar{
   justify-content:center !important;
   flex:0 0 auto !important;
   margin-left:0 !important;
-  height:36px !important;
-  min-width:58px !important;
-  padding:0 14px !important;
+  height:34px !important;
+  min-width:54px !important;
+  padding:0 12px !important;
   border-radius:999px !important;
   border:none !important;
   background:linear-gradient(180deg,#1d6fe8,#1457b8) !important;
@@ -688,17 +783,19 @@ header, .topbar{
   left:0 !important;
   right:0 !important;
   width:100% !important;
+  max-width:100% !important;
+  overflow-x:hidden !important;
   z-index:2147483000 !important;
   box-sizing:border-box !important;
 }
 
 body{
-  padding-top:76px !important;
+  padding-top:var(--mm-topbar-h,68px) !important;
 }
 
 @media (max-width: 560px){
   body{
-    padding-top:68px !important;
+    padding-top:var(--mm-topbar-h,62px) !important;
   }
   .topbar{
     padding-top:max(8px, env(safe-area-inset-top, 0px)) !important;
@@ -1941,13 +2038,17 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
     <button class="circleBtn menuToggle" id="menuToggle">☰</button>
     <div class="mmMark" aria-label="Market Magnate logo"><span>MM</span></div>
     <div class="searchWrap">
-      <div class="searchWrap"><div class="searchBar"><span>🔎</span><input id="globalSearch" type="text" placeholder="Search stocks, upgrades, purchases, news..." autocomplete="off" spellcheck="false"></div><button id="speedBtnTop" type="button">1x</button></div>
+      <div class="searchBar"><span>🔎</span><input id="globalSearch" type="text" placeholder="Search stocks, upgrades, purchases, news..." autocomplete="off" spellcheck="false"></div>
       <div class="searchResults" id="searchResults"></div>
+    </div>
+    <div class="speedDock" title="Simulation speed — how fast each market hour runs in real time">
+      <span class="speedHint" aria-hidden="true">Time&nbsp;&gt;&gt;&gt;</span>
+      <button id="speedBtnTop" type="button" aria-label="Change simulation speed">1x</button>
     </div>
   </div>
   <div class="topRight">
     <div class="topbarStats" aria-label="Game date and wealth">
-      <div class="pill" id="datePill">Jan 1, 2000</div>
+      <div class="pill" id="datePill">Jan 1, 2000 · 12:00 AM</div>
       <div class="pill" id="topbarCashPill" title="Cash on hand">Cash · $500</div>
       <div class="pill" id="topbarNetPill" title="Total net worth">Net worth · $500</div>
     </div>
@@ -2077,7 +2178,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
               <div class="canvasWrap"><canvas id="stockChart" width="900" height="280"></canvas></div>
               <div class="metrics">
                 <div class="metric"><div class="k">Price</div><div class="v" id="detailPrice">$0</div></div>
-                <div class="metric"><div class="k">1s Move</div><div class="v" id="detailDelta">0%</div></div>
+                <div class="metric"><div class="k">1h Move</div><div class="v" id="detailDelta">0%</div></div>
                 <div class="metric"><div class="k">Day High</div><div class="v" id="detailHigh">$0</div></div>
                 <div class="metric"><div class="k">Day Low</div><div class="v" id="detailLow">$0</div></div>
               </div>
@@ -2086,8 +2187,8 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
               <div class="panelTitle" style="font-size:1.15rem">Trade Panel</div>
               <div class="panelSub">Use quick quantities and spread your money across multiple names.</div>
               <div class="metrics" style="margin-top:14px">
-            <div class="metric"><div class="k">Current Date</div><div class="v" id="creditDate">Jan 1, 2000</div></div>
-            <div class="metric"><div class="k">Day In Cycle</div><div class="v" id="creditCycleDay">1 / 90</div></div>
+            <div class="metric"><div class="k">Sim date &amp; time</div><div class="v" id="creditDate">Jan 1, 2000 · 12:00 AM</div></div>
+            <div class="metric"><div class="k">Hour of sim day</div><div class="v" id="creditCycleDay">1 / 24</div></div>
                 <div class="metric"><div class="k">Owned Shares</div><div class="v" id="ownedShares">0</div></div>
                 <div class="metric"><div class="k">Average Cost</div><div class="v" id="avgCost">$0</div></div>
                 <div class="metric"><div class="k">Position Value</div><div class="v" id="positionValue">$0</div></div>
@@ -2257,6 +2358,14 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
           <div class="panelSub">Wager in-game cash on blackjack, slots, coin flips, and a simple wheel. The house has a real edge — don’t bet the rent.</div>
         </div>
         <div class="pill" id="casinoBankPill">Bankroll · $0</div>
+      </div>
+      <!-- Masthead art: Twemoji SVGs (CC-BY 4.0), served from jsDelivr -->
+      <div class="casinoMasthead" aria-hidden="true">
+        <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f3b0.svg" width="72" height="72" alt="" loading="lazy" decoding="async">
+        <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f0cf.svg" width="72" height="72" alt="" loading="lazy" decoding="async">
+        <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/2660.svg" width="72" height="72" alt="" loading="lazy" decoding="async">
+        <img src="https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f3b2.svg" width="72" height="72" alt="" loading="lazy" decoding="async">
+        <p class="casinoMastheadCaption">Twemoji © X / contributors · CC-BY 4.0 · jsDelivr</p>
       </div>
       <div class="shopTabs casinoTabBar" id="casinoTabBar" style="margin-bottom:4px"></div>
       <div id="casinoDynamic" class="casinoShell"></div>
@@ -2461,7 +2570,7 @@ const $$ = s => [...document.querySelectorAll(s)];
 const rand = (a,b) => Math.random()*(b-a)+a;
 const irand = (a,b) => Math.floor(rand(a,b+1));
 
-const audioState = { ctx:null, unlocked:false, hoverAt:0, enabled:true };
+const audioState = { ctx:null, unlocked:false, hoverAt:0, hoverTarget:null, enabled:true };
 function ensureAudio(){
   if(!audioState.enabled) return null;
   const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -2486,7 +2595,12 @@ function tone(freq=440, dur=0.05, type='sine', vol=0.03, when=0){
   osc.stop(ctx.currentTime + when + dur + 0.02);
 }
 function playClickSound(){ tone(420,0.04,'triangle',0.02); tone(620,0.06,'sine',0.012,0.01); }
-function playHoverSound(){ const now = Date.now(); if(now-audioState.hoverAt < 70) return; audioState.hoverAt = now; tone(560,0.025,'sine',0.008); }
+function playHoverSound(){
+  const now = Date.now();
+  if(now - audioState.hoverAt < 400) return;
+  audioState.hoverAt = now;
+  tone(560,0.025,'sine',0.008);
+}
 function playSuccessSound(){ tone(620,0.06,'triangle',0.02); tone(820,0.09,'sine',0.014,0.03); }
 function playWarningSound(){ tone(260,0.07,'sawtooth',0.015); tone(190,0.08,'triangle',0.01,0.05); }
 function playNotificationSound(){ tone(740,0.05,'triangle',0.015); tone(980,0.07,'sine',0.012,0.03); }
@@ -2500,6 +2614,8 @@ const fmt = n => {
   return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:abs>=100?0:2}).format(n);
 };
 const fmtNum = n => new Intl.NumberFormat('en-US',{maximumFractionDigits:n>=100?0:2}).format(n);
+const SIM_HOURS_PER_CAL_DAY = 24;
+const MARKET_TICK_MS = 3000;
 const pct = n => (n>=0?'+':'') + (n*100).toFixed(2) + '%';
 const stageDefs = [
   {name:'Bedroom Trader', worth:0},
@@ -2656,7 +2772,7 @@ const game = {
   stocks: stockSeed,
   news: [],
   newsArchive: [],
-  ticksUntilNextNews: irand(40, 100),
+  ticksUntilNextNews: irand(18, 48),
   paused:false,
   nextBonusAt:Date.now()+irand(15000,60000),
   nextLifeAt:Date.now()+irand(60000,300000),
@@ -2667,6 +2783,7 @@ const game = {
   globalEvent:null,
   nextGlobalAt:Date.now()+irand(90000,180000),
   dayCount:1,
+  simHourOfDay:0,
   creditScore:300,
   creditTier:0,
   onTimePayments:0,
@@ -2933,16 +3050,17 @@ function makeNews(initial=false){
   ];
   const effects = positive ? rand(0.015,0.06) : -rand(0.015,0.07);
   const volBoost = rand(0.006,0.022);
-  const ticks = irand(12,30);
+  const effectHours = irand(8, 28);
+  const headlineWallSec = irand(14, 48);
   s.newsEffect += effects;
   s.newsVol += volBoost;
-  s.newsTicks = Math.max(s.newsTicks, ticks);
+  s.newsTicks = Math.max(s.newsTicks, effectHours);
   s.hype += positive ? rand(0.16,0.65) : -rand(0.18,0.75);
   s.sentiment = clamp(s.sentiment + effects*2.2, -1.2, 1.2);
   const fundamentalShift = positive ? rand(0.01,0.05) : -rand(0.01,0.06);
   s.fairValue = clamp(s.fairValue * (1 + fundamentalShift), s.floorPrice, s.ceilingPrice * 0.92);
   const crowdFlow = Math.round((buyerMillions*1000000) * (positive ? 1 : -1));
-  const card = {id:Date.now()+Math.random(), tone:positive?'Bullish':'Bearish', text:(positive?templatesPos:templatesNeg)[irand(0,4)], ticker:s.symbol, expires:ticks, effect:effects, vol:volBoost, crowd: crowdFlow};
+  const card = {id:Date.now()+Math.random(), tone:positive?'Bullish':'Bearish', text:(positive?templatesPos:templatesNeg)[irand(0,4)], ticker:s.symbol, expires:headlineWallSec, effect:effects, vol:volBoost, crowd: crowdFlow};
   if(!Array.isArray(game.newsArchive)) game.newsArchive = [];
   const wallTime = Date.now();
   game.newsArchive.unshift(Object.assign({}, card, { wallTime, simDay: Number(game.dayCount) || 1 }));
@@ -2996,9 +3114,21 @@ function closeEventModal(result){
 }
 
 async function marketTick(){
-  game.dayCount = Number(game.dayCount || 0) + 1;
-  const day = game.dayCount;
-  processCreditDay();
+  game.simHourOfDay = Number(game.simHourOfDay) || 0;
+  game.simHourOfDay++;
+  if(game.simHourOfDay >= SIM_HOURS_PER_CAL_DAY){
+    game.simHourOfDay = 0;
+    game.dayCount = Number(game.dayCount || 1) + 1;
+    processCreditDay();
+    for(const st of game.stocks){
+      st.dayHigh = st.price;
+      st.dayLow = st.price;
+    }
+  }
+  const t = (Number(game.dayCount || 1) - 1) * SIM_HOURS_PER_CAL_DAY + Number(game.simHourOfDay || 0);
+  const _h = 1 / SIM_HOURS_PER_CAL_DAY;
+  const decayH = pow => Math.pow(pow, _h);
+
   if(game.globalEvent){
     game.globalEvent.ticks--;
     if(game.globalEvent.ticks <= 0) game.globalEvent = null;
@@ -3006,7 +3136,7 @@ async function marketTick(){
 
   if(typeof game._macroShock !== 'number') game._macroShock = 0;
   game._macroShock = clamp(
-    game._macroShock * 0.965 + rand(-0.0048, 0.0048) + (Math.random() < 0.018 ? rand(-0.014, 0.014) : 0),
+    game._macroShock * decayH(0.965) + rand(-0.0048, 0.0048) / SIM_HOURS_PER_CAL_DAY + (Math.random() < 0.018 / SIM_HOURS_PER_CAL_DAY ? rand(-0.014, 0.014) : 0),
     -0.055,
     0.055
   );
@@ -3019,7 +3149,7 @@ async function marketTick(){
     sectorsSeen.add(sec);
     const prev = typeof sectorShock[sec] === 'number' ? sectorShock[sec] : rand(-0.04, 0.04);
     sectorShock[sec] = clamp(
-      prev * 0.955 + rand(-0.0065, 0.0065) + (Math.random() < 0.012 ? rand(-0.018, 0.018) : 0),
+      prev * decayH(0.955) + rand(-0.0065, 0.0065) / SIM_HOURS_PER_CAL_DAY + (Math.random() < 0.012 / SIM_HOURS_PER_CAL_DAY ? rand(-0.018, 0.018) : 0),
       -0.095,
       0.095
     );
@@ -3031,18 +3161,34 @@ async function marketTick(){
     if(typeof s.volCluster !== 'number') s.volCluster = s.baseVol;
     if(typeof s.microAmp !== 'number') s.microAmp = rand(0.00065, 0.0028);
 
-    s.latent = clamp((s.latent * 0.9) + rand(-0.024, 0.024) + (s.newsEffect || 0) * 0.014, -0.42, 0.42);
+    s.latent = clamp((s.latent * decayH(0.9)) + rand(-0.024, 0.024) / SIM_HOURS_PER_CAL_DAY + (s.newsEffect || 0) * 0.014 / SIM_HOURS_PER_CAL_DAY, -0.42, 0.42);
 
-    const idioWave = Math.sin(day * (0.052 + s.baseVol * 0.95) + s.idioPhase) * s.microAmp;
-    const weakGlobal = Math.sin(day * 0.031 + (s.colorHue || 0) * 0.019) * 0.00055;
+    if(typeof s.microWalk !== 'number') s.microWalk = rand(-0.012, 0.012);
+    s.microWalk = clamp(
+      s.microWalk * decayH(0.85) + rand(-0.0038, 0.0038) * (0.65 + s.baseVol * 3.2) / SIM_HOURS_PER_CAL_DAY,
+      -0.048,
+      0.048
+    );
+
+    const idioWave = Math.sin(t * (0.052 + s.baseVol * 0.95) + s.idioPhase) * s.microAmp * 1.38;
+    const sym = s.symbol || 'ZZ';
+    const symJ = (sym.length * 23 + sym.charCodeAt(0) * 5 + (s.colorHue || 0)) * 0.017;
+    const weakGlobal = Math.sin(t * (0.027 + s.baseVol * 0.014) + (s.colorHue || 0) * 0.022 + symJ) * 0.00078;
     const secKey = s.sector || 'Other';
-    const sectorComp = (sectorShock[secKey] || 0) * 0.016;
-    const macroComp = game._macroShock * 0.02;
-    const cyc = idioWave + weakGlobal * 0.45 + sectorComp + macroComp + s.latent * 0.0024;
+    const secBase = sectorShock[secKey] || 0;
+    const secPulse = secBase * (0.48 + ((s.colorHue || 0) % 113) / 220);
+    const sectorComp = secPulse * 0.0105;
+    const macroBeta = 0.52 + (((sym.charCodeAt(0) * 11 + (s.colorHue || 0)) % 95) / 200);
+    const macroComp = game._macroShock * 0.02 * macroBeta;
+    const idioNoise = rand(-1, 1) * s.baseVol * 0.0062;
+    const cyc = idioWave + weakGlobal * 0.45 + sectorComp + macroComp + s.latent * 0.0024 + s.microWalk + idioNoise;
 
+    const anchor = Number(s.anchorPrice) > 0 ? s.anchorPrice : Math.max(s.floorPrice, s.price);
+    const fairPull = (anchor - s.fairValue) / Math.max(anchor, 1e-6);
+    const minFair = Math.max(s.floorPrice * 1.02, Math.min(anchor * 0.45, s.ceilingPrice * 0.9));
     s.fairValue = clamp(
-      s.fairValue * (1 + rand(-0.0045, 0.0045) + s.drift * 0.075 + (s.newsEffect || 0) * 0.032),
-      s.floorPrice,
+      s.fairValue * (1 + (rand(-0.0045, 0.0045) + s.drift * 0.075 + (s.newsEffect || 0) * 0.032 + fairPull * 0.24) / SIM_HOURS_PER_CAL_DAY),
+      minFair,
       s.ceilingPrice * 0.94
     );
 
@@ -3051,7 +3197,7 @@ async function marketTick(){
     const underheat = Math.max(0, 0.78 - (s.price / Math.max(1, s.fairValue)));
 
     s.drift = clamp(
-      s.drift * 0.94 + rand(-0.0014, 0.0014) + s.sentiment * 0.00026 - valuationGap * 0.0025,
+      s.drift * decayH(0.94) + rand(-0.0014, 0.0014) / SIM_HOURS_PER_CAL_DAY + s.sentiment * 0.00026 / SIM_HOURS_PER_CAL_DAY - valuationGap * 0.0025 / SIM_HOURS_PER_CAL_DAY,
       -0.012,
       0.012
     );
@@ -3064,14 +3210,14 @@ async function marketTick(){
       }
     }
 
-    s.hype *= 0.91;
-    s.bubble = clamp((s.bubble || 0) * 0.9 + overheat * 0.75 + Math.max(0, s.hype) * 0.08, 0, 2.8);
-    s.momentum = clamp(s.momentum * 0.56 + s.lastDelta * 0.42 - valuationGap * 0.05, -0.16, 0.16);
-    s.sentiment = clamp(s.sentiment * 0.94 + s.newsEffect * 0.12 - overheat * 0.08 + underheat * 0.03, -1.05, 1.05);
+    s.hype *= decayH(0.91);
+    s.bubble = clamp((s.bubble || 0) * decayH(0.9) + (overheat * 0.75 + Math.max(0, s.hype) * 0.08) / SIM_HOURS_PER_CAL_DAY, 0, 2.8);
+    s.momentum = clamp(s.momentum * decayH(0.56) + s.lastDelta * 0.42 - valuationGap * 0.05 / SIM_HOURS_PER_CAL_DAY, -0.16, 0.16);
+    s.sentiment = clamp(s.sentiment * decayH(0.94) + (s.newsEffect * 0.12 - overheat * 0.08 + underheat * 0.03) / SIM_HOURS_PER_CAL_DAY, -1.05, 1.05);
 
     const eventBoost = eventAffectsStock(s) ? game.globalEvent : null;
-    const eventDrift = eventBoost ? eventBoost.drift : 0;
-    const eventVol = eventBoost ? eventBoost.vol : 0;
+    const eventDrift = eventBoost ? eventBoost.drift / SIM_HOURS_PER_CAL_DAY : 0;
+    const eventVol = eventBoost ? eventBoost.vol / SIM_HOURS_PER_CAL_DAY : 0;
     const clusterBoost = Math.min(0.055, Math.max(0, (s.volCluster - s.baseVol) * 0.42));
     const effectiveVol =
       s.baseVol * 0.48 +
@@ -3082,23 +3228,46 @@ async function marketTick(){
       eventVol +
       clusterBoost;
 
-    const buyerBias = 0.495 + s.sentiment * 0.05 + Math.max(0, s.momentum) * 0.045 + Math.max(0, s.hype) * 0.025 - overheat * 0.07;
-    const sellerBias = 0.492 - s.sentiment * 0.05 + Math.max(0, -s.momentum) * 0.05 + Math.max(0, -s.hype) * 0.03 + overheat * 0.12;
+    const priorDelta = Number(s.lastDelta) || 0;
+    const chase = Math.max(0, priorDelta);
+    const panic = Math.max(0, -priorDelta);
+    let buyerBias =
+      0.495 +
+      s.sentiment * 0.05 +
+      Math.max(0, s.momentum) * 0.045 +
+      Math.max(0, s.hype) * 0.025 -
+      overheat * 0.07 +
+      chase * 5.8 -
+      panic * 2.35;
+    let sellerBias =
+      0.492 -
+      s.sentiment * 0.05 +
+      Math.max(0, -s.momentum) * 0.05 +
+      Math.max(0, -s.hype) * 0.03 +
+      overheat * 0.12 +
+      panic * 6.1 -
+      chase * 2.05;
+    buyerBias = clamp(buyerBias, 0.22, 0.82);
+    sellerBias = clamp(sellerBias, 0.22, 0.82);
 
-    const buyers = Math.max(500, s.participants * (buyerBias + rand(-0.028, 0.028)));
-    const sellers = Math.max(500, s.participants * (sellerBias + rand(-0.028, 0.028)));
+    const buyers = Math.max(2200, s.participants * (buyerBias + rand(-0.034, 0.034)));
+    const sellers = Math.max(2200, s.participants * (sellerBias + rand(-0.034, 0.034)));
     const netFlow = buyers - sellers;
     s.lastFlow = netFlow;
 
     const crowdPressure = (netFlow / Math.max(50000, s.liquidity)) * (0.14 + s.baseVol * 1.55);
-    const meanReversion = -valuationGap * (0.055 + overheat * 0.12);
+    const discountDepth = Math.max(0, (s.fairValue - s.price) / Math.max(s.fairValue, 1e-6));
+    const meanReversion =
+      -valuationGap * (0.055 + overheat * 0.12) + discountDepth * (0.045 + underheat * 0.06);
     const capPressure = s.price > s.ceilingPrice * 0.9 ? -((s.price / (s.ceilingPrice * 0.9)) - 1) * 0.22 : 0;
-    const floorBounce = s.price < s.floorPrice * 1.2 ? ((s.floorPrice * 1.2 / Math.max(0.01, s.price)) - 1) * 0.05 : 0;
-    const crashChance = s.price > s.fairValue * 1.9 ? Math.min(0.2, 0.018 + overheat * 0.06 + s.bubble * 0.02) : 0;
+    const floorRatio = s.price / Math.max(s.floorPrice, 1e-9);
+    const floorBounce =
+      floorRatio < 1.38 ? ((1.38 / floorRatio) - 1) * 0.055 + (floorRatio < 1.06 ? 0.014 : 0) : 0;
+    const crashChance = s.price > s.fairValue * 1.9 ? Math.min(0.2 / SIM_HOURS_PER_CAL_DAY, (0.018 + overheat * 0.06 + s.bubble * 0.02) / SIM_HOURS_PER_CAL_DAY) : 0;
     const crashShock = Math.random() < crashChance ? -rand(0.08, 0.22) : 0;
 
     let idioJump = 0;
-    const jumpP = Math.min(0.032, 0.0032 + (s.baseVol || 0.03) * 0.16);
+    const jumpP = Math.min(0.032 / SIM_HOURS_PER_CAL_DAY, (0.0032 + (s.baseVol || 0.03) * 0.16) / SIM_HOURS_PER_CAL_DAY);
     if(Math.random() < jumpP){
       const mag = rand(0.01, 0.062) * (0.55 + Math.random() * 0.9);
       idioJump = (Math.random() < 0.48 ? -1 : 1) * mag;
@@ -3123,28 +3292,29 @@ async function marketTick(){
       0.2
     );
 
-    s.lastDelta = delta;
-    s.volCluster = (s.volCluster || s.baseVol) * 0.86 + Math.abs(delta) * 0.5 + s.baseVol * 0.14;
-    s.price = clamp(s.price * (1 + delta), s.floorPrice, s.ceilingPrice);
+    const prevPx = s.price;
+    s.price = clamp(prevPx * (1 + delta), s.floorPrice, s.ceilingPrice);
+    s.lastDelta = prevPx > 1e-12 ? s.price / prevPx - 1 : 0;
+    s.volCluster = (s.volCluster || s.baseVol) * decayH(0.86) + (Math.abs(delta) * 0.5 + s.baseVol * 0.14) / SIM_HOURS_PER_CAL_DAY;
     s.history.push(s.price);
     if(s.history.length > 70) s.history.shift();
     s.dayHigh = Math.max(s.dayHigh, s.price);
     s.dayLow = Math.min(s.dayLow, s.price);
 
-    if(Math.random() < 0.06){
+    if(Math.random() < 0.06 / SIM_HOURS_PER_CAL_DAY){
       s.participants = Math.max(
         30000,
         Math.round(s.participants * (1 + rand(-0.04, 0.05) + Math.max(0, s.hype) * 0.015 - overheat * 0.03))
       );
     }
-    if(Math.random() < 0.05){
+    if(Math.random() < 0.05 / SIM_HOURS_PER_CAL_DAY){
       s.liquidity = Math.max(50000, s.liquidity * (1 + rand(-0.04, 0.04)));
     }
   }
 
   const n = game.stocks.length;
   let moodScore = 0;
-  let idx = (day * 7) % Math.max(1, n);
+  let idx = (t * 7) % Math.max(1, n);
   const steps = Math.min(8, n);
   for(let k = 0; k < steps; k++){
     moodScore += game.stocks[idx].lastDelta || 0;
@@ -3154,13 +3324,13 @@ async function marketTick(){
 }
 
 function passiveTick(){
-  const gain = game.passivePerSec * game.incomeMult;
+  const gain = (game.passivePerSec * game.incomeMult) / SIM_HOURS_PER_CAL_DAY;
   game.cash += gain;
   game.totalEarned += gain;
   if(game.debt > 0){
-    const interest = game.debt * game.debtInterestRate;
+    const interest = (game.debt * game.debtInterestRate) / SIM_HOURS_PER_CAL_DAY;
     game.debt += interest;
-    if(game.debt > Math.max(2000, game.cash * 8) && Math.random() < 0.01){
+    if(game.debt > Math.max(2000, game.cash * 8) && Math.random() < 0.01 / SIM_HOURS_PER_CAL_DAY){
       const hit = Math.min(game.cash, game.debt * 0.03);
       game.cash -= hit;
       toast(`Margin call -${fmt(hit)}`, 'warning');
@@ -3277,7 +3447,7 @@ function doPrestige(){
   const legacy = game.legacy + gain;
   const keepAvatarDNA = JSON.parse(JSON.stringify(normalizeAvatarDNA(game.avatarDNA || {})));
   localStorage.removeItem(SAVE_KEY);
-  Object.assign(game,{cash:500,totalEarned:500,xp:0,level:1,legacy,passivePerSec:0,incomeMult:1,tradeBonus:0,style:0,network:0,view:'stocks',selectedStock:0,tradeQty:1,newsBonusPool:0,mood:'Balanced',trades:0,lastSaved:0,businessOwned:['business_headquarters_0'],shoppingOwned:[],empireShowcasePicks:{homes:'',cars:'',jewelry:'',watches:''},casinoTab:'blackjack',casino:null,ownedProfileAvatars:['default_avatar'],ownedProfileBanners:['default_banner','profile_banner_gold','profile_banner_neon','profile_banner_midnight'],stocks: JSON.parse(JSON.stringify(stockSeed)),news:[],newsArchive:[],ticksUntilNextNews:irand(40,100),paused:false,nextBonusAt:Date.now()+irand(15000,60000),nextLifeAt:Date.now()+irand(60000,300000),activeEvent:null,debt:0,debtInterestRate:0.00045,leverage:1,globalEvent:null,nextGlobalAt:Date.now()+irand(90000,180000),dayCount:1,creditScore:300,creditTier:0,onTimePayments:0,missedPayments:0,loanCycleStartDay:1,loanDueDay:8,loanDueAmount:0,loanPaidThisCycle:0});
+  Object.assign(game,{cash:500,totalEarned:500,xp:0,level:1,legacy,passivePerSec:0,incomeMult:1,tradeBonus:0,style:0,network:0,view:'stocks',selectedStock:0,tradeQty:1,newsBonusPool:0,mood:'Balanced',trades:0,lastSaved:0,businessOwned:['business_headquarters_0'],shoppingOwned:[],empireShowcasePicks:{homes:'',cars:'',jewelry:'',watches:''},casinoTab:'blackjack',casino:null,ownedProfileAvatars:['default_avatar'],ownedProfileBanners:['default_banner','profile_banner_gold','profile_banner_neon','profile_banner_midnight'],stocks: JSON.parse(JSON.stringify(stockSeed)),news:[],newsArchive:[],ticksUntilNextNews:irand(18,48),paused:false,nextBonusAt:Date.now()+irand(15000,60000),nextLifeAt:Date.now()+irand(60000,300000),activeEvent:null,debt:0,debtInterestRate:0.00045,leverage:1,globalEvent:null,nextGlobalAt:Date.now()+irand(90000,180000),dayCount:1,simHourOfDay:0,creditScore:300,creditTier:0,onTimePayments:0,missedPayments:0,loanCycleStartDay:1,loanDueDay:8,loanDueAmount:0,loanPaidThisCycle:0});
   game.avatarDNA = keepAvatarDNA;
   recalc();
   makeNews(true);makeNews(true);
@@ -3320,7 +3490,7 @@ window.__mmGetSpeed = getSpeed;
 
 function load(){
   const raw = localStorage.getItem(SAVE_KEY);
-  if(!raw){ game.speedIndex = 1; game.speedLabel = '1x'; game.simNow = Date.now(); recalc(); makeNews(true); makeNews(true); return; }
+  if(!raw){ game.speedIndex = 1; game.speedLabel = '1x'; game.simNow = Date.now(); recalc(); makeNews(true); makeNews(true); try{ document.body.classList.add('mm-motion'); }catch(e){} return; }
   try{
     const parsed = JSON.parse(raw);
     Object.assign(game, parsed);
@@ -3336,7 +3506,11 @@ function load(){
       merged.volCluster ??= merged.baseVol;
       merged.microAmp ??= rand(0.00065, 0.0028);
       merged.price = clamp(merged.price, merged.floorPrice, merged.ceilingPrice);
-      merged.fairValue = clamp(merged.fairValue, merged.floorPrice, merged.ceilingPrice * 0.94);
+      merged.fairValue = clamp(
+        Math.max(merged.fairValue, merged.floorPrice * 1.03, merged.anchorPrice * 0.28),
+        merged.floorPrice,
+        merged.ceilingPrice * 0.94
+      );
       return merged;
     });
     game.speedIndex = Number.isInteger(parsed.speedIndex) ? parsed.speedIndex : 1;
@@ -3347,6 +3521,7 @@ function load(){
     game.ownedProfileAvatars ??= ['default_avatar'];
     game.ownedProfileBanners ??= ['default_banner','profile_banner_gold','profile_banner_neon','profile_banner_midnight'];
     game.dayCount ??= 1;
+    game.simHourOfDay = Math.floor(Math.max(0, Math.min(SIM_HOURS_PER_CAL_DAY - 1, Number.isFinite(game.simHourOfDay) ? game.simHourOfDay : 0)));
     game.creditScore ??= 300;
     game.creditTier ??= 0;
     game.onTimePayments ??= 0;
@@ -3362,7 +3537,7 @@ function load(){
     game.nextGlobalAt ??= Date.now()+irand(90000,180000);
     game.activeEvent = null;
     if(!game.simNow) game.simNow = Date.now();
-    if(!Number.isFinite(game.ticksUntilNextNews)) game.ticksUntilNextNews = irand(40, 100);
+    if(!Number.isFinite(game.ticksUntilNextNews)) game.ticksUntilNextNews = irand(18, 48);
     if(!Array.isArray(game.newsArchive)) game.newsArchive = [];
     if(!game.empireShowcasePicks || typeof game.empireShowcasePicks !== 'object'){
       game.empireShowcasePicks = { homes:'', cars:'', jewelry:'', watches:'' };
@@ -3388,7 +3563,8 @@ function load(){
     if(!game.nextBonusAt) game.nextBonusAt = game.simNow + irand(15000,60000);
     if(!game.nextLifeAt) game.nextLifeAt = game.simNow + irand(60000,300000);
     recalc();
-  }catch(e){ console.warn(e); recalc(); }
+    try{ document.body.classList.add('mm-motion'); }catch(e){}
+  }catch(e){ console.warn(e); recalc(); try{ document.body.classList.add('mm-motion'); }catch(_e){} }
 }
 function reset(){ if(confirm('Reset everything?')){ localStorage.removeItem(SAVE_KEY); location.reload(); } }
 
@@ -3436,53 +3612,152 @@ function renderMenu(){
   });
 }
 
-function renderStocks(){
-  const list = $('#stockList');
-  list.innerHTML='';
-  game.stocks.forEach((s,i)=>{
-    const el=document.createElement('button');
-    el.className='stockItem'+(i===game.selectedStock?' active':'');
-    el.innerHTML=`<div class="ticker">${s.symbol.slice(0,2)}</div><div class="stockMain"><b>${s.symbol} · ${s.name}</b><span>${s.sector} · Own ${fmtNum(s.owned)} shares</span></div><div class="stockRight"><div class="p">${fmt(s.price)}</div><div class="d ${s.lastDelta>0?'up':s.lastDelta<0?'down':'neutral'}">${pct(s.lastDelta)}</div></div>`;
-    el.onclick=()=>{game.selectedStock=i; refresh();};
-    list.appendChild(el);
-  });
+function bindStockQtyDelegationOnce(){
+  if(window.__mmStockQtyDelegated) return;
+  window.__mmStockQtyDelegated = true;
+  const list = document.getElementById('stockList');
+  if(list){
+    list.addEventListener('click', e=>{
+      const el = e.target.closest('button.stockItem[data-stock-index]');
+      if(!el) return;
+      const i = Number(el.dataset.stockIndex);
+      if(!Number.isFinite(i) || i < 0 || i >= game.stocks.length) return;
+      if(game.selectedStock === i) return;
+      game.selectedStock = i;
+      try{ playClickSound(); }catch(_){}
+      if(!patchStockListDOM()) renderStocks({force:true});
+      else{
+        updateStockDetailDOM();
+        patchQtyRowDOM();
+        renderPortfolio();
+      }
+    });
+  }
+  const qtyRow = document.getElementById('qtyRow');
+  if(qtyRow){
+    qtyRow.addEventListener('click', e=>{
+      const b = e.target.closest('button.qtyBtn[data-qty]');
+      if(!b) return;
+      const raw = b.dataset.qty;
+      const q = raw === 'max' ? 'max' : Number(raw);
+      if(q !== 'max' && !Number.isFinite(q)) return;
+      if(game.tradeQty === q) return;
+      game.tradeQty = q;
+      try{ playClickSound(); }catch(_){}
+      patchQtyRowDOM();
+      updateStockDetailDOM();
+    });
+  }
+}
+
+function patchStockListDOM(){
+  const list = document.getElementById('stockList');
+  if(!list) return false;
+  const nodes = list.querySelectorAll('button.stockItem[data-stock-index]');
+  if(nodes.length !== game.stocks.length) return false;
+  for(let i = 0; i < game.stocks.length; i++){
+    const el = nodes[i];
+    if(!el || String(el.dataset.stockIndex) !== String(i)) return false;
+    const s = game.stocks[i];
+    el.className = 'stockItem' + (i === game.selectedStock ? ' active' : '');
+    const span = el.querySelector('.stockMain span');
+    if(span) span.textContent = `${s.sector} · Own ${fmtNum(s.owned)} shares`;
+    const p = el.querySelector('.stockRight .p');
+    const d = el.querySelector('.stockRight .d');
+    if(p) p.textContent = fmt(s.price);
+    if(d){
+      d.textContent = pct(s.lastDelta);
+      d.className = 'd ' + (s.lastDelta > 0 ? 'up' : s.lastDelta < 0 ? 'down' : 'neutral');
+    }
+  }
+  return true;
+}
+
+function updateStockDetailDOM(){
   const s = game.stocks[game.selectedStock];
+  if(!s) return;
   $('#stockDetailName').textContent = s.name;
   $('#stockDetailSub').textContent = `${s.symbol} · ${s.sector}`;
-  $('#detailVol').textContent = `Volatility ${(s.baseVol+s.newsVol).toFixed(3)} · ${fmtNum(s.participants)} traders`; 
+  $('#detailVol').textContent = `Volatility ${(s.baseVol + s.newsVol).toFixed(3)} · ${fmtNum(s.participants)} traders`;
   $('#detailPrice').textContent = fmt(s.price);
   $('#detailDelta').textContent = pct(s.lastDelta);
-  $('#detailDelta').className = 'v ' + (s.lastDelta>0?'up':s.lastDelta<0?'down':'neutral');
+  $('#detailDelta').className = 'v ' + (s.lastDelta > 0 ? 'up' : s.lastDelta < 0 ? 'down' : 'neutral');
   $('#detailHigh').textContent = fmt(s.dayHigh);
   $('#detailLow').textContent = fmt(s.dayLow);
   $('#ownedShares').textContent = fmtNum(s.owned);
-  $('#avgCost').textContent = fmt(s.avg||0);
-  $('#positionValue').textContent = fmt(s.owned*s.price);
-  const pl = s.owned * (s.price - (s.avg||0));
-  const plEl = $('#positionPL'); plEl.textContent = fmt(pl); plEl.className = 'v ' + (pl>0?'up':pl<0?'down':'neutral');
-  $('#detailTrend').textContent = s.lastFlow>0 ? `Buyers +${fmtNum(Math.round(s.lastFlow))}` : s.lastFlow<0 ? `Sellers ${fmtNum(Math.round(s.lastFlow))}` : 'Balanced flow';
-  $('#detailNews').textContent = s.newsTicks>0 ? `${s.newsTicks}s` : 'No';
+  $('#avgCost').textContent = fmt(s.avg || 0);
+  $('#positionValue').textContent = fmt(s.owned * s.price);
+  const pl = s.owned * (s.price - (s.avg || 0));
+  const plEl = $('#positionPL');
+  plEl.textContent = fmt(pl);
+  plEl.className = 'v ' + (pl > 0 ? 'up' : pl < 0 ? 'down' : 'neutral');
+  $('#detailTrend').textContent = s.lastFlow > 0 ? `Buyers +${fmtNum(Math.round(s.lastFlow))}` : s.lastFlow < 0 ? `Sellers ${fmtNum(Math.round(s.lastFlow))}` : 'Balanced flow';
+  $('#detailNews').textContent = s.newsTicks > 0 ? `${s.newsTicks}h` : 'No';
   $('#detailCanBuy').textContent = fmtNum(Math.floor(game.cash / s.price));
   $('#portfolioSlots').textContent = game.stocks.length;
-  renderQty();
-  renderPortfolio();
   drawChart();
 }
-function renderQty(){
-  const row = $('#qtyRow'); row.innerHTML='';
-  [1,5,10,25,100,'max'].forEach(q=>{
-    const b=document.createElement('button'); b.className='qtyBtn'+(game.tradeQty===q?' active':''); b.textContent = typeof q==='number' ? q+'x' : 'MAX'; b.onclick=()=>{game.tradeQty=q; refresh();}; row.appendChild(b);
+
+function patchQtyRowDOM(){
+  const row = document.getElementById('qtyRow');
+  if(!row) return false;
+  const opts = [1, 5, 10, 25, 100, 'max'];
+  const btns = row.querySelectorAll('button.qtyBtn[data-qty]');
+  if(btns.length !== opts.length) return false;
+  opts.forEach((q, i)=>{
+    btns[i].className = 'qtyBtn' + (game.tradeQty === q ? ' active' : '');
   });
   const s = game.stocks[game.selectedStock];
   const lev = game.leverage || 1;
-  const buyQty = game.tradeQty==='max'
-    ? (lev > 1 ? Math.floor((game.cash * lev)/s.price) : Math.floor(game.cash/s.price))
+  const buyQty = game.tradeQty === 'max'
+    ? (lev > 1 ? Math.floor((game.cash * lev) / s.price) : Math.floor(game.cash / s.price))
     : game.tradeQty;
-  const sellQty = game.tradeQty==='max'
-    ? (lev > 1 ? (s.levMult===lev ? s.levOwned : 0) : s.owned)
-    : (lev > 1 ? Math.min(game.tradeQty, (s.levMult===lev ? s.levOwned : 0)) : Math.min(game.tradeQty, s.owned));
-  $('#buyBtn').textContent = lev > 1 ? `Open ${game.tradeQty==='max'?'MAX':buyQty} @ ${lev}x` : `Buy ${game.tradeQty==='max'?'MAX':buyQty} Shares`;
-  $('#sellBtn').textContent = lev > 1 ? `Close ${game.tradeQty==='max'?'MAX':sellQty} @ ${lev}x` : `Sell ${game.tradeQty==='max'?'MAX':sellQty} Shares`;
+  const sellQty = game.tradeQty === 'max'
+    ? (lev > 1 ? (s.levMult === lev ? s.levOwned : 0) : s.owned)
+    : (lev > 1 ? Math.min(game.tradeQty, (s.levMult === lev ? s.levOwned : 0)) : Math.min(game.tradeQty, s.owned));
+  $('#buyBtn').textContent = lev > 1 ? `Open ${game.tradeQty === 'max' ? 'MAX' : buyQty} @ ${lev}x` : `Buy ${game.tradeQty === 'max' ? 'MAX' : buyQty} Shares`;
+  $('#sellBtn').textContent = lev > 1 ? `Close ${game.tradeQty === 'max' ? 'MAX' : sellQty} @ ${lev}x` : `Sell ${game.tradeQty === 'max' ? 'MAX' : sellQty} Shares`;
+  return true;
+}
+
+function renderQtyFull(){
+  const row = $('#qtyRow');
+  row.innerHTML = '';
+  [1, 5, 10, 25, 100, 'max'].forEach(q=>{
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.dataset.qty = q === 'max' ? 'max' : String(q);
+    b.className = 'qtyBtn' + (game.tradeQty === q ? ' active' : '');
+    b.textContent = typeof q === 'number' ? q + 'x' : 'MAX';
+    row.appendChild(b);
+  });
+  patchQtyRowDOM();
+}
+
+function renderStocks(opts){
+  const force = !!(opts && opts.force);
+  const list = $('#stockList');
+  bindStockQtyDelegationOnce();
+  if(!force && patchStockListDOM()){
+    /* existing rows updated in patch */
+  }else{
+    list.innerHTML = '';
+    game.stocks.forEach((s, i)=>{
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.className = 'stockItem' + (i === game.selectedStock ? ' active' : '');
+      el.dataset.stockIndex = String(i);
+      el.innerHTML = `<div class="ticker">${s.symbol.slice(0, 2)}</div><div class="stockMain"><b>${s.symbol} · ${s.name}</b><span>${s.sector} · Own ${fmtNum(s.owned)} shares</span></div><div class="stockRight"><div class="p">${fmt(s.price)}</div><div class="d ${s.lastDelta > 0 ? 'up' : s.lastDelta < 0 ? 'down' : 'neutral'}">${pct(s.lastDelta)}</div></div>`;
+      list.appendChild(el);
+    });
+  }
+  updateStockDetailDOM();
+  if(!patchQtyRowDOM()) renderQtyFull();
+  renderPortfolio();
+}
+
+function renderQty(){
+  if(!patchQtyRowDOM()) renderQtyFull();
 }
 
 
@@ -3592,9 +3867,16 @@ function getCalendarFromDayCount(){
   }
   return { day: dayCount, month, year };
 }
+function formatGameClockHour(h){
+  const hr = Math.max(0, Math.min(SIM_HOURS_PER_CAL_DAY - 1, Number(h) || 0));
+  const period = hr >= 12 ? 'PM' : 'AM';
+  const h12 = hr % 12 || 12;
+  return `${h12}:00 ${period}`;
+}
 function formatGameDate(){
   const c = getCalendarFromDayCount();
-  return `${monthName(c.month)} ${c.day}, ${c.year}`;
+  const clock = formatGameClockHour(game.simHourOfDay);
+  return `${monthName(c.month)} ${c.day}, ${c.year} · ${clock}`;
 }
 function advanceGameDay(){
   game.calendarDay++;
@@ -3727,7 +4009,7 @@ function renderFinance(){
   $('#creditDueDay').textContent = fmtNum(game.loanDueDay || ((game.dayCount || 1) + 7));
   $('#creditPaid').textContent = fmt(game.loanPaidThisCycle || 0);
   $('#financeDebt').textContent = fmt(game.debt);
-  $('#financeInterest').textContent = fmt(game.debt * game.debtInterestRate) + '/day';
+  $('#financeInterest').textContent = fmt(game.debt * game.debtInterestRate) + '/day (accrued hourly)';
   $('#financeNet').textContent = fmt(netWorth());
   const ratioBase = Math.max(1, (game.cash + portfolioValue() + leveragedEquity() + assetValue()));
   const ratio = game.debt / ratioBase;
@@ -3741,7 +4023,7 @@ function renderFinance(){
   $('#levMargin').textContent = game.leverage>1 ? fmt(marginNeeded) : 'Cash Trade';
   $('#levRisk').textContent = game.leverage>=10 ? 'Extreme' : game.leverage>=5 ? 'High' : game.leverage>=2 ? 'Medium' : 'Low';
   $('#levPosition').textContent = s.levOwned>0 ? `${fmtNum(s.levOwned)} ${s.symbol} @ ${s.levMult}x` : 'None';
-  $('#globalEventPill').textContent = game.globalEvent ? `${game.globalEvent.title} · ${game.globalEvent.ticks}d` : 'No active market event';
+  $('#globalEventPill').textContent = game.globalEvent ? `${game.globalEvent.title} · ${game.globalEvent.ticks}h` : 'No active market event';
   const rb = $('#rivalBox');
   if(rb){
     rb.innerHTML = `<div class="layoutHint">Open the leaderboard in-game or from the hub to compare. Your effective net worth is <b>${fmt(netWorth())}</b>. Current debt is <b>${fmt(game.debt)}</b>. On-time payments: <b>${fmtNum(game.onTimePayments||0)}</b>.</div>`;
@@ -3814,9 +4096,9 @@ function casinoIsNatural(cards){
   return cards.length === 2 && casinoHandTotal(cards) === 21;
 }
 function casinoCardHtml(c, faceDown){
-  if(faceDown) return '<div class="bjCard back">MM</div>';
+  if(faceDown) return '<div class="bjCard back" aria-hidden="true"></div>';
   const cls = c.red ? 'bjCard red' : 'bjCard';
-  return `<div class="${cls}">${c.r}${c.s}</div>`;
+  return `<div class="${cls}"><span class="bjMark"><span>${c.r}</span><span>${c.s}</span></span><span class="bjMark br"><span>${c.r}</span><span>${c.s}</span></span></div>`;
 }
 function casinoBjResolveDealer(){
   ensureCasinoState();
@@ -4113,15 +4395,17 @@ function renderCasino(){
           <label for="casinoBjBet">Bet</label>
           <input type="number" id="casinoBjBet" min="1" step="1" value="${Math.floor(c.bjBet)}" ${inPlay ? 'disabled' : ''} />
         </div>
-        <div class="bjRow"><b>Your hand</b> (${casinoHandTotal(B.player || [])})</div>
-        <div class="bjHand">${pHtml || '<span class="layoutHint">No cards yet</span>'}</div>
-        <div class="bjRow"><b>Dealer</b>${B.holeHidden ? ' (hole hidden)' : ' (' + casinoHandTotal(B.dealer || []) + ')'}</div>
-        <div class="bjHand">${dHtml || '<span class="layoutHint">—</span>'}</div>
-        <div class="casinoActions">
-          <button type="button" class="shopTab" data-casino-act="bj-deal" ${inPlay ? 'disabled' : ''}>Deal</button>
-          <button type="button" class="shopTab" data-casino-act="bj-hit" ${inPlay ? '' : 'disabled'}>Hit</button>
-          <button type="button" class="shopTab" data-casino-act="bj-stand" ${inPlay ? '' : 'disabled'}>Stand</button>
-          <button type="button" class="shopTab" data-casino-act="bj-double" ${inPlay && !B.doubled && (B.player || []).length === 2 ? '' : 'disabled'}>Double</button>
+        <div class="bjFelt">
+          <div class="bjRow"><b>Your hand</b> (${casinoHandTotal(B.player || [])})</div>
+          <div class="bjHand">${pHtml || '<span class="layoutHint">No cards yet</span>'}</div>
+          <div class="bjRow"><b>Dealer</b>${B.holeHidden ? ' (hole hidden)' : ' (' + casinoHandTotal(B.dealer || []) + ')'}</div>
+          <div class="bjHand">${dHtml || '<span class="layoutHint">—</span>'}</div>
+          <div class="casinoActions">
+            <button type="button" class="shopTab" data-casino-act="bj-deal" ${inPlay ? 'disabled' : ''}>Deal</button>
+            <button type="button" class="shopTab" data-casino-act="bj-hit" ${inPlay ? '' : 'disabled'}>Hit</button>
+            <button type="button" class="shopTab" data-casino-act="bj-stand" ${inPlay ? '' : 'disabled'}>Stand</button>
+            <button type="button" class="shopTab" data-casino-act="bj-double" ${inPlay && !B.doubled && (B.player || []).length === 2 ? '' : 'disabled'}>Double</button>
+          </div>
         </div>
       </div>`;
   }else if(tab === 'slots'){
@@ -4134,7 +4418,13 @@ function renderCasino(){
           <label for="casinoSlotsBet">Bet per spin</label>
           <input type="number" id="casinoSlotsBet" min="1" step="1" value="${Math.floor(c.slotsBet)}" />
         </div>
-        <div class="slotRow" aria-hidden="true"><span>${a}</span><span>${b}</span><span>${x}</span></div>
+        <div class="slotCabinet" aria-hidden="true">
+          <div class="slotReels">
+            <div class="slotWindow"><span class="slotSym">${a}</span></div>
+            <div class="slotWindow"><span class="slotSym">${b}</span></div>
+            <div class="slotWindow"><span class="slotSym">${x}</span></div>
+          </div>
+        </div>
         <div class="slotHint">Symbols refresh after each spin.</div>
         <div class="casinoActions"><button type="button" class="shopTab" data-casino-act="slots-spin">Spin</button></div>
       </div>`;
@@ -4147,6 +4437,18 @@ function renderCasino(){
         <div class="casinoField" style="margin-top:12px">
           <label for="casinoCoinBet">Wager</label>
           <input type="number" id="casinoCoinBet" min="1" step="1" value="${Math.floor(c.coinBet)}" />
+        </div>
+        <div class="coinArena" aria-hidden="true">
+          <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="presentation">
+            <defs>
+              <linearGradient id="mmCoinGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#fde047"/><stop offset=".45" stop-color="#eab308"/><stop offset="1" stop-color="#a16207"/>
+              </linearGradient>
+            </defs>
+            <circle cx="60" cy="60" r="54" fill="url(#mmCoinGrad)" stroke="#713f12" stroke-width="3.5"/>
+            <circle cx="60" cy="60" r="44" fill="none" stroke="rgba(113,63,18,.4)" stroke-width="2"/>
+            <text x="60" y="74" text-anchor="middle" font-size="40" font-weight="900" fill="#713f12" font-family="system-ui,Segoe UI,sans-serif">$</text>
+          </svg>
         </div>
         <div class="casinoActions">
           <button type="button" class="shopTab" data-casino-act="coin-heads">Call Heads</button>
@@ -4163,9 +4465,11 @@ function renderCasino(){
           <label for="casinoWheelBet">Wager</label>
           <input type="number" id="casinoWheelBet" min="1" step="1" value="${Math.floor(c.wheelBet)}" />
         </div>
-        <div class="wheelFace" style="transform:rotate(${c.wheelLastIdx * 45}deg)">
-          <div class="wheelPointer"></div>
-          <div class="wheelLabel">${m}x</div>
+        <div class="wheelStage">
+          <div class="wheelFace" style="transform:rotate(${c.wheelLastIdx * 45}deg)">
+            <div class="wheelPointer"></div>
+            <div class="wheelLabel">${m}x</div>
+          </div>
         </div>
         <div class="slotHint">Last index: ${c.wheelLastIdx} · Multipliers ${CASINO_WHEEL_MULTS.join(', ')}</div>
         <div class="casinoActions"><button type="button" class="shopTab" data-casino-act="wheel-spin">Spin</button></div>
@@ -4247,7 +4551,7 @@ function renderNews(){
   wrap.innerHTML='';
   const list = Array.isArray(game.newsArchive) && game.newsArchive.length ? game.newsArchive : (game.news || []);
   if(!list.length){
-    wrap.innerHTML='<div class="panelSub">No headlines yet. Random stories will appear every few dozen market ticks.</div>';
+    wrap.innerHTML='<div class="panelSub">No headlines yet. Random stories will appear every several simulated hours.</div>';
     return;
   }
   list.forEach(n=>{
@@ -4932,6 +5236,10 @@ function updateHud(){
   if(tcp) tcp.textContent = 'Cash · ' + fmt(game.cash);
   const tnp = document.getElementById('topbarNetPill');
   if(tnp) tnp.textContent = 'Net worth · ' + fmt(netWorth());
+  const creditDateEl = document.getElementById('creditDate');
+  if(creditDateEl) creditDateEl.textContent = formatGameDate();
+  const creditCycleEl = document.getElementById('creditCycleDay');
+  if(creditCycleEl) creditCycleEl.textContent = `${(Number(game.simHourOfDay) || 0) + 1} / ${SIM_HOURS_PER_CAL_DAY}`;
   $('#activeTickerHero').textContent = game.stocks[game.selectedStock].symbol;
   const best = [...game.stocks].sort((a,b)=>b.lastDelta-a.lastDelta)[0];
   $('#bestTickerHero').textContent = `${best.symbol} ${pct(best.lastDelta)}`;
@@ -4947,6 +5255,50 @@ function refresh(){
     return;
   }
   updateHud(); renderMenu(); renderStocks(); renderShopTabs('shopping'); renderShopTabs('business'); renderItems('shopping'); renderItems('business'); renderNews(); renderNewsDock(); syncNewsTicker(); renderUser(); renderFinance(); renderEmpire(); renderCasino(); renderRail(); renderMobileNav(); renderMobileTrade();
+  const input = $('#globalSearch');
+  if(input && document.activeElement === input && input.value.trim()) renderSearchResults(input.value);
+}
+
+let __mmLiveTick = 0;
+let __mmLastShopPatchMs = 0;
+function refreshLive(){
+  bindCasinoOnce();
+  try{ checkBankruptcy(); }catch(e){}
+  if(__bankruptcyActive){
+    try{ updateHud(); }catch(e){}
+    return;
+  }
+  updateHud();
+  renderMenu();
+  bindStockQtyDelegationOnce();
+  const v = game.view;
+  __mmLiveTick++;
+  if(v === 'stocks'){
+    if(!patchStockListDOM()) renderStocks({force:true});
+    else{
+      updateStockDetailDOM();
+      patchQtyRowDOM();
+      renderPortfolio();
+    }
+    renderMobileTrade();
+  }else if(v === 'casino'){
+    const pill = $('#casinoBankPill');
+    if(pill) pill.textContent = 'Bankroll · ' + fmt(game.cash);
+  }else if(v === 'shopping' || v === 'business'){
+    const now = Date.now();
+    if(now - __mmLastShopPatchMs > 900){
+      __mmLastShopPatchMs = now;
+      renderShopTabs('shopping');
+      renderShopTabs('business');
+      renderItems('shopping');
+      renderItems('business');
+    }
+  }else if(v === 'news' && __mmLiveTick % 8 === 0){
+    renderNews();
+  }else if(v === 'finance' && __mmLiveTick % 8 === 0){
+    renderFinance();
+  }
+  if(__mmLiveTick % 5 === 0) renderRail();
   const input = $('#globalSearch');
   if(input && document.activeElement === input && input.value.trim()) renderSearchResults(input.value);
 }
@@ -5012,7 +5364,13 @@ document.addEventListener('click', e => {
   if(searchResultsEl && !e.target.closest('.searchWrap')) searchResultsEl.classList.remove('open');
 });
 document.addEventListener('pointerover', e => {
-  if(window.matchMedia('(hover:hover)').matches && e.target.closest('button,.menuBtn,.stockCard,.shopCard,.navLink,.searchItem,.circleBtn')) playHoverSound();
+  if(!window.matchMedia('(hover:hover)').matches) return;
+  const t = e.target.closest('button,.menuBtn,.stockCard,.shopCard,.navLink,.searchItem,.circleBtn');
+  if(!t) return;
+  const now = Date.now();
+  if(t === audioState.hoverTarget && now - audioState.hoverAt < 550) return;
+  audioState.hoverTarget = t;
+  playHoverSound();
 }, {passive:true});
 document.addEventListener('click', e => {
   if(e.target.closest('.searchItem,.navLink,.circleBtn,[data-item-id],.tradeQtyBtn')) playClickSound();
@@ -5043,14 +5401,14 @@ setInterval(()=>{
     __marketAccum += simDt;
     __newsDecayAccum += simDt;
 
-    while(__marketAccum >= 1500){
+    while(__marketAccum >= MARKET_TICK_MS){
       marketTick();
       passiveTick();
-      __marketAccum -= 1500;
-      game.ticksUntilNextNews = (Number.isFinite(game.ticksUntilNextNews) ? game.ticksUntilNextNews : irand(40, 100)) - 1;
+      __marketAccum -= MARKET_TICK_MS;
+      game.ticksUntilNextNews = (Number.isFinite(game.ticksUntilNextNews) ? game.ticksUntilNextNews : irand(18, 48)) - 1;
       if(game.ticksUntilNextNews <= 0){
         makeNews();
-        game.ticksUntilNextNews = irand(40, 100);
+        game.ticksUntilNextNews = irand(18, 48);
       }
     }
 
@@ -5076,7 +5434,7 @@ setInterval(()=>{
     try{ loadLeaderboardSocial(); }catch(e){}
   }
 
-  refresh();
+  refreshLive();
   if(Date.now()-game.lastSaved>25000) save(false);
 }, 250);
 
