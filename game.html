@@ -875,6 +875,111 @@ body{
   font-weight:900;
 }
 
+.arenaRailCard .arenaSubTitle{
+  font-size:.72rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:10px 0 6px
+}
+.arenaSlideDock{
+  position:fixed;
+  left:0;
+  top:calc(var(--mm-topbar-h) + 4px);
+  bottom:max(12px,env(safe-area-inset-bottom,12px));
+  width:30px;
+  max-width:min(312px,calc(100vw - 8px));
+  display:flex;
+  flex-direction:row;
+  align-items:stretch;
+  z-index:140;
+  overflow:hidden;
+  border-radius:0 14px 14px 0;
+  border:1px solid var(--line);
+  border-left:none;
+  background:var(--panel);
+  box-shadow:4px 0 28px rgba(15,23,42,.12);
+  transition:width .3s cubic-bezier(.2,.92,.2,1),box-shadow .25s ease
+}
+@media (prefers-reduced-motion:reduce){
+  .arenaSlideDock{transition:width .12s ease,box-shadow .15s ease}
+}
+.arenaSlideDock.is-open{
+  width:min(312px,calc(100vw - 8px));
+  box-shadow:8px 0 36px rgba(15,23,42,.16)
+}
+/* Mouse expand/collapse is driven by .is-proximity (see setupArenaSlideDock), not :hover, so leaving the zone actually closes. :focus-within keeps keyboard access. */
+@media (hover:hover) and (pointer:fine){
+  .arenaSlideDock.is-proximity,
+  .arenaSlideDock:focus-within{
+    width:min(312px,calc(100vw - 8px));
+    box-shadow:8px 0 36px rgba(15,23,42,.16)
+  }
+}
+.arenaSlideTab{
+  flex:0 0 30px;
+  width:30px;
+  align-self:stretch;
+  border:none;
+  margin:0;
+  padding:10px 0;
+  cursor:pointer;
+  background:linear-gradient(180deg,#e9f2ff,#dbe9ff);
+  color:#124aa8;
+  font:inherit;
+  font-size:.65rem;
+  font-weight:950;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  writing-mode:vertical-rl;
+  text-orientation:mixed;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-right:1px solid rgba(24,119,242,.15)
+}
+.arenaSlideTab:focus-visible{outline:2px solid #1877f2;outline-offset:-2px}
+.arenaSlidePanelInner{
+  flex:1;
+  min-width:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  padding:12px 12px 14px 10px;
+  opacity:0;
+  transition:opacity .18s ease .04s;
+  pointer-events:none
+}
+.arenaSlideDock.is-open .arenaSlidePanelInner{
+  opacity:1;
+  pointer-events:auto
+}
+@media (hover:hover) and (pointer:fine){
+  .arenaSlideDock.is-proximity .arenaSlidePanelInner,
+  .arenaSlideDock:focus-within .arenaSlidePanelInner{
+    opacity:1;
+    pointer-events:auto
+  }
+}
+@media (hover:none),(pointer:coarse){
+  .arenaSlideDock{width:44px}
+  .arenaSlideTab{flex-basis:44px;width:44px;font-size:.7rem}
+}
+.worldPulseRail{
+  font-size:.82rem;font-weight:800;padding:8px 10px;border-radius:10px;background:linear-gradient(135deg,#1e293b,#0f172a);
+  color:#e2e8f0;border:1px solid rgba(251,191,36,.25);margin-bottom:8px;line-height:1.35
+}
+.rivalPressureRow{display:grid;gap:6px;margin-bottom:10px}
+.rivalPressureTop{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:.86rem}
+.rivalBarTrack{height:8px;border-radius:99px;background:#e2e8f0;overflow:hidden;position:relative}
+.rivalBarYou{height:100%;border-radius:99px;background:linear-gradient(90deg,#22c55e,#16a34a);transition:width .35s ease}
+.rivalBarThem{height:100%;border-radius:99px;background:linear-gradient(90deg,#3b82f6,#6366f1);transition:width .35s ease}
+.rivalTip{font-size:.78rem;color:var(--muted);line-height:1.35}
+.liveFeedList{max-height:180px;overflow:auto;display:grid;gap:6px;padding-right:2px}
+.liveFeedLine{font-size:.78rem;line-height:1.35;padding:6px 8px;border-radius:8px;background:var(--panel2);border:1px solid var(--line)}
+.liveFeedLine b{font-weight:850}
+.arenaReactionRow{display:flex;flex-wrap:wrap;gap:6px}
+.arenaReactBtn{font:inherit;font-size:.85rem;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel);cursor:pointer;font-weight:800}
+.arenaReactBtn:hover{background:var(--panel2)}
+.arenaSprintRow{display:grid;gap:8px}
+.arenaSprintRow .shopTab{font-size:.82rem}
+
 
 /* Ownership identity system */
 body.theme-starter{
@@ -2069,6 +2174,34 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
     </div>
   </div>
 </div>
+
+<div class="arenaSlideDock" id="arenaSlideDock">
+  <button type="button" class="arenaSlideTab" id="arenaSlideTab" aria-expanded="false" aria-controls="arenaSlidePanelInner" title="Live arena — hover the left edge, or tap to pin">Arena</button>
+  <div class="arenaSlidePanelInner railCard arenaRailCard" id="arenaSlidePanelInner" role="region" aria-label="Live arena">
+    <div class="railTitle">Live arena</div>
+    <div class="layoutHint" id="seasonPill" style="margin-bottom:6px"></div>
+    <div id="worldPulseRail" class="worldPulseRail" aria-live="polite">Syncing world pulse…</div>
+    <div class="arenaSubTitle">You vs them</div>
+    <div id="rivalPressureRail"></div>
+    <div class="arenaSubTitle">Tape</div>
+    <div id="liveActivityFeed" class="liveFeedList"></div>
+    <div class="arenaSubTitle">Quick ping</div>
+    <div id="reactionDock" class="arenaReactionRow"></div>
+    <div class="arenaSubTitle">Sprint & firm</div>
+    <div id="arenaSprintRow" class="arenaSprintRow">
+      <div class="layoutHint">Optional competitive window — same clock for everyone racing locally.</div>
+      <button type="button" class="shopTab" data-arena-act="sprint-12">Start 12 min sprint</button>
+      <button type="button" class="shopTab" data-arena-act="sprint-15">Start 15 min sprint</button>
+      <div id="arenaSprintTimer" class="rivalTip">No sprint running</div>
+      <label class="layoutHint" for="firmTagInput" style="display:block;margin-top:6px">Firm / guild tag (prefix on your tape)</label>
+      <input id="firmTagInput" type="text" maxlength="36" placeholder="e.g. Apex Capital" autocomplete="off" style="width:100%;padding:8px 10px;border-radius:10px;border:1px solid var(--line);font:inherit" />
+      <button type="button" class="shopTab" data-arena-act="firm-save" style="margin-top:6px">Save firm tag</button>
+      <button type="button" class="shopTab" data-arena-act="contract-milly" style="margin-top:6px">Side bet: hit $1M net</button>
+    </div>
+    <div id="arenaContractHint" class="layoutHint" style="margin-top:4px"></div>
+  </div>
+</div>
+
 <div class="app">
   <aside class="sidebar">
     <div class="brand">
@@ -2096,6 +2229,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
         <div class="stat"><div class="k">Prestige</div><div class="v" id="prestigeGain">0 LP</div></div>
       </div>
     </div>
+
     <div class="menu" id="menuBtns">
       <button class="menuBtn active" data-view="stocks"><div class="menuIcon">📊</div><div class="menuText"><b>Stocks</b><span>20 live tickers</span></div></button>
       <button class="menuBtn" data-view="shopping"><div class="menuIcon">🛍️</div><div class="menuText"><b>Shopping</b><span>Homes, cars, jewelry</span></div></button>
@@ -2569,6 +2703,12 @@ const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const rand = (a,b) => Math.random()*(b-a)+a;
 const irand = (a,b) => Math.floor(rand(a,b+1));
+const randn = () => {
+  let u = 0, v = 0;
+  while(u <= 1e-12) u = Math.random();
+  while(v <= 1e-12) v = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+};
 
 const audioState = { ctx:null, unlocked:false, hoverAt:0, hoverTarget:null, enabled:true };
 function ensureAudio(){
@@ -2781,7 +2921,7 @@ const game = {
   debtInterestRate:0.00045,
   leverage:1,
   globalEvent:null,
-  nextGlobalAt:Date.now()+irand(90000,180000),
+  nextGlobalAt:Date.now()+irand(45000,120000),
   dayCount:1,
   simHourOfDay:0,
   creditScore:300,
@@ -3113,21 +3253,183 @@ function closeEventModal(result){
   refresh();
 }
 
+const MM_WORLD_PULSE_MS = 12 * 60 * 1000;
+function getWallClockWorldPulse(){
+  const slot = Math.floor(Date.now() / MM_WORLD_PULSE_MS);
+  const kinds = [
+    { title: 'Tech boom', sectors: ['Technology', 'Software', 'Cybersecurity', 'Speculative Tech', 'Media'], drift: 0.0072, vol: 0.004 },
+    { title: 'Market risk-off', sectors: ['*'], drift: -0.0058, vol: 0.0065 },
+    { title: 'AI hype cycle', sectors: ['Technology', 'Software', 'Speculative Tech'], drift: 0.0084, vol: 0.007 },
+    { title: 'Oil & logistics squeeze', sectors: ['Energy', 'Logistics', 'Materials'], drift: 0.0065, vol: 0.0055 },
+    { title: 'Credit tightening', sectors: ['Finance', 'Technology', 'Software', 'EV', 'Biotech'], drift: -0.005, vol: 0.005 },
+    { title: 'Retail melt-up', sectors: ['Retail', 'Entertainment', 'Media', 'EV'], drift: 0.006, vol: 0.0075 },
+    { title: 'Defensive rotation', sectors: ['Healthcare', 'Agriculture', 'Finance'], drift: 0.0038, vol: 0.0035 },
+    { title: 'Commodity super-cycle', sectors: ['Materials', 'Energy', 'Agriculture'], drift: 0.0068, vol: 0.006 }
+  ];
+  const k = kinds[slot % kinds.length];
+  return { slot, title: k.title, sectors: k.sectors, drift: k.drift, vol: k.vol, until: (slot + 1) * MM_WORLD_PULSE_MS };
+}
+function mmSyncedPulseAffectsStock(s, pulse){
+  if(!pulse || !s) return false;
+  if(pulse.sectors.includes('*')) return true;
+  return pulse.sectors.includes(s.sector);
+}
+
+function mmArenaEnsureGameFields(){
+  if(!Array.isArray(game._arenaFeed)) game._arenaFeed = [];
+  if(game._arenaFeed.length > 48) game._arenaFeed.length = 48;
+  if(typeof game.firmTag !== 'string') game.firmTag = '';
+  try{
+    const ft = localStorage.getItem('mm_firm_tag');
+    if(ft && !game.firmTag) game.firmTag = ft.slice(0, 40);
+  }catch(e){}
+}
+function mmPushArenaFeed(kind, text){
+  mmArenaEnsureGameFields();
+  const firm = (game.firmTag || '').trim();
+  const prefix = firm ? '[' + firm + '] ' : '';
+  game._arenaFeed.unshift({ t: Date.now(), kind: kind || 'info', text: prefix + String(text || '') });
+  if(game._arenaFeed.length > 48) game._arenaFeed.length = 48;
+}
+function mmApplyTradeMicroPrice(s, notional, side){
+  if(!s || !notional) return;
+  const liq = Math.max(80000, Number(s.liquidity) || 1e5);
+  const mag = Math.min(0.014, (notional / liq) * (side === 'buy' ? 0.16 : 0.13));
+  if(mag < 2e-6) return;
+  const prev = s.price;
+  s.price = clamp(prev * (1 + (side === 'buy' ? mag : -mag)), s.floorPrice, s.ceilingPrice);
+  s.lastDelta = prev > 1e-12 ? s.price / prev - 1 : 0;
+}
+function mmSpectatorToast(msg){
+  try{
+    toast(msg, 'notification');
+  }catch(e){}
+  mmPushArenaFeed('spectator', msg);
+}
+function mmDiffNetFromActivity(rows){
+  const prev = window.__mmPrevNetByUser || (window.__mmPrevNetByUser = Object.create(null));
+  const out = [];
+  const now = Date.now();
+  for(const r of rows || []){
+    const key = String(r.username || '').trim().toLowerCase();
+    if(!key) continue;
+    const nw = Number(r.net_worth || 0);
+    const p = prev[key];
+    if(typeof p === 'number' && Number.isFinite(nw)){
+      const d = nw - p;
+      if(Math.abs(d) >= 35000){
+        const who = r.display_name || r.username || 'Trader';
+        out.push({ t: now, kind: 'leader', text: who + ' tape · net ' + (d >= 0 ? '+' : '') + fmt(d) });
+      }
+    }
+    prev[key] = nw;
+  }
+  return out.slice(0, 5);
+}
+
+function mmSharedMarketConfigured(){
+  try{
+    return !!(window.MM_CONFIG && window.MM_CONFIG.SHARED_STOCK_MARKET && window.mmSupabase && typeof window.mmSupabase.from === 'function');
+  }catch(e){ return false; }
+}
+function mmApplySharedMarketPayload(payload){
+  if(!payload || !Array.isArray(payload.stocks) || !Array.isArray(game.stocks)) return;
+  const bySym = Object.create(null);
+  for(const r of payload.stocks){
+    if(r && r.symbol) bySym[String(r.symbol).toUpperCase()] = r;
+  }
+  for(const s of game.stocks){
+    const sym = String(s.symbol || '').toUpperCase();
+    const r = bySym[sym];
+    if(!r) continue;
+    if(typeof r.price === 'number' && Number.isFinite(r.price)) s.price = r.price;
+    if(typeof r.fairValue === 'number' && Number.isFinite(r.fairValue)) s.fairValue = r.fairValue;
+    if(typeof r.dayHigh === 'number' && Number.isFinite(r.dayHigh)) s.dayHigh = r.dayHigh;
+    if(typeof r.dayLow === 'number' && Number.isFinite(r.dayLow)) s.dayLow = r.dayLow;
+    if(typeof r.lastDelta === 'number' && Number.isFinite(r.lastDelta)) s.lastDelta = r.lastDelta;
+    if(Array.isArray(r.history) && r.history.length){
+      s.history = r.history.slice(-100);
+      if(s.history.length < 2) s.history.unshift(s.price);
+    }
+  }
+}
+function mmApplySharedMarketDbRow(row){
+  if(!row) return;
+  if(row.id != null && Number(row.id) !== 1) return;
+  const uat = row.updated_at ? new Date(row.updated_at).getTime() : 0;
+  if(uat && uat <= (game._lastSharedSnapSeen || 0)) return;
+  if(uat) game._lastSharedSnapSeen = uat;
+  let p = row.payload;
+  if(typeof p === 'string'){
+    try{ p = JSON.parse(p); }catch(e){ return; }
+  }
+  mmApplySharedMarketPayload(p);
+}
+async function mmPullSharedMarketBeforeTick(){
+  if(!mmSharedMarketConfigured()) return;
+  if(!Array.isArray(game.stocks) || !game.stocks.length) return;
+  try{
+    const res = await window.mmSupabase.from('shared_market_snapshot').select('id,payload,updated_at').eq('id', 1).maybeSingle();
+    if(res.error || !res.data) return;
+    mmApplySharedMarketDbRow(res.data);
+  }catch(e){}
+}
+async function mmPushSharedMarketAfterTick(){
+  if(!mmSharedMarketConfigured()) return;
+  if(!Array.isArray(game.stocks) || !game.stocks.length) return;
+  let uid = null;
+  try{
+    const u = await window.mmSupabase.auth.getUser();
+    uid = u && u.data && u.data.user && u.data.user.id;
+  }catch(e){}
+  if(!uid) return;
+  const tickBig = Date.now();
+  const payload = {
+    ts: tickBig,
+    v: (game._sharedMarketWriteV = (game._sharedMarketWriteV || 0) + 1),
+    stocks: game.stocks.map(s=>({
+      symbol: s.symbol,
+      price: s.price,
+      fairValue: s.fairValue,
+      dayHigh: s.dayHigh,
+      dayLow: s.dayLow,
+      lastDelta: s.lastDelta,
+      history: Array.isArray(s.history) ? s.history.slice(-80) : []
+    }))
+  };
+  try{
+    await window.mmSupabase.from('shared_market_snapshot').upsert(
+      { id: 1, tick: tickBig, payload, updated_at: new Date().toISOString() },
+      { onConflict: 'id' }
+    );
+  }catch(e){}
+}
+try{
+  window.mmApplySharedMarketDbRow = mmApplySharedMarketDbRow;
+}catch(e){}
+
 async function marketTick(){
+  try{ await mmPullSharedMarketBeforeTick(); }catch(e){}
   game.simHourOfDay = Number(game.simHourOfDay) || 0;
+  let isNewDayStart = false;
   game.simHourOfDay++;
   if(game.simHourOfDay >= SIM_HOURS_PER_CAL_DAY){
     game.simHourOfDay = 0;
+    isNewDayStart = true;
     game.dayCount = Number(game.dayCount || 1) + 1;
     processCreditDay();
-    for(const st of game.stocks){
-      st.dayHigh = st.price;
-      st.dayLow = st.price;
-    }
   }
   const t = (Number(game.dayCount || 1) - 1) * SIM_HOURS_PER_CAL_DAY + Number(game.simHourOfDay || 0);
   const _h = 1 / SIM_HOURS_PER_CAL_DAY;
   const decayH = pow => Math.pow(pow, _h);
+  const hod = Math.max(1, Math.min(SIM_HOURS_PER_CAL_DAY, Number(game.simHourOfDay) || 1));
+  const intradayVolFactor = 0.76 + 0.44 * Math.pow(Math.sin(((hod - 0.5) / SIM_HOURS_PER_CAL_DAY) * Math.PI), 2);
+  const openGapMkt = isNewDayStart ? randn() * 0.0026 + (typeof game._macroShock === 'number' ? game._macroShock : 0) * 0.0034 : 0;
+  const sessionMkt =
+    (typeof game._macroShock === 'number' ? game._macroShock : 0) * 0.0044 * intradayVolFactor +
+    randn() * (0.00062 + Math.abs(game._macroShock || 0) * 0.002) * intradayVolFactor;
+  if(typeof game._sessionMktEwma !== 'number') game._sessionMktEwma = 0;
+  const sessionMktEwmaPrev = game._sessionMktEwma;
 
   if(game.globalEvent){
     game.globalEvent.ticks--;
@@ -3155,17 +3457,37 @@ async function marketTick(){
     );
   }
 
+  const wPulse = getWallClockWorldPulse();
+  if(game._mmPulseAnnouncedSlot !== wPulse.slot){
+    game._mmPulseAnnouncedSlot = wPulse.slot;
+    try{
+      toast('Live world: ' + wPulse.title, 'notification');
+      mmPushArenaFeed('world', 'Everyone: ' + wPulse.title);
+    }catch(e){}
+  }
+
   for(const s of game.stocks){
+    if(isNewDayStart){
+      s.dayHigh = s.price;
+      s.dayLow = s.price;
+    }
     if(typeof s.idioPhase !== 'number') s.idioPhase = rand(0, Math.PI * 2);
     if(typeof s.latent !== 'number') s.latent = rand(-0.12, 0.12);
     if(typeof s.volCluster !== 'number') s.volCluster = s.baseVol;
     if(typeof s.microAmp !== 'number') s.microAmp = rand(0.00065, 0.0028);
 
-    s.latent = clamp((s.latent * decayH(0.9)) + rand(-0.024, 0.024) / SIM_HOURS_PER_CAL_DAY + (s.newsEffect || 0) * 0.014 / SIM_HOURS_PER_CAL_DAY, -0.42, 0.42);
+    s.latent = clamp(
+      (s.latent * decayH(0.9)) +
+        randn() * (0.009 + s.baseVol * 0.14) / SIM_HOURS_PER_CAL_DAY +
+        (s.newsEffect || 0) * 0.014 / SIM_HOURS_PER_CAL_DAY,
+      -0.42,
+      0.42
+    );
 
-    if(typeof s.microWalk !== 'number') s.microWalk = rand(-0.012, 0.012);
+    if(typeof s.microWalk !== 'number') s.microWalk = randn() * 0.006;
     s.microWalk = clamp(
-      s.microWalk * decayH(0.85) + rand(-0.0038, 0.0038) * (0.65 + s.baseVol * 3.2) / SIM_HOURS_PER_CAL_DAY,
+      s.microWalk * decayH(0.85) +
+        randn() * (0.00135 + s.baseVol * 0.0026) * intradayVolFactor / SIM_HOURS_PER_CAL_DAY,
       -0.048,
       0.048
     );
@@ -3180,14 +3502,23 @@ async function marketTick(){
     const sectorComp = secPulse * 0.0105;
     const macroBeta = 0.52 + (((sym.charCodeAt(0) * 11 + (s.colorHue || 0)) % 95) / 200);
     const macroComp = game._macroShock * 0.02 * macroBeta;
-    const idioNoise = rand(-1, 1) * s.baseVol * 0.0062;
+    const idioNoise = randn() * s.baseVol * 0.007 * intradayVolFactor;
     const cyc = idioWave + weakGlobal * 0.45 + sectorComp + macroComp + s.latent * 0.0024 + s.microWalk + idioNoise;
 
+    if(typeof s.anchorDrift !== 'number') s.anchorDrift = 0;
+    s.anchorDrift = clamp(s.anchorDrift * decayH(0.93) + randn() * 0.0002 / SIM_HOURS_PER_CAL_DAY, -0.0022, 0.0022);
+    s.anchorPrice = clamp(
+      s.anchorPrice * (1 + s.anchorDrift / SIM_HOURS_PER_CAL_DAY),
+      Math.max(s.floorPrice * 1.12, s.price * 0.35),
+      s.ceilingPrice * 0.9
+    );
     const anchor = Number(s.anchorPrice) > 0 ? s.anchorPrice : Math.max(s.floorPrice, s.price);
     const fairPull = (anchor - s.fairValue) / Math.max(anchor, 1e-6);
     const minFair = Math.max(s.floorPrice * 1.02, Math.min(anchor * 0.45, s.ceilingPrice * 0.9));
     s.fairValue = clamp(
-      s.fairValue * (1 + (rand(-0.0045, 0.0045) + s.drift * 0.075 + (s.newsEffect || 0) * 0.032 + fairPull * 0.24) / SIM_HOURS_PER_CAL_DAY),
+      s.fairValue *
+        (1 +
+          (randn() * 0.00265 + s.drift * 0.075 + (s.newsEffect || 0) * 0.032 + fairPull * 0.24) / SIM_HOURS_PER_CAL_DAY),
       minFair,
       s.ceilingPrice * 0.94
     );
@@ -3197,7 +3528,10 @@ async function marketTick(){
     const underheat = Math.max(0, 0.78 - (s.price / Math.max(1, s.fairValue)));
 
     s.drift = clamp(
-      s.drift * decayH(0.94) + rand(-0.0014, 0.0014) / SIM_HOURS_PER_CAL_DAY + s.sentiment * 0.00026 / SIM_HOURS_PER_CAL_DAY - valuationGap * 0.0025 / SIM_HOURS_PER_CAL_DAY,
+      s.drift * decayH(0.94) +
+        randn() * 0.00085 / SIM_HOURS_PER_CAL_DAY +
+        s.sentiment * 0.00026 / SIM_HOURS_PER_CAL_DAY -
+        valuationGap * 0.0025 / SIM_HOURS_PER_CAL_DAY,
       -0.012,
       0.012
     );
@@ -3219,6 +3553,7 @@ async function marketTick(){
     const eventDrift = eventBoost ? eventBoost.drift / SIM_HOURS_PER_CAL_DAY : 0;
     const eventVol = eventBoost ? eventBoost.vol / SIM_HOURS_PER_CAL_DAY : 0;
     const clusterBoost = Math.min(0.055, Math.max(0, (s.volCluster - s.baseVol) * 0.42));
+    const pulseVolBoost = mmSyncedPulseAffectsStock(s, wPulse) ? (wPulse.vol || 0) * 0.42 : 0;
     const effectiveVol =
       s.baseVol * 0.48 +
       (s.newsVol || 0) * 0.78 +
@@ -3226,7 +3561,8 @@ async function marketTick(){
       game.network * 0.0011 +
       (s.bubble || 0) * 0.0045 +
       eventVol +
-      clusterBoost;
+      clusterBoost +
+      pulseVolBoost;
 
     const priorDelta = Number(s.lastDelta) || 0;
     const chase = Math.max(0, priorDelta);
@@ -3237,25 +3573,28 @@ async function marketTick(){
       Math.max(0, s.momentum) * 0.045 +
       Math.max(0, s.hype) * 0.025 -
       overheat * 0.07 +
-      chase * 5.8 -
-      panic * 2.35;
+      chase * 4.05 -
+      panic * 1.95;
     let sellerBias =
       0.492 -
       s.sentiment * 0.05 +
       Math.max(0, -s.momentum) * 0.05 +
       Math.max(0, -s.hype) * 0.03 +
       overheat * 0.12 +
-      panic * 6.1 -
-      chase * 2.05;
+      panic * 4.25 -
+      chase * 1.78;
     buyerBias = clamp(buyerBias, 0.22, 0.82);
     sellerBias = clamp(sellerBias, 0.22, 0.82);
 
-    const buyers = Math.max(2200, s.participants * (buyerBias + rand(-0.034, 0.034)));
-    const sellers = Math.max(2200, s.participants * (sellerBias + rand(-0.034, 0.034)));
+    const buyers = Math.max(2200, s.participants * (buyerBias + randn() * 0.019));
+    const sellers = Math.max(2200, s.participants * (sellerBias + randn() * 0.019));
     const netFlow = buyers - sellers;
     s.lastFlow = netFlow;
 
-    const crowdPressure = (netFlow / Math.max(50000, s.liquidity)) * (0.14 + s.baseVol * 1.55);
+    const prevFlowSm = typeof s.flowSmooth === 'number' ? s.flowSmooth : netFlow;
+    s.flowSmooth = prevFlowSm * 0.86 + netFlow * 0.14;
+    const flowBlend = prevFlowSm * 0.55 + netFlow * 0.45;
+    const crowdPressure = (flowBlend / Math.max(50000, s.liquidity)) * (0.12 + s.baseVol * 1.38);
     const discountDepth = Math.max(0, (s.fairValue - s.price) / Math.max(s.fairValue, 1e-6));
     const meanReversion =
       -valuationGap * (0.055 + overheat * 0.12) + discountDepth * (0.045 + underheat * 0.06);
@@ -3269,25 +3608,34 @@ async function marketTick(){
     let idioJump = 0;
     const jumpP = Math.min(0.032 / SIM_HOURS_PER_CAL_DAY, (0.0032 + (s.baseVol || 0.03) * 0.16) / SIM_HOURS_PER_CAL_DAY);
     if(Math.random() < jumpP){
-      const mag = rand(0.01, 0.062) * (0.55 + Math.random() * 0.9);
+      const mag = Math.min(0.09, Math.exp(randn() * 0.38 - 1.35) * (0.022 + s.baseVol * 0.45));
       idioJump = (Math.random() < 0.48 ? -1 : 1) * mag;
     }
 
-    const asym = (Math.random() - 0.5) * effectiveVol * 0.14;
-    const shock = rand(-effectiveVol * 0.84, effectiveVol * 0.84) + asym;
+    const asym = randn() * effectiveVol * 0.065;
+    const shock =
+      randn() * effectiveVol * (0.46 + intradayVolFactor * 0.24) +
+      (Math.random() < 0.035 ? randn() * effectiveVol * 0.48 : 0) +
+      asym;
+
+    const stockBeta = 0.78 + (((s.colorHue || 0) % 118) / 290) + (s.baseVol || 0.03) * 0.35;
+    const mktBlock = ((sessionMkt || 0) * 0.58 + sessionMktEwmaPrev * 0.42) * stockBeta + openGapMkt * stockBeta;
+    const pulseTerm = mmSyncedPulseAffectsStock(s, wPulse) ? wPulse.drift / SIM_HOURS_PER_CAL_DAY : 0;
 
     const delta = clamp(
       s.drift * 0.14 +
         eventDrift +
         cyc +
         (s.newsEffect || 0) * 0.024 +
-        crowdPressure * 0.62 +
+        crowdPressure * 0.5 +
         meanReversion +
         capPressure +
         floorBounce +
         crashShock +
         idioJump +
-        shock,
+        shock +
+        mktBlock +
+        pulseTerm,
       -0.2,
       0.2
     );
@@ -3297,7 +3645,7 @@ async function marketTick(){
     s.lastDelta = prevPx > 1e-12 ? s.price / prevPx - 1 : 0;
     s.volCluster = (s.volCluster || s.baseVol) * decayH(0.86) + (Math.abs(delta) * 0.5 + s.baseVol * 0.14) / SIM_HOURS_PER_CAL_DAY;
     s.history.push(s.price);
-    if(s.history.length > 70) s.history.shift();
+    if(s.history.length > 100) s.history.shift();
     s.dayHigh = Math.max(s.dayHigh, s.price);
     s.dayLow = Math.min(s.dayLow, s.price);
 
@@ -3321,6 +3669,8 @@ async function marketTick(){
     idx = (idx + Math.max(1, Math.floor(n / 5))) % n;
   }
   game.mood = moodScore > 0.06 ? 'Euphoric' : moodScore < -0.06 ? 'Capitulation' : moodScore > 0.02 ? 'Risk-On' : moodScore < -0.02 ? 'Shaky' : 'Balanced';
+  game._sessionMktEwma = sessionMktEwmaPrev * 0.84 + sessionMkt * 0.16;
+  try{ await mmPushSharedMarketAfterTick(); }catch(e){}
 }
 
 function passiveTick(){
@@ -3358,6 +3708,11 @@ function buyStock(){
     s.levMult = lev;
     game.trades++;
     addXP(4 + qty * 0.03 + lev);
+    const levNotional = qty * s.price;
+    mmApplyTradeMicroPrice(s, levNotional, 'buy');
+    if(levNotional >= 220000){
+      mmPushArenaFeed('trade', `Leveraged ${fmtNum(qty)} ${s.symbol} — tape moved`);
+    }
     toast(`Opened ${fmtNum(qty)} ${s.symbol} at ${lev}x`, 'success');
     refresh();
     return;
@@ -3370,6 +3725,11 @@ function buyStock(){
   s.owned += qty;
   game.trades++;
   addXP(2 + qty*0.02);
+  mmApplyTradeMicroPrice(s, cost, 'buy');
+  if(cost >= 160000){
+    mmPushArenaFeed('trade', `You bought ~${fmt(cost)} ${s.symbol}`);
+  }
+  if(cost >= 380000) mmSpectatorToast(`Big buy: ${fmt(cost)} ${s.symbol} — everyone watches the tape`);
   toast(`Bought ${fmtNum(qty)} ${s.symbol}`, 'success');
   refresh();
 }
@@ -3389,6 +3749,7 @@ function sellStock(){
     game.totalEarned += Math.max(0, pnl);
     game.trades++;
     addXP(4 + qty * 0.03 + lev);
+    mmApplyTradeMicroPrice(s, qty * s.price, 'sell');
     toast(`${pnl >= 0 ? 'Closed' : 'Stopped'} ${fmtNum(qty)} ${s.symbol} ${lev}x`, pnl >= 0 ? 'success' : 'warning');
     refresh();
     return;
@@ -3403,6 +3764,9 @@ function sellStock(){
   game.totalEarned += Math.max(0, value);
   game.trades++;
   addXP(2 + qty*0.02);
+  mmApplyTradeMicroPrice(s, value, 'sell');
+  if(value >= 160000) mmPushArenaFeed('trade', `You sold ~${fmt(value)} ${s.symbol}`);
+  if(value >= 380000) mmSpectatorToast(`Size sell: ${fmt(value)} ${s.symbol} — liquidity test`);
   toast(`Sold ${fmtNum(qty)} ${s.symbol}`, 'success');
   refresh();
 }
@@ -3447,7 +3811,7 @@ function doPrestige(){
   const legacy = game.legacy + gain;
   const keepAvatarDNA = JSON.parse(JSON.stringify(normalizeAvatarDNA(game.avatarDNA || {})));
   localStorage.removeItem(SAVE_KEY);
-  Object.assign(game,{cash:500,totalEarned:500,xp:0,level:1,legacy,passivePerSec:0,incomeMult:1,tradeBonus:0,style:0,network:0,view:'stocks',selectedStock:0,tradeQty:1,newsBonusPool:0,mood:'Balanced',trades:0,lastSaved:0,businessOwned:['business_headquarters_0'],shoppingOwned:[],empireShowcasePicks:{homes:'',cars:'',jewelry:'',watches:''},casinoTab:'blackjack',casino:null,ownedProfileAvatars:['default_avatar'],ownedProfileBanners:['default_banner','profile_banner_gold','profile_banner_neon','profile_banner_midnight'],stocks: JSON.parse(JSON.stringify(stockSeed)),news:[],newsArchive:[],ticksUntilNextNews:irand(18,48),paused:false,nextBonusAt:Date.now()+irand(15000,60000),nextLifeAt:Date.now()+irand(60000,300000),activeEvent:null,debt:0,debtInterestRate:0.00045,leverage:1,globalEvent:null,nextGlobalAt:Date.now()+irand(90000,180000),dayCount:1,simHourOfDay:0,creditScore:300,creditTier:0,onTimePayments:0,missedPayments:0,loanCycleStartDay:1,loanDueDay:8,loanDueAmount:0,loanPaidThisCycle:0});
+  Object.assign(game,{cash:500,totalEarned:500,xp:0,level:1,legacy,passivePerSec:0,incomeMult:1,tradeBonus:0,style:0,network:0,view:'stocks',selectedStock:0,tradeQty:1,newsBonusPool:0,mood:'Balanced',trades:0,lastSaved:0,businessOwned:['business_headquarters_0'],shoppingOwned:[],empireShowcasePicks:{homes:'',cars:'',jewelry:'',watches:''},casinoTab:'blackjack',casino:null,ownedProfileAvatars:['default_avatar'],ownedProfileBanners:['default_banner','profile_banner_gold','profile_banner_neon','profile_banner_midnight'],stocks: JSON.parse(JSON.stringify(stockSeed)),news:[],newsArchive:[],ticksUntilNextNews:irand(18,48),paused:false,nextBonusAt:Date.now()+irand(15000,60000),nextLifeAt:Date.now()+irand(60000,300000),activeEvent:null,debt:0,debtInterestRate:0.00045,leverage:1,globalEvent:null,nextGlobalAt:Date.now()+irand(45000,120000),dayCount:1,simHourOfDay:0,creditScore:300,creditTier:0,onTimePayments:0,missedPayments:0,loanCycleStartDay:1,loanDueDay:8,loanDueAmount:0,loanPaidThisCycle:0});
   game.avatarDNA = keepAvatarDNA;
   recalc();
   makeNews(true);makeNews(true);
@@ -3534,7 +3898,7 @@ function load(){
     game.debtInterestRate ??= 0.00045;
     game.leverage ??= 1;
     game.globalEvent ??= null;
-    game.nextGlobalAt ??= Date.now()+irand(90000,180000);
+    game.nextGlobalAt ??= Date.now()+irand(45000,120000);
     game.activeEvent = null;
     if(!game.simNow) game.simNow = Date.now();
     if(!Number.isFinite(game.ticksUntilNextNews)) game.ticksUntilNextNews = irand(18, 48);
@@ -3548,6 +3912,11 @@ function load(){
       });
     }
     game.casinoTab ??= 'blackjack';
+    if(!Array.isArray(game._arenaFeed)) game._arenaFeed = [];
+    game.firmTag = typeof game.firmTag === 'string' ? game.firmTag : '';
+    if(game.arenaSprint && (typeof game.arenaSprint.start !== 'number' || typeof game.arenaSprint.durationMs !== 'number')){
+      game.arenaSprint = null;
+    }
     if(game.casino && typeof game.casino === 'object'){
       game.casino.bj = { phase: 'idle', deck: [], player: [], dealer: [], holeHidden: false, staked: 0, doubled: false };
     }
@@ -3939,6 +4308,10 @@ function takeLoan(amount){
   game.currentCycleBorrowed = Number(game.currentCycleBorrowed || 0) + amount;
   if(!game.loanDueDay || game.loanDueDay <= Number(game.dayCount || 1)) startCreditCycle();
   game.loanDueAmount = Math.max(Number(game.loanDueAmount || 0), Math.max(100, game.debt * 0.01));
+  if(amount >= 120000){
+    mmPushArenaFeed('loan', `You drew +${fmt(amount)} credit — rivals feel the leverage`);
+  }
+  if(amount >= 280000) mmSpectatorToast(`Heavy loan: +${fmt(amount)} — high stakes mode`);
   toast(`Loan taken +${fmt(amount)}`, 'notification');
   refresh();
 }
@@ -3985,18 +4358,248 @@ function renderLoans(){
   });
 }
 
+function mmPickRivalsForPressure(rows, me, myUsername){
+  const myKey = String(myUsername || '').trim().toLowerCase();
+  const list = (Array.isArray(rows) ? rows : []).filter(
+    r => !myKey || String(r.username || '').trim().toLowerCase() !== myKey
+  );
+  const sorted = [...list].sort((a, b) => Number(b.net_worth || 0) - Number(a.net_worth || 0));
+  const above = sorted.filter(r => Number(r.net_worth || 0) > me);
+  const below = sorted.filter(r => Number(r.net_worth || 0) < me).sort((a, b) => Number(b.net_worth || 0) - Number(a.net_worth || 0));
+  const pack = [];
+  if(above.length) pack.push({ kind: 'above', r: above[above.length - 1] });
+  if(below.length) pack.push({ kind: 'below', r: below[0] });
+  if(below.length > 1) pack.push({ kind: 'below', r: below[1] });
+  if(pack.length < 2 && sorted[0]) pack.push({ kind: 'chase', r: sorted[0] });
+  return pack.slice(0, 3);
+}
+function mmRivalPressureHtml(rows){
+  const me = netWorth();
+  const soc = typeof window.mmSocial !== 'undefined' ? window.mmSocial : null;
+  const myUsername = soc && soc.profile ? soc.profile.username : '';
+  const rivals = mmPickRivalsForPressure(rows, me, myUsername);
+  const maxV = Math.max(me, 1, ...rivals.map(x => Number(x.r.net_worth || 0)));
+  const youPct = Math.min(100, Math.round((me / maxV) * 100));
+  if(!rivals.length){
+    return `<div class="rivalTip">Sign in and sync to chase live rivals on the board.</div>
+      <div class="rivalPressureRow"><div class="rivalPressureTop"><span><b>You</b></span><span>${fmt(me)}</span></div>
+      <div class="rivalBarTrack"><div class="rivalBarYou" style="width:${youPct}%"></div></div></div>`;
+  }
+  const lines = rivals.map(pack => {
+    const r = pack.r;
+    const nw = Number(r.net_worth || 0);
+    const themPct = Math.min(100, Math.round((nw / maxV) * 100));
+    const nm = escapeHtml(String(r.display_name || r.username || 'Rival'));
+    const gap = nw - me;
+    const sub =
+      pack.kind === 'above'
+        ? `You're <b>${fmt(Math.max(0, gap))}</b> behind — reel them in`
+        : pack.kind === 'chase'
+          ? `Top of the board — <b>${fmt(Math.max(0, nw - me))}</b> ahead of you`
+          : `Lead by <b>${fmt(Math.max(0, me - nw))}</b> — don't get complacent`;
+    return `<div class="rivalPressureRow">
+      <div class="rivalPressureTop"><span>${nm}</span><span>${fmt(nw)}</span></div>
+      <div class="rivalBarTrack"><div class="rivalBarThem" style="width:${themPct}%"></div></div>
+      <div class="rivalTip">${sub}</div>
+    </div>`;
+  }).join('');
+  return `<div class="rivalPressureRow"><div class="rivalPressureTop"><span><b>You</b></span><span>${fmt(me)}</span></div>
+    <div class="rivalBarTrack"><div class="rivalBarYou" style="width:${youPct}%"></div></div></div>${lines}`;
+}
 function renderRivalFromLeaderboard(rows){
   const box = document.getElementById('rivalBox');
   if(!box) return;
+  box.innerHTML = mmRivalPressureHtml(rows);
+}
+let __mmLastLeaderRank = null;
+function mmUpdateLeaderRankNudge(rows){
   const me = netWorth();
-  const list = Array.isArray(rows) ? rows : [];
-  const next = list.find(r => Number(r.net_worth || 0) > me);
-  if(!next){
-    box.innerHTML = `<div class="rivalCard"><div><div style="font-weight:900">You are the target now.</div><div class="layoutHint">No visible rival above your current net worth.</div></div><div class="rivalGap">👑</div></div>`;
-    return;
+  const soc = typeof window.mmSocial !== 'undefined' ? window.mmSocial : null;
+  const myUsername = soc && soc.profile ? soc.profile.username : '';
+  if(!myUsername || !(Array.isArray(rows) && rows.length)) return;
+  const rank =
+    (rows || []).filter(r => String(r.username || '').toLowerCase() !== String(myUsername).toLowerCase()).filter(r => Number(r.net_worth || 0) > me).length + 1;
+  if(__mmLastLeaderRank != null && rank > __mmLastLeaderRank){
+    mmPushArenaFeed('rival', 'You slipped on the live board — fight back!');
+    mmSpectatorToast('Board update: you dropped a spot — pressure is on');
   }
-  const gap = Number(next.net_worth || 0) - me;
-  box.innerHTML = `<div class="rivalCard"><div><div style="font-weight:900">${next.display_name || next.username}</div><div class="layoutHint">@${next.username} · ${next.empire_tier || '-'}</div></div><div style="text-align:right"><div class="rivalGap">${fmt(gap)}</div><div class="layoutHint">to pass them</div></div></div>`;
+  __mmLastLeaderRank = rank;
+}
+function mmStartArenaSprint(ms){
+  mmArenaEnsureGameFields();
+  const dur = Math.min(30 * 60 * 1000, Math.max(5 * 60 * 1000, ms || 12 * 60 * 1000));
+  game.arenaSprint = { start: Date.now(), durationMs: dur, startNet: netWorth() };
+  mmPushArenaFeed('sprint', 'Sprint live — highest net growth wins the moment');
+  try{
+    save(false);
+  }catch(e){}
+  renderArenaRail();
+}
+function mmTickArenaSprint(){
+  mmArenaEnsureGameFields();
+  const sp = game.arenaSprint;
+  if(!sp || !sp.start) return;
+  if(Date.now() - sp.start < sp.durationMs) return;
+  const gain = netWorth() - (Number(sp.startNet) || 0);
+  try{
+    toast(`Sprint over — ${gain >= 0 ? 'up' : 'down'} ${fmt(Math.abs(gain))} net`, gain >= 0 ? 'success' : 'warning');
+  }catch(e){}
+  mmPushArenaFeed('sprint', `Sprint ended · ${gain >= 0 ? '+' : ''}${fmt(gain)} net vs start`);
+  game.arenaSprint = null;
+  try{
+    save(false);
+  }catch(e){}
+}
+function mmSetArenaContract(targetNet, label){
+  mmArenaEnsureGameFields();
+  game.arenaContract = { target: targetNet, label: String(label || 'Goal'), created: Date.now(), startNet: netWorth() };
+  mmPushArenaFeed('bet', 'Side goal: ' + game.arenaContract.label);
+  try{
+    save(false);
+  }catch(e){}
+  renderArenaRail();
+}
+function mmSaveFirmTag(){
+  const inp = document.getElementById('firmTagInput');
+  const v = (inp && inp.value ? inp.value : game.firmTag || '').trim().slice(0, 36);
+  game.firmTag = v;
+  try{
+    localStorage.setItem('mm_firm_tag', v);
+  }catch(e){}
+  mmPushArenaFeed('firm', v ? 'Firm tag set — you fly colors on the tape' : 'Solo trader mode');
+  try{
+    save(false);
+  }catch(e){}
+  renderArenaRail();
+}
+async function mmSendQuickReaction(code){
+  const map = { fire: '🔥', rip: '💀', lol: '😂', eyes: '👀', gg: 'GG' };
+  const label = (map[code] || code || '').trim();
+  mmPushArenaFeed('react', 'You: ' + label);
+  try{
+    if(window.mmSupabase){
+      const { data: auth } = await window.mmSupabase.auth.getUser();
+      const user = auth && auth.user;
+      if(user && user.id){
+        const un = (window.mmSocial && window.mmSocial.profile && window.mmSocial.profile.username) || 'player';
+        await window.mmSupabase.from('arena_ping').insert({
+          user_id: user.id,
+          username: un,
+          payload: label,
+          kind: 'react'
+        });
+      }
+    }
+  }catch(e){}
+}
+function renderArenaRail(){
+  mmArenaEnsureGameFields();
+  mmTickArenaSprint();
+  const pulse = getWallClockWorldPulse();
+  const pulseEl = document.getElementById('worldPulseRail');
+  if(pulseEl){
+    const left = Math.max(0, pulse.until - Date.now());
+    const m = Math.floor(left / 60000);
+    const pulseSafe = escapeHtml(pulse.title);
+    pulseEl.innerHTML = `<b>World pulse</b> · ${pulseSafe} <span class="layoutHint">· rotates in ~${m}m</span>`;
+  }
+  const seasonEl = document.getElementById('seasonPill');
+  if(seasonEl){
+    const wk = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+    seasonEl.textContent = 'Season ' + ((wk % 52) + 1) + ' · hub ranks refresh weekly';
+  }
+  const rail = document.getElementById('rivalPressureRail');
+  if(rail) rail.innerHTML = mmRivalPressureHtml(window.mmSocial && window.mmSocial.leaderRows ? window.mmSocial.leaderRows : []);
+  const feedEl = document.getElementById('liveActivityFeed');
+  if(feedEl){
+    const merged = [];
+    const diffLines = window.__mmLastActivityDiffLines || [];
+    diffLines.forEach(d => merged.push({ t: d.t, html: escapeHtml(d.text) }));
+    (game._arenaFeed || []).forEach(l => merged.push({ t: l.t, html: escapeHtml(l.text) }));
+    merged.sort((a, b) => b.t - a.t);
+    feedEl.innerHTML = merged.slice(0, 18).length
+      ? merged
+          .slice(0, 18)
+          .map(
+            l =>
+              `<div class="liveFeedLine"><span class="layoutHint">${new Date(l.t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span> · ${l.html}</div>`
+          )
+          .join('')
+      : '<div class="layoutHint">Tape fills as you trade, take loans, hit the casino, and as rivals sync.</div>';
+  }
+  const react = document.getElementById('reactionDock');
+  if(react && !react.dataset.bound){
+    react.dataset.bound = '1';
+    react.innerHTML = ['fire', 'rip', 'lol', 'eyes', 'gg']
+      .map(
+        c =>
+          `<button type="button" class="arenaReactBtn" data-arena-act="react" data-react="${c}">${{ fire: '🔥', rip: '💀', lol: '😂', eyes: '👀', gg: 'GG' }[c]}</button>`
+      )
+      .join('');
+  }
+  const sprintTimer = document.getElementById('arenaSprintTimer');
+  if(sprintTimer){
+    const sp = game.arenaSprint;
+    const left = sp && sp.start ? Math.max(0, sp.durationMs - (Date.now() - sp.start)) : 0;
+    const mm = Math.floor(left / 60000);
+    const ss = Math.floor((left % 60000) / 1000);
+    sprintTimer.innerHTML =
+      sp && sp.start
+        ? `Live sprint · <b>${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}</b> left`
+        : 'No sprint running';
+  }
+  const firmInp = document.getElementById('firmTagInput');
+  if(firmInp && document.activeElement !== firmInp){
+    firmInp.value = game.firmTag || '';
+  }
+  const hint = document.getElementById('arenaContractHint');
+  if(hint){
+    const c = game.arenaContract;
+    if(!c || !c.target){
+      hint.textContent = 'Pick a side goal to chase while the world pulse moves everyone.';
+    }else{
+      const cur = netWorth();
+      const prog = Math.min(1, cur / Math.max(1, c.target));
+      hint.innerHTML = `${escapeHtml(c.label)} · <b>${(prog * 100).toFixed(1)}%</b> of ${fmt(c.target)} (${fmt(cur)} now)`;
+    }
+  }
+}
+function mmCheckArenaContract(){
+  const c = game.arenaContract;
+  if(!c || !c.target) return;
+  if(netWorth() >= Number(c.target)){
+    try{
+      toast('Side goal hit: ' + c.label, 'success');
+    }catch(e){}
+    mmPushArenaFeed('bet', 'Side goal finished: ' + c.label);
+    game.arenaContract = null;
+    try{
+      save(false);
+    }catch(e){}
+  }
+}
+function mmCheckNetMilestones(){
+  const n = netWorth();
+  if(!game._mmMilestones) game._mmMilestones = {};
+  const marks = [1000000, 5000000, 25000000, 100000000];
+  for(const m of marks){
+    if(n >= m && !game._mmMilestones['m' + m]){
+      game._mmMilestones['m' + m] = 1;
+      mmSpectatorToast('Milestone: ' + fmt(m) + ' net worth');
+      mmPushArenaFeed('spectator', 'You crossed ' + fmt(m) + ' net — arena notices');
+    }
+  }
+}
+let __mmLastArenaUiMs = 0;
+function tickArenaUi(force){
+  const now = Date.now();
+  if(!force && now - __mmLastArenaUiMs < 1800) return;
+  __mmLastArenaUiMs = now;
+  try{
+    mmCheckArenaContract();
+    mmCheckNetMilestones();
+    renderArenaRail();
+  }catch(e){}
 }
 
 function renderFinance(){
@@ -4024,9 +4627,10 @@ function renderFinance(){
   $('#levRisk').textContent = game.leverage>=10 ? 'Extreme' : game.leverage>=5 ? 'High' : game.leverage>=2 ? 'Medium' : 'Low';
   $('#levPosition').textContent = s.levOwned>0 ? `${fmtNum(s.levOwned)} ${s.symbol} @ ${s.levMult}x` : 'None';
   $('#globalEventPill').textContent = game.globalEvent ? `${game.globalEvent.title} · ${game.globalEvent.ticks}h` : 'No active market event';
-  const rb = $('#rivalBox');
-  if(rb){
-    rb.innerHTML = `<div class="layoutHint">Open the leaderboard in-game or from the hub to compare. Your effective net worth is <b>${fmt(netWorth())}</b>. Current debt is <b>${fmt(game.debt)}</b>. On-time payments: <b>${fmtNum(game.onTimePayments||0)}</b>.</div>`;
+  if(typeof renderRivalFromLeaderboard === 'function'){
+    try{
+      renderRivalFromLeaderboard(window.mmSocial && window.mmSocial.leaderRows ? window.mmSocial.leaderRows : []);
+    }catch(e){}
   }
   renderLeverage();
   renderLoans();
@@ -4240,6 +4844,9 @@ function casinoSlotsSpin(){
   if(mult > 0){
     const win = Math.floor(bet * mult);
     game.cash += win;
+    const net = win - bet;
+    if(net >= 80000) mmSpectatorToast('Casino slots · +' + fmt(net) + ' pulse');
+    if(net >= 25000) mmPushArenaFeed('casino', 'Slots hit ' + mult + 'x for +' + fmt(net));
     toast('Slots hit ' + mult + 'x — +' + fmt(win - bet), 'success');
     addXP(2);
   }else{
@@ -4264,6 +4871,7 @@ function casinoCoinFlip(playerHeads){
   const win = (playerHeads && landedHeads) || (!playerHeads && !landedHeads);
   if(win){
     game.cash += bet * 2;
+    if(bet >= 75000) mmPushArenaFeed('casino', 'Coin flip win for +' + fmt(bet));
     toast('You win ' + fmt(bet), 'success');
     addXP(2);
   }else{
@@ -4292,6 +4900,9 @@ function casinoWheelSpin(){
   c.wheelLastMult = m;
   const payout = Math.floor(bet * m);
   game.cash += payout;
+  const net = payout - bet;
+  if(m >= 2 && net >= 40000) mmPushArenaFeed('casino', 'Wheel ' + m + 'x · +' + fmt(net));
+  if(m >= 2 && net >= 120000) mmSpectatorToast('Wheel explosion +' + fmt(net));
   toast('Wheel ' + m + 'x → ' + fmt(payout) + ' back', payout >= bet ? 'success' : 'warning');
   addXP(2);
   save(false);
@@ -5301,7 +5912,11 @@ function refreshLive(){
   if(__mmLiveTick % 5 === 0) renderRail();
   const input = $('#globalSearch');
   if(input && document.activeElement === input && input.value.trim()) renderSearchResults(input.value);
+  try{
+    tickArenaUi(false);
+  }catch(e){}
 }
+try{ window.mmRefreshLive = refreshLive; }catch(e){}
 
 $('#buyBtn').addEventListener('click', ()=>{ playClickSound(); buyStock(); });
 $('#sellBtn').addEventListener('click', ()=>{ playClickSound(); sellStock(); });
@@ -5373,20 +5988,86 @@ document.addEventListener('pointerover', e => {
   playHoverSound();
 }, {passive:true});
 document.addEventListener('click', e => {
-  if(e.target.closest('.searchItem,.navLink,.circleBtn,[data-item-id],.tradeQtyBtn')) playClickSound();
+  if(e.target.closest('.searchItem,.navLink,.circleBtn,[data-item-id],.tradeQtyBtn,[data-arena-act]')) playClickSound();
+}, {passive:true});
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-arena-act]');
+  if(!b) return;
+  const act = b.getAttribute('data-arena-act');
+  if(act === 'sprint-12') mmStartArenaSprint(12 * 60 * 1000);
+  else if(act === 'sprint-15') mmStartArenaSprint(15 * 60 * 1000);
+  else if(act === 'firm-save') mmSaveFirmTag();
+  else if(act === 'contract-milly') mmSetArenaContract(1000000, 'Race to $1M net worth');
+  else if(act === 'react') mmSendQuickReaction(b.getAttribute('data-react') || 'gg');
 }, {passive:true});
 $('#eventPrimary').addEventListener('click', ()=>{ playClickSound(); if(!game.activeEvent) return; const res=game.activeEvent.apply ? game.activeEvent.apply() : 'Handled'; closeEventModal(res); });
 $('#eventSecondary').addEventListener('click', ()=>{ playClickSound(); if(!game.activeEvent) return; const res=game.activeEvent.alt ? game.activeEvent.alt() : 'Ignored'; closeEventModal(res); });
 
+(function setupArenaSlideDock(){
+  const dock = document.getElementById('arenaSlideDock');
+  const tab = document.getElementById('arenaSlideTab');
+  if(!dock || !tab) return;
+  /* Wider than the thin tab, but not half the screen — large X zones re-add is-proximity every move and cancel close, so the dock looked “stuck open”. */
+  const PROX_FRAC = 0.2;
+  const PROX_MIN_PX = 130;
+  const PROX_MAX_PX = 300;
+  const PROX_Y_PAD = 36;
+  function clearProximity(){
+    dock.classList.remove('is-proximity');
+  }
+  function proxBandX(){
+    return Math.min(PROX_MAX_PX, Math.max(PROX_MIN_PX, window.innerWidth * PROX_FRAC));
+  }
+  function pointerInProxBand(ev){
+    if(typeof ev.clientX !== 'number' || typeof ev.clientY !== 'number') return false;
+    if(ev.clientX > proxBandX()) return false;
+    const r = dock.getBoundingClientRect();
+    return ev.clientY >= r.top - PROX_Y_PAD && ev.clientY <= r.bottom + PROX_Y_PAD;
+  }
+  function onPointerMove(ev){
+    try{
+      if(window.matchMedia('(hover:none)').matches || window.matchMedia('(pointer:coarse)').matches) return;
+      if(dock.classList.contains('is-open')) return;
+      if(pointerInProxBand(ev)) dock.classList.add('is-proximity');
+      else clearProximity();
+    }catch(e){}
+  }
+  window.addEventListener('mousemove', onPointerMove, {passive:true});
+  dock.addEventListener('mouseleave', ()=>{
+    if(!dock.classList.contains('is-open')) clearProximity();
+  });
+  tab.addEventListener('click', ev=>{
+    ev.stopPropagation();
+    const on = dock.classList.toggle('is-open');
+    tab.setAttribute('aria-expanded', on ? 'true' : 'false');
+    if(on) clearProximity();
+  });
+  document.addEventListener('click', ev=>{
+    if(!dock.classList.contains('is-open')) return;
+    if(dock.contains(ev.target)) return;
+    dock.classList.remove('is-open');
+    tab.setAttribute('aria-expanded', 'false');
+  });
+  document.addEventListener('keydown', ev=>{
+    if(ev.key !== 'Escape') return;
+    dock.classList.remove('is-open');
+    dock.classList.remove('is-proximity');
+    tab.setAttribute('aria-expanded', 'false');
+  });
+})();
+
 load();
 refresh();
+try{
+  tickArenaUi(true);
+}catch(e){}
 
 
 let __realLast = Date.now();
 let __marketAccum = 0;
 let __newsDecayAccum = 0;
 
-setInterval(()=>{
+setInterval(async ()=>{
   const realNow = Date.now();
   let realDt = realNow - __realLast;
   __realLast = realNow;
@@ -5402,7 +6083,7 @@ setInterval(()=>{
     __newsDecayAccum += simDt;
 
     while(__marketAccum >= MARKET_TICK_MS){
-      marketTick();
+      try{ await marketTick(); }catch(err){ console.warn('marketTick', err); }
       passiveTick();
       __marketAccum -= MARKET_TICK_MS;
       game.ticksUntilNextNews = (Number.isFinite(game.ticksUntilNextNews) ? game.ticksUntilNextNews : irand(18, 48)) - 1;
@@ -5428,7 +6109,7 @@ setInterval(()=>{
     }
     if(game.simNow >= game.nextGlobalAt){
       maybeTriggerGlobalEvent();
-      game.nextGlobalAt = game.simNow + irand(90000,180000);
+      game.nextGlobalAt = game.simNow + irand(45000,120000);
     }
     try{ syncStatsToCloud(); }catch(e){}
     try{ loadLeaderboardSocial(); }catch(e){}
@@ -5438,6 +6119,33 @@ setInterval(()=>{
   if(Date.now()-game.lastSaved>25000) save(false);
 }, 250);
 
+(function mmInitSharedMarketChannel(){
+  function bind(){
+    if(typeof mmSharedMarketConfigured !== 'function' || !mmSharedMarketConfigured()) return;
+    if(window.__mmSharedMarketChanBound) return;
+    if(!window.mmSupabase || typeof window.mmSupabase.channel !== 'function') return;
+    window.__mmSharedMarketChanBound = true;
+    window.mmSupabase
+      .channel('mm-shared-market-v1')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'shared_market_snapshot', filter: 'id=eq.1' },
+        payload=>{
+          try{
+            const row = payload.new;
+            if(row && typeof window.mmApplySharedMarketDbRow === 'function'){
+              window.mmApplySharedMarketDbRow(row);
+              if(typeof window.mmRefreshLive === 'function') window.mmRefreshLive();
+            }
+          }catch(e){}
+        }
+      )
+      .subscribe();
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
+  else bind();
+  setTimeout(bind, 900);
+})();
 
 })();
 </script>
@@ -6038,6 +6746,17 @@ async function loadLeaderboardSocial(){
         : '<div class="layoutHint">No players active right now.</div>';
       if(onlineCount) onlineCount.textContent = '(' + online.length + ')';
     }
+    try{
+      window.__mmLastActivityDiffLines =
+        typeof mmDiffNetFromActivity === 'function' ? mmDiffNetFromActivity(activityRows) : [];
+    }catch(e){
+      window.__mmLastActivityDiffLines = [];
+    }
+    if(typeof tickArenaUi === 'function'){
+      try{
+        tickArenaUi(true);
+      }catch(e){}
+    }
     return;
   }
 
@@ -6119,6 +6838,22 @@ async function loadLeaderboardSocial(){
       : '<div class="layoutHint">No players active right now.</div>';
 
     if(onlineCount) onlineCount.textContent = `(${online.length})`;
+  }
+
+  try{
+    window.__mmLastActivityDiffLines = typeof mmDiffNetFromActivity === 'function' ? mmDiffNetFromActivity(activityRows) : [];
+  }catch(e){
+    window.__mmLastActivityDiffLines = [];
+  }
+  if(typeof mmUpdateLeaderRankNudge === 'function'){
+    try{
+      mmUpdateLeaderRankNudge(rows);
+    }catch(e){}
+  }
+  if(typeof tickArenaUi === 'function'){
+    try{
+      tickArenaUi(true);
+    }catch(e){}
   }
 }
   async function syncStatsToCloud(){
