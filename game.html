@@ -60,12 +60,7 @@ button{cursor:pointer;border:none;color:var(--text)}
 linear-gradient(90deg,transparent 0 6%, rgba(255,255,255,.14) 6% 8%, transparent 8% 26%, rgba(255,255,255,.14) 26% 28%, transparent 28% 46%, rgba(255,255,255,.14) 46% 48%, transparent 48% 100%);
 border-radius:8px}
 .mmMark span{position:relative;z-index:1;letter-spacing:.02em;text-shadow:0 1px 2px rgba(0,0,0,.12)}
-.searchWrap{position:relative;flex:1 1 auto;min-width:0;max-width:min(560px,min(52vw,calc(100vw - 340px)))}
-.speedDock{display:flex;align-items:center;gap:5px;flex:0 0 auto;flex-shrink:0;margin-left:2px}
-.speedHint{font-size:.68rem;font-weight:800;color:#64748b;letter-spacing:.06em;white-space:nowrap;line-height:1;user-select:none}
-@media (max-width:480px){
-  .speedHint{font-size:.62rem;letter-spacing:.02em}
-}
+.searchWrap{position:relative;flex:1 1 auto;min-width:0;max-width:min(560px,min(52vw,calc(100vw - 220px)))}
 .searchBar{
   display:flex;
   align-items:center;
@@ -628,79 +623,6 @@ canvas{width:100%;height:100%}
 
 
 
-.floatingSpeed .label{font-size:.62rem}
-  #speedBtn{
-    min-width:52px;
-    height:34px;
-    padding:0 12px;
-    font-size:.82rem;
-  }
-}
-
-
-
-  #speedBtn{min-width:84px;height:42px;padding:0 14px;font-size:.84rem}
-}
-
-
-
-  #speedBtn{
-    min-width:88px;
-    height:42px;
-    padding:0 14px;
-    font-size:.84rem;
-  }
-}
-
-
-#speedBtnTop{
-  appearance:none;
-  -webkit-appearance:none;
-  touch-action:manipulation;
-  user-select:none;
-  -webkit-user-select:none;
-  border:none;
-  height:34px;
-  min-width:56px;
-  padding:0 11px;
-  border-radius:999px;
-  background:linear-gradient(180deg,#1d6fe8,#1457b8);
-  color:#fff;
-  font-weight:900;
-  font-size:.82rem;
-  letter-spacing:.01em;
-  cursor:pointer;
-  box-shadow:0 10px 24px rgba(20,87,184,.22);
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  flex:0 0 auto;
-}
-#speedBtnTop:hover{filter:brightness(1.05)}
-#speedBtnTop:active{transform:translateY(1px) scale(.99)}
-@media (max-width:560px){
-  #speedBtnTop{
-    height:34px;
-    min-width:54px;
-    padding:0 10px;
-    font-size:.76rem;
-  }
-}
-
-
-#speedBtnTop{
-  margin-left:0;
-  height:34px;
-  min-width:52px;
-  border-radius:999px;
-  border:none;
-  background:#1d6fe8;
-  color:white;
-  font-weight:800;
-  cursor:pointer;
-}
-
-
 /* v22 header fixes */
 header, .topbar{
   position:sticky !important;
@@ -734,26 +656,6 @@ header, .topbar{
   width:auto !important;
 }
 
-#speedBtnTop{
-  position:relative !important;
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  flex:0 0 auto !important;
-  margin-left:0 !important;
-  height:34px !important;
-  min-width:54px !important;
-  padding:0 12px !important;
-  border-radius:999px !important;
-  border:none !important;
-  background:linear-gradient(180deg,#1d6fe8,#1457b8) !important;
-  color:#fff !important;
-  font-weight:900 !important;
-  cursor:pointer !important;
-  white-space:nowrap !important;
-  box-shadow:0 10px 24px rgba(20,87,184,.22) !important;
-}
-
 @media (max-width: 560px){
   header, .topbar{
     padding-top:max(8px, env(safe-area-inset-top, 0px)) !important;
@@ -766,12 +668,6 @@ header, .topbar{
   }
   .searchBar{
     min-width:0 !important;
-  }
-  #speedBtnTop{
-    height:34px !important;
-    min-width:52px !important;
-    padding:0 12px !important;
-    font-size:.78rem !important;
   }
 }
 
@@ -2146,10 +2042,6 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
       <div class="searchBar"><span>🔎</span><input id="globalSearch" type="text" placeholder="Search stocks, upgrades, purchases, news..." autocomplete="off" spellcheck="false"></div>
       <div class="searchResults" id="searchResults"></div>
     </div>
-    <div class="speedDock" title="Simulation speed — how fast each market hour runs in real time">
-      <span class="speedHint" aria-hidden="true">Time&nbsp;&gt;&gt;&gt;</span>
-      <button id="speedBtnTop" type="button" aria-label="Change simulation speed">1x</button>
-    </div>
   </div>
   <div class="topRight">
     <div class="topbarStats" aria-label="Game date and wealth">
@@ -3031,6 +2923,7 @@ function checkBankruptcy(){
   try{ playWarningSound(); }catch(e){}
 }
 function performBankruptcyReset(){
+  try{ mmStashMarketForResetBeforeReload(); }catch(e){}
   try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
   location.reload();
 }
@@ -3361,6 +3254,51 @@ function mmCreateSharedRng(baseGen){
   };
 }
 const MM_RESET_MARKET_KEY = 'MM_RESET_KEEP_MARKET_V1';
+function mmBuildResetMarketStash(){
+  if(!Array.isArray(game.stocks) || !game.stocks.length) return null;
+  const slimStocks = JSON.parse(JSON.stringify(game.stocks)).map(s=>{
+    if(s && Array.isArray(s.history) && s.history.length > 45) s.history = s.history.slice(-45);
+    return s;
+  });
+  return {
+    stocks: slimStocks,
+    _macroShock: game._macroShock,
+    _sectorShock: game._sectorShock,
+    _sessionMktEwma: game._sessionMktEwma,
+    dayCount: game.dayCount,
+    simHourOfDay: game.simHourOfDay,
+    _sharedSimGen: game._sharedSimGen,
+    mood: game.mood,
+    news: Array.isArray(game.news) ? game.news.slice(0, 32) : [],
+    newsArchive: Array.isArray(game.newsArchive) ? game.newsArchive.slice(0, 80) : [],
+    ticksUntilNextNews: game.ticksUntilNextNews,
+    globalEvent: game.globalEvent,
+    nextGlobalAt: game.nextGlobalAt,
+    _arenaFeed: Array.isArray(game._arenaFeed) ? game._arenaFeed.slice(0, 48) : []
+  };
+}
+function mmStashMarketForResetBeforeReload(){
+  try{
+    const blob = mmBuildResetMarketStash();
+    if(!blob) return;
+    const s = JSON.stringify(blob);
+    if(s.length > 4e6){
+      sessionStorage.setItem(MM_RESET_MARKET_KEY, JSON.stringify({ stocks: blob.stocks, _macroShock: blob._macroShock, _sectorShock: blob._sectorShock, _sessionMktEwma: blob._sessionMktEwma, dayCount: blob.dayCount, simHourOfDay: blob.simHourOfDay, _sharedSimGen: blob._sharedSimGen, mood: blob.mood }));
+      return;
+    }
+    sessionStorage.setItem(MM_RESET_MARKET_KEY, s);
+  }catch(e){ console.warn(e); }
+}
+function mmSchedulePostLoadSharedPull(){
+  if(!mmSharedMarketConfigured()) return;
+  setTimeout(()=>{
+    if(game._mmSkipNextSharedPull){
+      game._mmSkipNextSharedPull = false;
+      return;
+    }
+    mmPullSharedMarketBeforeTick({ force: true }).catch(()=>{});
+  }, 0);
+}
 function mmSharedStockWire(s){
   return {
     symbol: s.symbol,
@@ -3398,12 +3336,12 @@ function mmSharedStockWire(s){
   };
 }
 function mmMergeResetPreservedMarket(){
-  if(!mmSharedMarketConfigured()) return;
   try{
     const raw = sessionStorage.getItem(MM_RESET_MARKET_KEY);
     if(!raw) return;
-    sessionStorage.removeItem(MM_RESET_MARKET_KEY);
     const blob = JSON.parse(raw);
+    sessionStorage.removeItem(MM_RESET_MARKET_KEY);
+    game._mmSkipNextSharedPull = true;
     if(blob.stocks && Array.isArray(blob.stocks) && game.stocks && game.stocks.length){
       const by = Object.create(null);
       blob.stocks.forEach(b=>{ if(b && b.symbol) by[String(b.symbol).toUpperCase()] = b; });
@@ -3427,7 +3365,10 @@ function mmMergeResetPreservedMarket(){
     if(typeof blob.ticksUntilNextNews === 'number') game.ticksUntilNextNews = blob.ticksUntilNextNews;
     if(typeof blob.nextGlobalAt === 'number') game.nextGlobalAt = blob.nextGlobalAt;
     game._lastSharedSnapSeen = 0;
-  }catch(e){ console.warn(e); }
+  }catch(e){
+    console.warn(e);
+    try{ sessionStorage.removeItem(MM_RESET_MARKET_KEY); }catch(_e){}
+  }
 }
 function mmApplySharedMarketPayload(payload){
   if(!payload || !Array.isArray(game.stocks)) return;
@@ -3984,22 +3925,13 @@ const SPEEDS = [
   {label:'3x', mult:3}
 ];
 function getSpeed(){
-  const idx = Number.isInteger(game.speedIndex) ? game.speedIndex : 1;
-  return SPEEDS[Math.max(0, Math.min(SPEEDS.length - 1, idx))];
+  return SPEEDS[1];
 }
 function updateSpeedButton(){
   const btn = document.getElementById('speedBtnTop');
   if(btn) btn.textContent = getSpeed().label;
 }
-function cycleSpeed(){
-  game.speedIndex = (Number.isInteger(game.speedIndex) ? game.speedIndex : 1) + 1;
-  if(game.speedIndex >= SPEEDS.length) game.speedIndex = 0;
-  game.speedLabel = getSpeed().label;
-  updateSpeedButton();
-  try{ playClickSound(); }catch(e){}
-  try{ toast('Game speed: ' + getSpeed().label); }catch(e){}
-  try{ save(false); }catch(e){}
-}
+function cycleSpeed(){}
 window.__mmCycleSpeed = cycleSpeed;
 window.__mmUpdateSpeedButton = updateSpeedButton;
 window.__mmGetSpeed = getSpeed;
@@ -4014,9 +3946,7 @@ function load(){
     makeNews(true);
     makeNews(true);
     mmMergeResetPreservedMarket();
-    if(mmSharedMarketConfigured()){
-      setTimeout(()=>{ mmPullSharedMarketBeforeTick({ force: true }).catch(()=>{}); }, 0);
-    }
+    mmSchedulePostLoadSharedPull();
     try{ document.body.classList.add('mm-motion'); }catch(e){}
     return;
   }
@@ -4097,35 +4027,14 @@ function load(){
     if(!game.nextBonusAt) game.nextBonusAt = game.simNow + irand(15000,60000);
     if(!game.nextLifeAt) game.nextLifeAt = game.simNow + irand(60000,300000);
     mmMergeResetPreservedMarket();
-    if(mmSharedMarketConfigured()){
-      setTimeout(()=>{ mmPullSharedMarketBeforeTick({ force: true }).catch(()=>{}); }, 0);
-    }
+    mmSchedulePostLoadSharedPull();
     recalc();
     try{ document.body.classList.add('mm-motion'); }catch(e){}
   }catch(e){ console.warn(e); recalc(); try{ document.body.classList.add('mm-motion'); }catch(_e){} }
 }
 function reset(){
   if(!confirm('Reset everything?')) return;
-  try{
-    if(mmSharedMarketConfigured()){
-      sessionStorage.setItem(MM_RESET_MARKET_KEY, JSON.stringify({
-        stocks: game.stocks,
-        _macroShock: game._macroShock,
-        _sectorShock: game._sectorShock,
-        _sessionMktEwma: game._sessionMktEwma,
-        dayCount: game.dayCount,
-        simHourOfDay: game.simHourOfDay,
-        _sharedSimGen: game._sharedSimGen,
-        mood: game.mood,
-        news: game.news,
-        newsArchive: game.newsArchive,
-        ticksUntilNextNews: game.ticksUntilNextNews,
-        globalEvent: game.globalEvent,
-        nextGlobalAt: game.nextGlobalAt,
-        _arenaFeed: game._arenaFeed
-      }));
-    }
-  }catch(e){ console.warn(e); }
+  mmStashMarketForResetBeforeReload();
   localStorage.removeItem(SAVE_KEY);
   location.reload();
 }
@@ -6340,34 +6249,6 @@ setInterval(async ()=>{
   setTimeout(bind, 900);
 })();
 
-})();
-</script>
-<script>
-(function(){
-  const btn = document.getElementById('speedBtnTop');
-  if(!btn) return;
-
-  function refreshSpeedLabel(){
-    if(window.__mmGetSpeed){
-      btn.textContent = window.__mmGetSpeed().label;
-    }
-  }
-
-  btn.addEventListener('click', function(e){
-    e.preventDefault();
-    if(window.__mmCycleSpeed) window.__mmCycleSpeed();
-    refreshSpeedLabel();
-  });
-
-  btn.addEventListener('touchstart', function(e){
-    e.preventDefault();
-    if(window.__mmCycleSpeed) window.__mmCycleSpeed();
-    refreshSpeedLabel();
-  }, {passive:false});
-
-  refreshSpeedLabel();
-  if(window.__mmUpdateSpeedButton) window.__mmUpdateSpeedButton();
-  refreshSpeedLabel();
 })();
 </script>
 
