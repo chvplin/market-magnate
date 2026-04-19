@@ -136,6 +136,8 @@ linear-gradient(180deg,#2c7df0,#145dcb);position:relative;overflow:hidden}
 .heroLeft{display:flex;flex-direction:column;gap:16px}
 .pillRow{display:flex;flex-wrap:wrap;gap:10px}
 .pill{padding:9px 14px;border-radius:999px;background:#eef3f8;border:1px solid var(--line);font-size:.9rem;color:#243244}
+.topbarStats{display:flex;align-items:center;gap:8px;flex-wrap:wrap;max-width:min(46vw,380px)}
+.topbarStats .pill{white-space:nowrap}
 .heroTitle{font-size:2.2rem;font-weight:950;line-height:1.04;margin:0}
 .heroText{color:#4b4f56;max-width:760px;line-height:1.55}
 .heroActions{display:flex;flex-wrap:wrap;gap:12px}
@@ -337,6 +339,25 @@ canvas{width:100%;height:100%}
 
 .mobileNav{display:none}
 .mobileQuickTrade{display:none}
+.casinoShell{display:grid;gap:16px}
+.casinoBankRow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:4px}
+.casinoCard{background:var(--panel2);border:1px solid var(--line);border-radius:13px;padding:14px 16px}
+.casinoCard h4{margin:0 0 8px;font-size:1rem}
+.casinoField{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px}
+.casinoField label{font-size:.82rem;font-weight:800;color:var(--muted)}
+.casinoField input{width:120px;padding:8px 10px;border-radius:10px;border:1px solid var(--line)}
+.bjRow{display:grid;gap:10px;margin-top:10px}
+.bjRow b{font-size:.85rem;color:var(--muted)}
+.bjHand{display:flex;flex-wrap:wrap;gap:8px;min-height:68px;align-items:center}
+.bjCard{width:46px;height:64px;border-radius:9px;background:#fff;border:1px solid #c5ced8;display:grid;place-items:center;font-weight:900;font-size:.95rem;box-shadow:0 2px 0 rgba(0,0,0,.05)}
+.bjCard.red{color:#c42b2b}
+.bjCard.back{background:linear-gradient(145deg,#3d4f7a,#1e2d52);color:#e8eefc;font-size:.62rem;font-weight:800}
+.casinoActions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.slotRow{display:flex;gap:14px;align-items:center;justify-content:center;font-size:2.1rem;letter-spacing:.08em;margin:14px 0;padding:16px;border-radius:12px;background:#0f172a;color:#f8fafc;border:1px solid #1e293b}
+.slotHint{font-size:.86rem;color:var(--muted);margin-top:6px}
+.wheelFace{width:min(280px,88vw);height:min(280px,88vw);margin:12px auto;border-radius:50%;border:10px solid #1e293b;background:conic-gradient(from 0deg,#ef4444 0 30deg,#22c55e 30deg 60deg,#eab308 60deg 90deg,#3b82f6 90deg 120deg,#a855f7 120deg 150deg,#f97316 150deg 180deg,#14b8a6 180deg 210deg,#ec4899 210deg 240deg,#64748b 240deg 270deg,#f59e0b 270deg 300deg,#10b981 300deg 330deg,#6366f1 330deg 360deg);position:relative;box-shadow:0 16px 40px rgba(0,0,0,.18)}
+.wheelPointer{position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:12px solid transparent;border-right:12px solid transparent;border-bottom:18px solid #0f172a;z-index:2}
+.wheelLabel{position:absolute;inset:0;display:grid;place-items:center;font-weight:950;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5);font-size:1.35rem;pointer-events:none}
 @media (max-width:760px){
   body{padding-bottom:140px}
   .topbar{padding-top:max(10px, env(safe-area-inset-top));}
@@ -374,7 +395,7 @@ canvas{width:100%;height:100%}
   .newsFlashMarquee{font-size:.88rem}
   .eventModal{padding:18px;border-radius:10px}
   .eventChoices{grid-template-columns:1fr}
-  .mobileNav{position:fixed;left:0;right:0;bottom:0;z-index:132;display:grid;grid-template-columns:repeat(6,1fr);gap:8px;padding:10px 10px calc(10px + env(safe-area-inset-bottom));background:rgba(226,231,237,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);box-shadow:0 -10px 28px rgba(0,0,0,.10)}
+  .mobileNav{position:fixed;left:0;right:0;bottom:0;z-index:132;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px 10px calc(10px + env(safe-area-inset-bottom));background:rgba(226,231,237,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line);box-shadow:0 -10px 28px rgba(0,0,0,.10)}
   .mobileNavBtn{background:#eef2f6;border:1px solid var(--line);border-radius:10px;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:58px}
   .mobileNavBtn span{font-size:1.15rem;line-height:1}
   .mobileNavBtn b{font-size:.7rem}
@@ -1925,7 +1946,11 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
     </div>
   </div>
   <div class="topRight">
-    <div class="pill" id="datePill">Jan 1, 2000</div>
+    <div class="topbarStats" aria-label="Game date and wealth">
+      <div class="pill" id="datePill">Jan 1, 2000</div>
+      <div class="pill" id="topbarCashPill" title="Cash on hand">Cash · $500</div>
+      <div class="pill" id="topbarNetPill" title="Total net worth">Net worth · $500</div>
+    </div>
     <button class="circleBtn" id="hubBtn" title="Social Hub">🏠</button>
     <button class="circleBtn" id="topStocks">📈</button>
     <button class="circleBtn" id="topNews">📰</button>
@@ -1978,6 +2003,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
       <button class="menuBtn" data-view="user"><div class="menuIcon">👤</div><div class="menuText"><b>User</b><span>Assets, XP, progress</span></div></button>
       <button class="menuBtn" data-view="finance"><div class="menuIcon">🏦</div><div class="menuText"><b>Finance</b><span>Loans, leverage, rivals</span></div></button>
       <button class="menuBtn" data-view="empire"><div class="menuIcon">👑</div><div class="menuText"><b>Empire</b><span>Visualize what you own</span></div></button>
+      <button class="menuBtn" data-view="casino"><div class="menuIcon">🎰</div><div class="menuText"><b>Casino</b><span>Blackjack, slots, and more</span></div></button>
     </div>
     <div class="sideActions">
       <button class="ghostBtn" id="saveBtn">Save</button>
@@ -2224,6 +2250,18 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
       </div>
     </section>
 
+    <section id="casinoView" class="panel hidden">
+      <div class="panelHead">
+        <div>
+          <div class="panelTitle">Magnate Casino</div>
+          <div class="panelSub">Wager in-game cash on blackjack, slots, coin flips, and a simple wheel. The house has a real edge — don’t bet the rent.</div>
+        </div>
+        <div class="pill" id="casinoBankPill">Bankroll · $0</div>
+      </div>
+      <div class="shopTabs casinoTabBar" id="casinoTabBar" style="margin-bottom:4px"></div>
+      <div id="casinoDynamic" class="casinoShell"></div>
+    </section>
+
     <section id="financeView" class="panel hidden">
       <div class="panelHead">
         <div>
@@ -2320,6 +2358,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
         <button class="menuBtn" data-view="business"><div class="menuIcon">🏗️</div><div class="menuText"><b>Scale Up</b><span>Buy income upgrades</span></div></button>
         <button class="menuBtn" data-view="shopping"><div class="menuIcon">✨</div><div class="menuText"><b>Flex Wealth</b><span>Spend on status</span></div></button>
         <button class="menuBtn" data-view="empire"><div class="menuIcon">👑</div><div class="menuText"><b>Empire</b><span>See the life you built</span></div></button>
+        <button class="menuBtn" data-view="casino"><div class="menuIcon">🎰</div><div class="menuText"><b>Casino</b><span>Risk cash for quick thrills</span></div></button>
       </div>
     </div>
   </aside>
@@ -2333,6 +2372,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   <button class="mobileNavBtn" data-view="business"><span>🏢</span><b>Biz</b></button>
   <button class="mobileNavBtn" data-view="user"><span>👤</span><b>User</b></button>
   <button class="mobileNavBtn" data-view="empire"><span>👑</span><b>Empire</b></button>
+  <button class="mobileNavBtn" data-view="casino"><span>🎰</span><b>Casino</b></button>
 </nav>
 
 <div class="mobileQuickTrade" id="mobileQuickTrade">
@@ -2610,6 +2650,8 @@ const game = {
   businessOwned: businessItems.filter(i=>i.owned).map(i=>i.id),
   shoppingOwned: [],
   empireShowcasePicks: { homes: '', cars: '', jewelry: '', watches: '' },
+  casinoTab: 'blackjack',
+  casino: null,
   avatarDNA: defaultAvatarDNA(),
   stocks: stockSeed,
   news: [],
@@ -3235,7 +3277,7 @@ function doPrestige(){
   const legacy = game.legacy + gain;
   const keepAvatarDNA = JSON.parse(JSON.stringify(normalizeAvatarDNA(game.avatarDNA || {})));
   localStorage.removeItem(SAVE_KEY);
-  Object.assign(game,{cash:500,totalEarned:500,xp:0,level:1,legacy,passivePerSec:0,incomeMult:1,tradeBonus:0,style:0,network:0,view:'stocks',selectedStock:0,tradeQty:1,newsBonusPool:0,mood:'Balanced',trades:0,lastSaved:0,businessOwned:['business_headquarters_0'],shoppingOwned:[],empireShowcasePicks:{homes:'',cars:'',jewelry:'',watches:''},ownedProfileAvatars:['default_avatar'],ownedProfileBanners:['default_banner','profile_banner_gold','profile_banner_neon','profile_banner_midnight'],stocks: JSON.parse(JSON.stringify(stockSeed)),news:[],newsArchive:[],ticksUntilNextNews:irand(40,100),paused:false,nextBonusAt:Date.now()+irand(15000,60000),nextLifeAt:Date.now()+irand(60000,300000),activeEvent:null,debt:0,debtInterestRate:0.00045,leverage:1,globalEvent:null,nextGlobalAt:Date.now()+irand(90000,180000),dayCount:1,creditScore:300,creditTier:0,onTimePayments:0,missedPayments:0,loanCycleStartDay:1,loanDueDay:8,loanDueAmount:0,loanPaidThisCycle:0});
+  Object.assign(game,{cash:500,totalEarned:500,xp:0,level:1,legacy,passivePerSec:0,incomeMult:1,tradeBonus:0,style:0,network:0,view:'stocks',selectedStock:0,tradeQty:1,newsBonusPool:0,mood:'Balanced',trades:0,lastSaved:0,businessOwned:['business_headquarters_0'],shoppingOwned:[],empireShowcasePicks:{homes:'',cars:'',jewelry:'',watches:''},casinoTab:'blackjack',casino:null,ownedProfileAvatars:['default_avatar'],ownedProfileBanners:['default_banner','profile_banner_gold','profile_banner_neon','profile_banner_midnight'],stocks: JSON.parse(JSON.stringify(stockSeed)),news:[],newsArchive:[],ticksUntilNextNews:irand(40,100),paused:false,nextBonusAt:Date.now()+irand(15000,60000),nextLifeAt:Date.now()+irand(60000,300000),activeEvent:null,debt:0,debtInterestRate:0.00045,leverage:1,globalEvent:null,nextGlobalAt:Date.now()+irand(90000,180000),dayCount:1,creditScore:300,creditTier:0,onTimePayments:0,missedPayments:0,loanCycleStartDay:1,loanDueDay:8,loanDueAmount:0,loanPaidThisCycle:0});
   game.avatarDNA = keepAvatarDNA;
   recalc();
   makeNews(true);makeNews(true);
@@ -3330,6 +3372,10 @@ function load(){
         else game.empireShowcasePicks[k] = String(game.empireShowcasePicks[k]);
       });
     }
+    game.casinoTab ??= 'blackjack';
+    if(game.casino && typeof game.casino === 'object'){
+      game.casino.bj = { phase: 'idle', deck: [], player: [], dealer: [], holeHidden: false, staked: 0, doubled: false };
+    }
     game.avatarDNA = normalizeAvatarDNA(game.avatarDNA || {});
     if(!game.newsArchive.length && Array.isArray(game.news) && game.news.length){
       game.newsArchive = game.news.map((n, i) => {
@@ -3385,7 +3431,7 @@ function switchView(view){
 
 function renderMenu(){
   $$('#menuBtns .menuBtn').forEach(btn=>btn.classList.toggle('active', btn.dataset.view===game.view));
-  ['stocks','shopping','news','business','user','finance','empire'].forEach(v=>{
+  ['stocks','shopping','news','business','user','finance','empire','casino'].forEach(v=>{
     $('#'+v+'View').classList.toggle('hidden', game.view!==v);
   });
 }
@@ -3702,6 +3748,429 @@ function renderFinance(){
   }
   renderLeverage();
   renderLoans();
+}
+
+let __casinoBound = false;
+function ensureCasinoState(){
+  if(!game.casino || typeof game.casino !== 'object'){
+    game.casino = {
+      bjBet: 100,
+      slotsBet: 50,
+      coinBet: 50,
+      wheelBet: 75,
+      slotsLast: ['🍒','7️⃣','💎'],
+      wheelLastIdx: 0,
+      wheelLastMult: 1,
+      coinLast: null,
+      bj: { phase: 'idle', deck: [], player: [], dealer: [], holeHidden: false, staked: 0, doubled: false }
+    };
+    return;
+  }
+  const c = game.casino;
+  c.bjBet = Number.isFinite(c.bjBet) && c.bjBet >= 1 ? c.bjBet : 100;
+  c.slotsBet = Number.isFinite(c.slotsBet) && c.slotsBet >= 1 ? c.slotsBet : 50;
+  c.coinBet = Number.isFinite(c.coinBet) && c.coinBet >= 1 ? c.coinBet : 50;
+  c.wheelBet = Number.isFinite(c.wheelBet) && c.wheelBet >= 1 ? c.wheelBet : 75;
+  if(!Array.isArray(c.slotsLast) || c.slotsLast.length !== 3) c.slotsLast = ['🍒','7️⃣','💎'];
+  if(!c.bj || typeof c.bj !== 'object'){
+    c.bj = { phase: 'idle', deck: [], player: [], dealer: [], holeHidden: false, staked: 0, doubled: false };
+  }else{
+    c.bj.deck = Array.isArray(c.bj.deck) ? c.bj.deck : [];
+    c.bj.player = Array.isArray(c.bj.player) ? c.bj.player : [];
+    c.bj.dealer = Array.isArray(c.bj.dealer) ? c.bj.dealer : [];
+    c.bj.phase = c.bj.phase || 'idle';
+    c.bj.holeHidden = !!c.bj.holeHidden;
+    c.bj.staked = Number(c.bj.staked) || 0;
+    c.bj.doubled = !!c.bj.doubled;
+  }
+}
+const CASINO_RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const CASINO_SUITS = ['\u2660','\u2665','\u2666','\u2663'];
+const CASINO_SLOT_SYM = ['🍒','7️⃣','💎','⭐','🔔'];
+function casinoNewDeck(){
+  const d = [];
+  for(const s of CASINO_SUITS){
+    const red = s === '\u2665' || s === '\u2666';
+    for(const r of CASINO_RANKS) d.push({ r, s, red });
+  }
+  for(let i = d.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = d[i]; d[i] = d[j]; d[j] = t;
+  }
+  return d;
+}
+function casinoHandTotal(cards){
+  let t = 0;
+  let aces = 0;
+  for(const c of cards){
+    if(c.r === 'A'){ aces++; t += 11; }
+    else if(c.r === 'K' || c.r === 'Q' || c.r === 'J' || c.r === '10') t += 10;
+    else t += parseInt(c.r, 10);
+  }
+  while(t > 21 && aces > 0){ t -= 10; aces--; }
+  return t;
+}
+function casinoIsNatural(cards){
+  return cards.length === 2 && casinoHandTotal(cards) === 21;
+}
+function casinoCardHtml(c, faceDown){
+  if(faceDown) return '<div class="bjCard back">MM</div>';
+  const cls = c.red ? 'bjCard red' : 'bjCard';
+  return `<div class="${cls}">${c.r}${c.s}</div>`;
+}
+function casinoBjResolveDealer(){
+  ensureCasinoState();
+  const B = game.casino.bj;
+  B.holeHidden = false;
+  const dk = B.deck;
+  while(casinoHandTotal(B.dealer) < 17 && dk.length) B.dealer.push(dk.pop());
+  const pt = casinoHandTotal(B.player);
+  const dt = casinoHandTotal(B.dealer);
+  const st = B.staked;
+  if(dt > 21){
+    game.cash += st * 2;
+    toast('Dealer busts — you win ' + fmt(st), 'success');
+    addXP(4);
+  }else if(pt > dt){
+    game.cash += st * 2;
+    toast('You win ' + fmt(st), 'success');
+    addXP(4);
+  }else if(pt < dt){
+    toast('House wins', 'warning');
+  }else{
+    game.cash += st;
+    toast('Push — stake returned', 'notification');
+  }
+  B.phase = 'idle';
+}
+function casinoBjStand(){
+  ensureCasinoState();
+  const B = game.casino.bj;
+  if(B.phase !== 'play') return;
+  B.phase = 'dealer';
+  casinoBjResolveDealer();
+  save(false);
+  refresh();
+}
+function casinoBjHit(){
+  ensureCasinoState();
+  const B = game.casino.bj;
+  if(B.phase !== 'play') return;
+  B.player.push(B.deck.pop());
+  const t = casinoHandTotal(B.player);
+  if(t > 21){
+    B.holeHidden = false;
+    toast('Bust — you lose ' + fmt(B.staked), 'warning');
+    B.phase = 'idle';
+    save(false);
+    refresh();
+    return;
+  }
+  if(t === 21){
+    casinoBjStand();
+    return;
+  }
+  save(false);
+  refresh();
+}
+function casinoBjDouble(){
+  ensureCasinoState();
+  const B = game.casino.bj;
+  if(B.phase !== 'play' || B.player.length !== 2 || B.doubled) return;
+  if(game.cash < B.staked){ toast('Need cash equal to your stake to double', 'warning'); return; }
+  game.cash -= B.staked;
+  B.staked *= 2;
+  B.doubled = true;
+  B.player.push(B.deck.pop());
+  const t = casinoHandTotal(B.player);
+  if(t > 21){
+    B.holeHidden = false;
+    toast('Bust on double', 'warning');
+    B.phase = 'idle';
+    save(false);
+    refresh();
+    return;
+  }
+  casinoBjStand();
+}
+function casinoBjDeal(){
+  ensureCasinoState();
+  const c = game.casino;
+  const inp = document.getElementById('casinoBjBet');
+  if(inp){
+    const v = Math.floor(Number(inp.value) || 0);
+    if(v >= 1) c.bjBet = v;
+  }
+  const bet = Math.max(1, Math.floor(c.bjBet));
+  c.bjBet = bet;
+  if(game.cash < bet){ toast('Not enough cash for that bet', 'warning'); return; }
+  if(c.bj.phase === 'play'){ toast('Finish this hand first', 'warning'); return; }
+  game.cash -= bet;
+  c.bj = { phase: 'play', deck: casinoNewDeck(), player: [], dealer: [], holeHidden: true, staked: bet, doubled: false };
+  const dk = c.bj.deck;
+  c.bj.player.push(dk.pop(), dk.pop());
+  c.bj.dealer.push(dk.pop(), dk.pop());
+  if(casinoIsNatural(c.bj.player)){
+    c.bj.holeHidden = false;
+    const dt = casinoHandTotal(c.bj.dealer);
+    if(dt === 21){
+      game.cash += bet;
+      toast('Push — both blackjack', 'notification');
+    }else{
+      const win = Math.floor(bet * 2.5);
+      game.cash += win;
+      toast('Blackjack! +' + fmt(win - bet), 'success');
+      addXP(6);
+    }
+    c.bj.phase = 'idle';
+  }else if(casinoIsNatural(c.bj.dealer)){
+    c.bj.holeHidden = false;
+    toast('Dealer blackjack', 'warning');
+    c.bj.phase = 'idle';
+  }
+  save(false);
+  refresh();
+}
+function casinoSlotsSpin(){
+  ensureCasinoState();
+  const c = game.casino;
+  const inp = document.getElementById('casinoSlotsBet');
+  if(inp){
+    const v = Math.floor(Number(inp.value) || 0);
+    if(v >= 1) c.slotsBet = v;
+  }
+  const bet = Math.max(1, Math.floor(c.slotsBet));
+  c.slotsBet = bet;
+  if(game.cash < bet){ toast('Not enough cash', 'warning'); return; }
+  game.cash -= bet;
+  const pick = () => CASINO_SLOT_SYM[irand(0, CASINO_SLOT_SYM.length - 1)];
+  const a = pick();
+  const b = pick();
+  const x = pick();
+  c.slotsLast = [a, b, x];
+  let mult = 0;
+  if(a === b && b === x){
+    if(a === '🍒') mult = 12;
+    else if(a === '7️⃣') mult = 15;
+    else if(a === '💎') mult = 10;
+    else mult = 7;
+  }else if(a === b || b === x || a === x) mult = 2;
+  if(mult > 0){
+    const win = Math.floor(bet * mult);
+    game.cash += win;
+    toast('Slots hit ' + mult + 'x — +' + fmt(win - bet), 'success');
+    addXP(2);
+  }else{
+    toast('No payline match', 'warning');
+  }
+  save(false);
+  refresh();
+}
+function casinoCoinFlip(playerHeads){
+  ensureCasinoState();
+  const c = game.casino;
+  const inp = document.getElementById('casinoCoinBet');
+  if(inp){
+    const v = Math.floor(Number(inp.value) || 0);
+    if(v >= 1) c.coinBet = v;
+  }
+  const bet = Math.max(1, Math.floor(c.coinBet));
+  c.coinBet = bet;
+  if(game.cash < bet){ toast('Not enough cash', 'warning'); return; }
+  game.cash -= bet;
+  const landedHeads = Math.random() < 0.5;
+  const win = (playerHeads && landedHeads) || (!playerHeads && !landedHeads);
+  if(win){
+    game.cash += bet * 2;
+    toast('You win ' + fmt(bet), 'success');
+    addXP(2);
+  }else{
+    toast('House wins the flip', 'warning');
+  }
+  c.coinLast = landedHeads ? 'heads' : 'tails';
+  save(false);
+  refresh();
+}
+const CASINO_WHEEL_MULTS = [0, 0.25, 0.5, 0.75, 1, 1.5, 2, 3];
+function casinoWheelSpin(){
+  ensureCasinoState();
+  const c = game.casino;
+  const inp = document.getElementById('casinoWheelBet');
+  if(inp){
+    const v = Math.floor(Number(inp.value) || 0);
+    if(v >= 1) c.wheelBet = v;
+  }
+  const bet = Math.max(1, Math.floor(c.wheelBet));
+  c.wheelBet = bet;
+  if(game.cash < bet){ toast('Not enough cash', 'warning'); return; }
+  game.cash -= bet;
+  const idx = irand(0, CASINO_WHEEL_MULTS.length - 1);
+  const m = CASINO_WHEEL_MULTS[idx];
+  c.wheelLastIdx = idx;
+  c.wheelLastMult = m;
+  const payout = Math.floor(bet * m);
+  game.cash += payout;
+  toast('Wheel ' + m + 'x → ' + fmt(payout) + ' back', payout >= bet ? 'success' : 'warning');
+  addXP(2);
+  save(false);
+  refresh();
+}
+function syncCasinoBetFieldFromTarget(t){
+  if(!t || t.tagName !== 'INPUT') return;
+  const ids = { casinoBjBet: 'bjBet', casinoSlotsBet: 'slotsBet', casinoCoinBet: 'coinBet', casinoWheelBet: 'wheelBet' };
+  const key = ids[t.id];
+  if(!key) return;
+  ensureCasinoState();
+  const raw = String(t.value ?? '').trim();
+  if(raw === '') return;
+  const n = Math.floor(Number(raw));
+  if(!Number.isFinite(n)) return;
+  game.casino[key] = Math.max(1, n);
+}
+
+function normalizeCasinoBetField(t){
+  if(!t || t.tagName !== 'INPUT') return;
+  const ids = { casinoBjBet: 'bjBet', casinoSlotsBet: 'slotsBet', casinoCoinBet: 'coinBet', casinoWheelBet: 'wheelBet' };
+  const key = ids[t.id];
+  if(!key) return;
+  ensureCasinoState();
+  const v = Math.max(1, Math.floor(Number(String(t.value ?? '').trim()) || 1));
+  game.casino[key] = v;
+  t.value = String(v);
+}
+
+function bindCasinoOnce(){
+  if(__casinoBound) return;
+  const root = $('#casinoView');
+  if(!root) return;
+  __casinoBound = true;
+  root.addEventListener('input', e => syncCasinoBetFieldFromTarget(e.target));
+  root.addEventListener('change', e => syncCasinoBetFieldFromTarget(e.target));
+  root.addEventListener('focusout', e => {
+    const t = e.target;
+    if(!t || t.tagName !== 'INPUT' || !t.closest('#casinoDynamic')) return;
+    if(!/^casino(BjBet|SlotsBet|CoinBet|WheelBet)$/.test(t.id)) return;
+    normalizeCasinoBetField(t);
+  });
+  root.addEventListener('click', e => {
+    const tab = e.target.closest('[data-casino-tab]');
+    if(tab){
+      game.casinoTab = tab.dataset.casinoTab;
+      playClickSound();
+      refresh();
+      return;
+    }
+    const act = e.target.closest('[data-casino-act]');
+    if(!act) return;
+    playClickSound();
+    const a = act.dataset.casinoAct;
+    if(a === 'bj-deal') casinoBjDeal();
+    else if(a === 'bj-hit') casinoBjHit();
+    else if(a === 'bj-stand') casinoBjStand();
+    else if(a === 'bj-double') casinoBjDouble();
+    else if(a === 'slots-spin') casinoSlotsSpin();
+    else if(a === 'coin-heads') casinoCoinFlip(true);
+    else if(a === 'coin-tails') casinoCoinFlip(false);
+    else if(a === 'wheel-spin') casinoWheelSpin();
+  });
+}
+function casinoBetInputHasFocus(){
+  if(game.view !== 'casino') return false;
+  const a = document.activeElement;
+  if(!a || typeof a.closest !== 'function') return false;
+  if(!a.closest('#casinoDynamic')) return false;
+  const tag = (a.tagName || '').toUpperCase();
+  return tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA';
+}
+
+function renderCasino(){
+  const pill = $('#casinoBankPill');
+  if(pill) pill.textContent = 'Bankroll · ' + fmt(game.cash);
+  const bar = $('#casinoTabBar');
+  const dyn = $('#casinoDynamic');
+  if(!bar || !dyn) return;
+  ensureCasinoState();
+  const tab = game.casinoTab || 'blackjack';
+  const tabs = [
+    { id: 'blackjack', label: 'Blackjack' },
+    { id: 'slots', label: 'Slots' },
+    { id: 'coin', label: 'Coin flip' },
+    { id: 'wheel', label: 'Wheel' }
+  ];
+  bar.innerHTML = tabs.map(t => `<button type="button" class="shopTab${tab === t.id ? ' active' : ''}" data-casino-tab="${t.id}">${t.label}</button>`).join('');
+  if(casinoBetInputHasFocus()) return;
+  const c = game.casino;
+  const B = c.bj;
+  if(tab === 'blackjack'){
+    const pHtml = (B.player || []).map(x => casinoCardHtml(x, false)).join('');
+    const dHtml = (B.dealer || []).map((x, i) => casinoCardHtml(x, B.holeHidden && i === 1)).join('');
+    const inPlay = B.phase === 'play';
+    dyn.innerHTML = `
+      <div class="casinoCard">
+        <h4>Single-deck blackjack (dealer hits soft 17 rule: hit below 17)</h4>
+        <div class="panelSub" style="margin-top:4px">Blackjack pays 3:2 on your stake. Double down allowed on first action only (one card). Push returns your bet.</div>
+        <div class="casinoField" style="margin-top:12px">
+          <label for="casinoBjBet">Bet</label>
+          <input type="number" id="casinoBjBet" min="1" step="1" value="${Math.floor(c.bjBet)}" ${inPlay ? 'disabled' : ''} />
+        </div>
+        <div class="bjRow"><b>Your hand</b> (${casinoHandTotal(B.player || [])})</div>
+        <div class="bjHand">${pHtml || '<span class="layoutHint">No cards yet</span>'}</div>
+        <div class="bjRow"><b>Dealer</b>${B.holeHidden ? ' (hole hidden)' : ' (' + casinoHandTotal(B.dealer || []) + ')'}</div>
+        <div class="bjHand">${dHtml || '<span class="layoutHint">—</span>'}</div>
+        <div class="casinoActions">
+          <button type="button" class="shopTab" data-casino-act="bj-deal" ${inPlay ? 'disabled' : ''}>Deal</button>
+          <button type="button" class="shopTab" data-casino-act="bj-hit" ${inPlay ? '' : 'disabled'}>Hit</button>
+          <button type="button" class="shopTab" data-casino-act="bj-stand" ${inPlay ? '' : 'disabled'}>Stand</button>
+          <button type="button" class="shopTab" data-casino-act="bj-double" ${inPlay && !B.doubled && (B.player || []).length === 2 ? '' : 'disabled'}>Double</button>
+        </div>
+      </div>`;
+  }else if(tab === 'slots'){
+    const [a, b, x] = c.slotsLast;
+    dyn.innerHTML = `
+      <div class="casinoCard">
+        <h4>Three-reel line</h4>
+        <div class="panelSub">Triple match pays up to 15x (triple 7). Any two symbols on the line pays 2x.</div>
+        <div class="casinoField" style="margin-top:12px">
+          <label for="casinoSlotsBet">Bet per spin</label>
+          <input type="number" id="casinoSlotsBet" min="1" step="1" value="${Math.floor(c.slotsBet)}" />
+        </div>
+        <div class="slotRow" aria-hidden="true"><span>${a}</span><span>${b}</span><span>${x}</span></div>
+        <div class="slotHint">Symbols refresh after each spin.</div>
+        <div class="casinoActions"><button type="button" class="shopTab" data-casino-act="slots-spin">Spin</button></div>
+      </div>`;
+  }else if(tab === 'coin'){
+    const last = c.coinLast ? `Last flip: <b>${c.coinLast}</b>` : 'Pick a side — fair 50/50, pays 1:1.';
+    dyn.innerHTML = `
+      <div class="casinoCard">
+        <h4>Double-or-nothing coin</h4>
+        <div class="panelSub">${last}</div>
+        <div class="casinoField" style="margin-top:12px">
+          <label for="casinoCoinBet">Wager</label>
+          <input type="number" id="casinoCoinBet" min="1" step="1" value="${Math.floor(c.coinBet)}" />
+        </div>
+        <div class="casinoActions">
+          <button type="button" class="shopTab" data-casino-act="coin-heads">Call Heads</button>
+          <button type="button" class="shopTab" data-casino-act="coin-tails">Call Tails</button>
+        </div>
+      </div>`;
+  }else{
+    const m = c.wheelLastMult != null ? c.wheelLastMult : 1;
+    dyn.innerHTML = `
+      <div class="casinoCard">
+        <h4>Lucky multiplier wheel</h4>
+        <div class="panelSub">Eight slices from 0x to 3x. You always spin for the shown multiplier on your wager (true odds baked into the wheel).</div>
+        <div class="casinoField" style="margin-top:12px">
+          <label for="casinoWheelBet">Wager</label>
+          <input type="number" id="casinoWheelBet" min="1" step="1" value="${Math.floor(c.wheelBet)}" />
+        </div>
+        <div class="wheelFace" style="transform:rotate(${c.wheelLastIdx * 45}deg)">
+          <div class="wheelPointer"></div>
+          <div class="wheelLabel">${m}x</div>
+        </div>
+        <div class="slotHint">Last index: ${c.wheelLastIdx} · Multipliers ${CASINO_WHEEL_MULTS.join(', ')}</div>
+        <div class="casinoActions"><button type="button" class="shopTab" data-casino-act="wheel-spin">Spin</button></div>
+      </div>`;
+  }
 }
 
 function renderPortfolio(){
@@ -4360,7 +4829,9 @@ function buildSearchResults(query){
     {view:'business', icon:'🏢', title:'Business upgrades page', subtitle:'Scale your empire with offices, staff, and software.'},
     {view:'news', icon:'📰', title:'Stock news page', subtitle:'See fake news events driving the market.'},
     {view:'user', icon:'👤', title:'User page', subtitle:'Portfolio, assets, XP, and progress summary.'},
-    {view:'empire', icon:'👑', title:'Empire spotlight', subtitle:'Full-body flex scene with your homes, cars, jewelry, and watches.'}
+    {view:'finance', icon:'🏦', title:'Finance page', subtitle:'Loans, leverage, credit ladder, and rival gaps.'},
+    {view:'empire', icon:'👑', title:'Empire spotlight', subtitle:'Full-body flex scene with your homes, cars, jewelry, and watches.'},
+    {view:'casino', icon:'🎰', title:'Casino', subtitle:'Blackjack, slots, coin flip, and multiplier wheel with in-game cash.'}
   ].forEach(page => {
     const hay = `${page.title} ${page.subtitle} ${page.view}`.toLowerCase();
     if(hay.includes(q)){
@@ -4455,7 +4926,12 @@ function updateHud(){
   $('#stagePill').textContent = currentStage();
   $('#statusPill').textContent = currentStatus();
   $('#portfolioPill').textContent = fmt(portfolioValue());
-  const dp = document.getElementById('datePill'); if(dp) dp.textContent = formatGameDate();
+  const dp = document.getElementById('datePill');
+  if(dp) dp.textContent = formatGameDate();
+  const tcp = document.getElementById('topbarCashPill');
+  if(tcp) tcp.textContent = 'Cash · ' + fmt(game.cash);
+  const tnp = document.getElementById('topbarNetPill');
+  if(tnp) tnp.textContent = 'Net worth · ' + fmt(netWorth());
   $('#activeTickerHero').textContent = game.stocks[game.selectedStock].symbol;
   const best = [...game.stocks].sort((a,b)=>b.lastDelta-a.lastDelta)[0];
   $('#bestTickerHero').textContent = `${best.symbol} ${pct(best.lastDelta)}`;
@@ -4464,12 +4940,13 @@ function updateHud(){
 }
 
 function refresh(){
+  bindCasinoOnce();
   try{ checkBankruptcy(); }catch(e){}
   if(__bankruptcyActive){
     try{ updateHud(); }catch(e){}
     return;
   }
-  updateHud(); renderMenu(); renderStocks(); renderShopTabs('shopping'); renderShopTabs('business'); renderItems('shopping'); renderItems('business'); renderNews(); renderNewsDock(); syncNewsTicker(); renderUser(); renderFinance(); renderEmpire(); renderRail(); renderMobileNav(); renderMobileTrade();
+  updateHud(); renderMenu(); renderStocks(); renderShopTabs('shopping'); renderShopTabs('business'); renderItems('shopping'); renderItems('business'); renderNews(); renderNewsDock(); syncNewsTicker(); renderUser(); renderFinance(); renderEmpire(); renderCasino(); renderRail(); renderMobileNav(); renderMobileTrade();
   const input = $('#globalSearch');
   if(input && document.activeElement === input && input.value.trim()) renderSearchResults(input.value);
 }

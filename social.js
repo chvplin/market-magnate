@@ -405,20 +405,38 @@ async function getUser() {
   }
 
   async function signOut() {
-    const { error } = await window.mmSupabase.auth.signOut();
-    if (error) {
-      flash(el.authMessage(), error.message, false);
+    if (!window.mmSupabase) {
+      flash(el.authMessage(), "Sign-in is not configured.", false);
       return;
     }
+    let signErr = null;
     try {
-      localStorage.removeItem(SAVE_KEY);
+      const { error } = await window.mmSupabase.auth.signOut({ scope: "global" });
+      if (error) signErr = error;
+    } catch (e) {
+      signErr = e;
+    }
+    if (signErr) {
+      try {
+        const { error: e2 } = await window.mmSupabase.auth.signOut({ scope: "local" });
+        if (e2) throw e2;
+      } catch (e2) {
+        flash(el.authMessage(), (signErr && signErr.message) || "Sign out failed.", false);
+        return;
+      }
+    }
+    try {
       localStorage.removeItem(HUB_AVATAR_FALLBACK_KEY);
       localStorage.removeItem("MM_LAST_LOGIN");
       localStorage.removeItem("MM_PROFILE_HINT");
     } catch (e) {}
-    flash(el.authMessage(), "Signed out.");
+    flash(el.authMessage(), "Signed out.", true);
+    accountDetailsLoadedOnce = false;
     await refreshAuthUI();
-    setTimeout(() => { window.location.href = "./index.html"; }, 250);
+    try {
+      await loadLeaderboard();
+    } catch (e) {}
+    window.location.reload();
   }
 
   async function syncToCloud() {
