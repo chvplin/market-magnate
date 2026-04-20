@@ -7150,6 +7150,9 @@ let mmSocial = { user:null, profile:null, selectedAvatar:'💹', selectedTheme:'
 try{ window.mmSocial = mmSocial; }catch(e){}
   const qs = (s)=>document.querySelector(s);
   const qsa = (s)=>[...document.querySelectorAll(s)];
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
   function socialToast(msg, ok=true){ const el=qs('#profileModalMessage'); if(!el) return; el.textContent=msg; el.style.color= ok ? '#1d7a44' : '#b42318'; }
   function currentNetWorth(){ try{ return typeof netWorth === 'function' ? netWorth() : (window.game?.cash||0); }catch(e){ return 0; } }
   function currentStageSafe(){ try{ return typeof currentStage === 'function' ? currentStage() : 'Bedroom Trader'; }catch(e){ return 'Bedroom Trader'; } }
@@ -7516,14 +7519,19 @@ function mmMapOnlineRpcRowGame(r){
 }
 
 function mmFinalizeOnlineListGame(mappedRows, opts){
-  var maxSlots = (opts && opts.maxSlots) || 12;
+  opts = opts || {};
+  var maxSlots = opts.maxSlots || 12;
+  var windowMs = opts.windowMs || MM_ONLINE_PRESENCE_WINDOW_MS;
+  var skipWindow = opts.skipWindow !== false;
   var now = Date.now();
-  var windowMs = (opts && opts.windowMs) || MM_ONLINE_PRESENCE_WINDOW_MS;
   function inWindow(r){
     var raw = r.last_seen || r.updated_at || r.last_active || null;
     if(!raw) return false;
     var t = new Date(raw).getTime();
-    return Number.isFinite(t) && (now - t) >= 0 && (now - t) <= windowMs;
+    if(!Number.isFinite(t)) return false;
+    if(skipWindow) return true;
+    var age = now - t;
+    return age <= windowMs && age >= -120000;
   }
   function stamp(r){ return new Date(r.last_seen || r.updated_at || r.last_active || 0).getTime(); }
   var candidates = (mappedRows || []).filter(inWindow);
@@ -7545,12 +7553,24 @@ function mmFinalizeOnlineListGame(mappedRows, opts){
 
 async function mmRpcPublicLeaderboard(limit){
   try{
-    if(!window.mmSupabase || typeof window.mmSupabase.rpc !== 'function') return null;
+    if(!window.mmSupabase || typeof window.mmSupabase.rpc !== 'function'){
+      console.warn('[MM][rpc] mm_public_leaderboard: no supabase client');
+      return null;
+    }
     var lim = Math.min(500, Math.max(1, Number(limit) || 100));
     var res = await window.mmSupabase.rpc('mm_public_leaderboard', { limit_rows: lim });
-    if(res.error || !Array.isArray(res.data)) return null;
+    if(res.error){
+      console.warn('[MM][rpc] mm_public_leaderboard ERROR', res.error.code || '', String(res.error.message || res.error));
+      return null;
+    }
+    if(!Array.isArray(res.data)){
+      console.warn('[MM][rpc] mm_public_leaderboard: response.data is not an array (RPC missing in DB?)', typeof res.data);
+      return null;
+    }
+    console.info('[MM][rpc] mm_public_leaderboard ok rows=', res.data.length);
     return res.data;
   }catch(e){
+    console.warn('[MM][rpc] mm_public_leaderboard threw', e && (e.message || e));
     return null;
   }
 }
@@ -7559,9 +7579,9 @@ async function fetchLeaderboardRowsUnified(){
   if(!window.mmSupabase) return [];
   var rpcRows = await mmRpcPublicLeaderboard(100);
   if(Array.isArray(rpcRows)){
-    mmDebugSocialGame('[leaderboard][game] mm_public_leaderboard rows=', rpcRows.length);
     return rpcRows;
   }
+  console.warn('[MM][lb] using leaderboard_public view fallback (RPC failed or missing — run leaderboard_public_rpc.sql)');
   try{
     var res = await window.mmSupabase
       .from('leaderboard_public')
@@ -7569,11 +7589,14 @@ async function fetchLeaderboardRowsUnified(){
       .order('net_worth', { ascending:false })
       .limit(100);
     if(!res.error && Array.isArray(res.data)){
-      mmDebugSocialGame('[leaderboard][game] leaderboard_public view rows=', res.data.length);
+      console.info('[MM][lb] leaderboard_public view rows=', res.data.length);
       return res.data;
     }
-  }catch(e){}
-  console.warn('[MM][leaderboard][game] no rows (RPC unavailable and view failed)');
+    if(res.error) console.warn('[MM][lb] leaderboard_public view error', res.error.message || res.error);
+  }catch(e){
+    console.warn('[MM][lb] leaderboard_public view threw', e && (e.message || e));
+  }
+  console.warn('[MM][lb] no leaderboard rows (fix: deploy mm_public_leaderboard RPC and/or leaderboard_public view)');
   return [];
 }
 
@@ -7584,14 +7607,17 @@ async function fetchPlayerStatsRecentActivity(maxRows){
     var lim = Math.min(500, Math.max(1, Number(maxRows) || 120));
     var res = await window.mmSupabase.rpc('mm_public_online_players', { limit_rows: lim });
     if(res.error){
-      console.warn('[MM][online][game] mm_public_online_players', res.error.message || res.error);
+      console.warn('[MM][rpc] mm_public_online_players ERROR', res.error.code || '', String(res.error.message || res.error));
       return [];
     }
-    if(!Array.isArray(res.data)) return [];
-    mmDebugSocialGame('[online][game] rpc rows=', res.data.length);
+    if(!Array.isArray(res.data)){
+      console.warn('[MM][rpc] mm_public_online_players: response.data is not an array (RPC missing in DB?)', typeof res.data);
+      return [];
+    }
+    console.info('[MM][rpc] mm_public_online_players ok rows=', res.data.length);
     return res.data.map(mmMapOnlineRpcRowGame);
   }catch(e){
-    console.warn('[MM][online][game] fetch failed', e);
+    console.warn('[MM][rpc] mm_public_online_players threw', e && (e.message || e));
     return [];
   }
 }
@@ -7616,13 +7642,18 @@ async function loadLeaderboardSocial(){
     return;
   }
 
+  var onlineOpts = { skipWindow: true, windowMs: MM_ONLINE_PRESENCE_WINDOW_MS, maxSlots: 12 };
+
+  try{
+    console.info('[MM][rail] render prep lb=', rows.length, 'onlineRaw=', activityRows.length, '#leaderMini=', !!mini, '#onlinePlayersGame=', !!onlineWrap);
+
   if(!rows.length){
     if(mini) mini.innerHTML = '<div class="layoutHint">No leaderboard data yet.</div>';
     if(modal) modal.innerHTML = '<tr><td colspan="4">No leaderboard data yet.</td></tr>';
     mmSocial.leaderRows = activityRows.length ? activityRows : [];
     if(onlineWrap){
-      const online = mmFinalizeOnlineListGame(activityRows, { windowMs: MM_ONLINE_PRESENCE_WINDOW_MS, maxSlots: 12 });
-      mmDebugSocialGame('[online][game] render count (no lb rows)=', online.length);
+      const online = mmFinalizeOnlineListGame(activityRows, onlineOpts);
+      console.info('[MM][rail] online after finalize (no lb)=', online.length);
       onlineWrap.innerHTML = online.length
         ? online.map(function(row){
           const self = mmIsSelfOnlineRowGame(row);
@@ -7684,8 +7715,8 @@ async function loadLeaderboardSocial(){
   }
 
   if(onlineWrap){
-    const online = mmFinalizeOnlineListGame(activityRows, { windowMs: MM_ONLINE_PRESENCE_WINDOW_MS, maxSlots: 12 });
-    mmDebugSocialGame('[online][game] render count=', online.length);
+    const online = mmFinalizeOnlineListGame(activityRows, onlineOpts);
+    console.info('[MM][rail] online after finalize=', online.length);
     onlineWrap.innerHTML = online.length
       ? online.map(row => {
           const self = mmIsSelfOnlineRowGame(row);
@@ -7722,6 +7753,13 @@ async function loadLeaderboardSocial(){
     try{
       tickArenaUi(true);
     }catch(e){}
+  }
+  }catch(renderErr){
+    console.warn('[MM][rail] loadLeaderboardSocial RENDER failed', renderErr && (renderErr.message || renderErr));
+    if(mini) mini.innerHTML = '<div class="layoutHint">Could not render rankings.</div>';
+    if(modal) modal.innerHTML = '<tr><td colspan="4">Could not render rankings.</td></tr>';
+    if(onlineWrap) onlineWrap.innerHTML = '<div class="layoutHint">Could not render online players.</div>';
+    if(onlineCount) onlineCount.textContent = '(—)';
   }
 }
   async function syncStatsToCloud(){

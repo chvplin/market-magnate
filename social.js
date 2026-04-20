@@ -603,14 +603,19 @@ async function getUser() {
   }
 
   function mmFinalizeOnlineListHub(mappedRows, opts) {
-    const maxSlots = (opts && opts.maxSlots) || 12;
+    opts = opts || {};
+    const maxSlots = opts.maxSlots || 12;
+    const windowMs = opts.windowMs || MM_ONLINE_PRESENCE_WINDOW_MS;
+    const skipWindow = opts.skipWindow !== false;
     const now = Date.now();
-    const windowMs = (opts && opts.windowMs) || MM_ONLINE_PRESENCE_WINDOW_MS;
     const inWindow = r => {
       const raw = r.last_seen || r.updated_at || r.last_active || null;
       if (!raw) return false;
       const t = new Date(raw).getTime();
-      return Number.isFinite(t) && now - t >= 0 && now - t <= windowMs;
+      if (!Number.isFinite(t)) return false;
+      if (skipWindow) return true;
+      const age = now - t;
+      return age <= windowMs && age >= -120000;
     };
     const stamp = r => new Date(r.last_seen || r.updated_at || r.last_active || 0).getTime();
     const candidates = (mappedRows || []).filter(inWindow);
@@ -634,12 +639,24 @@ async function getUser() {
 
   async function mmRpcPublicLeaderboardHub(limit) {
     try {
-      if (!window.mmSupabase || typeof window.mmSupabase.rpc !== "function") return null;
+      if (!window.mmSupabase || typeof window.mmSupabase.rpc !== "function") {
+        console.warn("[MM][rpc] mm_public_leaderboard: no supabase client");
+        return null;
+      }
       const lim = Math.min(500, Math.max(1, Number(limit) || 100));
       const { data, error } = await window.mmSupabase.rpc("mm_public_leaderboard", { limit_rows: lim });
-      if (error || !Array.isArray(data)) return null;
+      if (error) {
+        console.warn("[MM][rpc] mm_public_leaderboard ERROR", error.code || "", String(error.message || error));
+        return null;
+      }
+      if (!Array.isArray(data)) {
+        console.warn("[MM][rpc] mm_public_leaderboard: data is not an array (RPC missing?)", typeof data);
+        return null;
+      }
+      console.info("[MM][rpc] mm_public_leaderboard ok rows=", data.length);
       return data;
     } catch (e) {
+      console.warn("[MM][rpc] mm_public_leaderboard threw", e && (e.message || e));
       return null;
     }
   }
@@ -652,17 +669,19 @@ async function getUser() {
       return rpcRows;
     }
     try {
+      console.warn("[MM][lb][hub] using leaderboard_public view fallback (RPC failed or missing)");
       const res = await window.mmSupabase
         .from("leaderboard_public")
         .select("*")
         .order("net_worth", { ascending: false })
         .limit(100);
       if (!res.error && Array.isArray(res.data)) {
-        mmDebugSocial("[leaderboard][hub] leaderboard_public view rows=", res.data.length);
+        console.info("[MM][lb][hub] leaderboard_public view rows=", res.data.length);
         return res.data;
       }
+      if (res.error) console.warn("[MM][lb][hub] view error", res.error.message || res.error);
     } catch (e) {}
-    console.warn("[MM][leaderboard][hub] no rows (RPC unavailable and view failed)");
+    console.warn("[MM][lb][hub] no rows — deploy mm_public_leaderboard + leaderboard_public (see leaderboard_public_rpc.sql)");
     return [];
   }
 
@@ -676,8 +695,11 @@ async function getUser() {
         console.warn("[MM][online][hub] mm_public_online_players", error.message || error);
         return [];
       }
-      if (!Array.isArray(data)) return [];
-      mmDebugSocial("[online][hub] rpc rows=", data.length);
+      if (!Array.isArray(data)) {
+        console.warn("[MM][rpc] mm_public_online_players: data is not an array (RPC missing?)", typeof data);
+        return [];
+      }
+      console.info("[MM][rpc] mm_public_online_players ok rows=", data.length);
       return data.map(mmMapOnlineRpcRowHub);
     } catch (e) {
       console.warn("[MM][online][hub] fetch failed", e);
@@ -688,6 +710,7 @@ async function getUser() {
 async function loadLeaderboard() {
     const data = await fetchLeaderboardRowsIndex();
     const onlineSourceRows = await fetchOnlinePlayersHub(160);
+    const onlineOpts = { skipWindow: true, windowMs: MM_ONLINE_PRESENCE_WINDOW_MS, maxSlots: 12 };
 
     if (!data.length) {
       leaderboardTargets().forEach(t => {
@@ -698,8 +721,8 @@ async function loadLeaderboard() {
       const onlineWrap = $("#onlinePlayersList");
       const onlineCount = $("#onlineCount");
       if (onlineWrap) {
-        const online = mmFinalizeOnlineListHub(onlineSourceRows, { windowMs: MM_ONLINE_PRESENCE_WINDOW_MS, maxSlots: 12 });
-        mmDebugSocial("[online][hub] render count=", online.length);
+        const online = mmFinalizeOnlineListHub(onlineSourceRows, onlineOpts);
+        console.info("[MM][rail][hub] online after finalize (no lb)=", online.length);
         onlineWrap.innerHTML = online.length
           ? online.map(row => hubOnlineRowHtml(row)).join("")
           : '<div class="muted">No players active right now.</div>';
@@ -735,8 +758,8 @@ async function loadLeaderboard() {
     const onlineWrap = $("#onlinePlayersList");
     const onlineCount = $("#onlineCount");
     if (onlineWrap) {
-      const online = mmFinalizeOnlineListHub(onlineSourceRows, { windowMs: MM_ONLINE_PRESENCE_WINDOW_MS, maxSlots: 12 });
-      mmDebugSocial("[online][hub] render count=", online.length);
+      const online = mmFinalizeOnlineListHub(onlineSourceRows, onlineOpts);
+      console.info("[MM][rail][hub] online after finalize=", online.length);
       onlineWrap.innerHTML = online.length
         ? online.map(row => hubOnlineRowHtml(row)).join("")
         : '<div class="muted">No players active right now.</div>';
