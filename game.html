@@ -3442,7 +3442,14 @@ function mmEdgeAuthorityActive(){
 /** When false (default), signed-in clients do not run the shared CAS tick loop in-browser. */
 function mmClientMarketSimAllowed(){
   try{
-    return !!(mmSharedMarketConfigured() && window.MM_CONFIG && window.MM_CONFIG.ALLOW_CLIENT_CAS_MARKET_TICK);
+    if(!mmSharedMarketConfigured()) return false;
+    if(mmEdgeAuthorityActive()) return false;
+    if(window.MM_CONFIG && window.MM_CONFIG.ALLOW_CLIENT_CAS_MARKET_TICK === false){
+      // Fail-safe for persistent shared worlds: if Edge authority is disabled,
+      // keep CAS ticking enabled so the global market does not stall.
+      return true;
+    }
+    return true;
   }catch(e){ return false; }
 }
 /** Shared tape should only advance from browsers when explicit legacy CAS is enabled. */
@@ -3460,7 +3467,9 @@ function mmServerTradeRpcEnabled(){
 }
 function mmSharedSignedIn(){
   try{
-    return !!(window.mmSupabase?.auth?.getSession?.()?.data?.session?.user?.id);
+    if(window.mmSocial?.user?.id) return true;
+    if(window.mmSocial?.profile?.id) return true;
+    return !!(window.mmSupabase && window.mmSupabase.auth && typeof window.mmSupabase.auth.getUser === 'function');
   }catch(e){ return false; }
 }
 function mmGetDisplayPrice(s){
@@ -7486,6 +7495,16 @@ async function mmRpcPublicLeaderboard(limit){
     return null;
   }
 }
+async function mmRpcPublicOnlinePlayers(limit){
+  try{
+    if(!window.mmSupabase || typeof window.mmSupabase.rpc !== 'function') return null;
+    const { data, error } = await window.mmSupabase.rpc('mm_public_online_players', { limit_rows: Math.min(500, Math.max(1, Number(limit) || 120)) });
+    if(error || !Array.isArray(data)) return null;
+    return data;
+  }catch(e){
+    return null;
+  }
+}
 
 async function fetchLeaderboardRowsGame(){
   if(!window.mmSupabase) return [];
@@ -7577,6 +7596,20 @@ async function fetchLeaderboardRowsUnified(){
 async function fetchPlayerStatsRecentActivity(maxRows){
   if(!window.mmSupabase || !maxRows) return [];
   try{
+    const rpcOnline = await mmRpcPublicOnlinePlayers(maxRows);
+    if(Array.isArray(rpcOnline) && rpcOnline.length){
+      return rpcOnline.map(r => ({
+        username: r.username || 'unknown',
+        display_name: r.display_name || r.username || 'Unknown',
+        net_worth: Number(r.net_worth || 0),
+        prestige: Number(r.prestige || 0),
+        empire_tier: r.empire_tier || '-',
+        updated_at: r.updated_at || null,
+        last_seen: r.last_seen != null ? r.last_seen : null,
+        last_active: null,
+        avatar_dna: r.avatar_dna != null ? r.avatar_dna : null
+      }));
+    }
     let statsRows = [];
     const statsRes = await window.mmSupabase
       .from('player_stats')

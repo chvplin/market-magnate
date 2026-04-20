@@ -578,6 +578,17 @@ async function getUser() {
       return null;
     }
   }
+  async function mmRpcPublicOnlineHub(limit) {
+    try {
+      if (!window.mmSupabase || typeof window.mmSupabase.rpc !== "function") return null;
+      const lim = Math.min(500, Math.max(1, Number(limit) || 120));
+      const { data, error } = await window.mmSupabase.rpc("mm_public_online_players", { limit_rows: lim });
+      if (error || !Array.isArray(data)) return null;
+      return data;
+    } catch (e) {
+      return null;
+    }
+  }
 
   async function fetchLeaderboardRowsIndex() {
     if (!window.mmSupabase) return [];
@@ -634,6 +645,19 @@ async function getUser() {
   async function fetchPlayerStatsRecentActivityIndex(maxRows) {
     if (!window.mmSupabase || !maxRows) return [];
     try {
+      const rpcOnline = await mmRpcPublicOnlineHub(maxRows);
+      if (Array.isArray(rpcOnline) && rpcOnline.length) {
+        return rpcOnline.map(r => ({
+          username: r.username || "unknown",
+          display_name: r.display_name || r.username || "Unknown",
+          net_worth: Number(r.net_worth || 0),
+          prestige: Number(r.prestige || 0),
+          empire_tier: r.empire_tier || "-",
+          updated_at: r.updated_at || null,
+          last_seen: r.last_seen != null ? r.last_seen : null,
+          last_active: null
+        }));
+      }
       let statsRows = [];
       const statsRes = await window.mmSupabase
         .from("player_stats")
