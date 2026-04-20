@@ -143,34 +143,11 @@
         <div class="loginMark">MM</div>
       </div>
       <h1 class="loginTitle">Market Magnate</h1>
-      <p class="loginSub" id="hubLoginSub">Choose <b>Sign in</b> or <b>Create account</b>. After you are signed in, you can edit this account’s profile, then press <b>Play game</b> to load your cloud save and enter the market.</p>
+      <p class="loginSub" id="hubLoginSub">Choose <b>Sign in</b> or <b>Create account</b> to continue.</p>
 
       <div id="hubAuthChoice" class="loginActions">
-        <button type="button" id="hubPickSignIn">Sign in</button>
-        <button type="button" id="hubPickSignUp">Create account</button>
-      </div>
-
-      <div id="hubAuthStage" class="loginStack" hidden style="margin-top:4px">
-        <input id="authEmail" type="email" placeholder="Email" autocomplete="username" />
-        <input id="authPassword" type="password" placeholder="Password" autocomplete="current-password" />
-        <div id="hubUsernameRow" class="usernameRow loginStack" hidden>
-          <input id="authUsername" type="text" placeholder="Username for new accounts" autocomplete="nickname" />
-        </div>
-        <div class="loginActions" style="margin-top:4px">
-          <button type="button" id="signInBtn" hidden>Sign in</button>
-          <button type="button" id="signUpBtn" hidden>Create account</button>
-          <button type="button" id="hubAuthBack" class="secondary">Back</button>
-        </div>
-      </div>
-
-      <div id="hubSignedInRow" class="loginActions" hidden style="margin-top:14px">
-        <button id="playBtn" type="button">Play game</button>
-        <button type="button" id="signOutBtn" class="secondary">Sign out</button>
-      </div>
-
-      <p id="authMessage" class="muted" style="margin-top:14px;text-align:center">Not signed in</p>
-      <div class="loginMeta">
-        <div id="authStatus">Not signed in</div>
+        <a href="./signin.html" id="goSignInBtn" class="btn">Sign in</a>
+        <a href="./signup.html" id="goSignUpBtn" class="btn">Create account</a>
       </div>
     </section>
 
@@ -198,8 +175,28 @@
   
 
 
-  <!-- hidden full leaderboard/profile containers for social.js -->
-  <div style="display:none"><button id="syncBtn"></button><button id="loadBtn"></button><table><tbody id="leaderboardBody"><tr><td colspan="5">Loading…</td></tr></tbody></table></div>
+  <!-- hidden placeholders used by social.js -->
+  <div style="display:none">
+    <input id="authEmail" />
+    <input id="authPassword" />
+    <input id="authUsername" />
+    <button id="signInBtn" type="button"></button>
+    <button id="signUpBtn" type="button"></button>
+    <button id="signOutBtn" type="button"></button>
+    <button id="playBtn" type="button"></button>
+    <button id="hubPickSignIn" type="button"></button>
+    <button id="hubPickSignUp" type="button"></button>
+    <button id="hubAuthBack" type="button"></button>
+    <button id="syncBtn" type="button"></button>
+    <button id="loadBtn" type="button"></button>
+    <div id="hubAuthStage"></div>
+    <div id="hubSignedInRow"></div>
+    <div id="hubAccountSection"></div>
+    <div id="hubUsernameRow"></div>
+    <div id="authStatus"></div>
+    <div id="authMessage"></div>
+    <table><tbody id="leaderboardBody"><tr><td colspan="5">Loading…</td></tr></tbody></table>
+  </div>
 
 
 

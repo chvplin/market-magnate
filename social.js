@@ -36,6 +36,8 @@
     hubAuthBack: () => $("#hubAuthBack")
   };
   const isIndexPage = /\/index\.html$/i.test(location.pathname) || /\/$/i.test(location.pathname);
+  const isSignInPage = /\/signin\.html$/i.test(location.pathname);
+  const isSignUpPage = /\/signup\.html$/i.test(location.pathname);
   const isAccountPage = /\/account\.html$/i.test(location.pathname);
 
   function readHubAvatarDNA() {
@@ -451,7 +453,7 @@ async function getUser() {
     if (el.syncBtn()) el.syncBtn().hidden = true;
     if (el.loadBtn()) el.loadBtn().hidden = true;
 
-    if (user && isIndexPage) {
+    if (user && (isIndexPage || isSignInPage || isSignUpPage)) {
       window.location.href = "./account.html";
       return;
     }
@@ -617,11 +619,7 @@ async function getUser() {
     flash(el.authMessage(), "Signed out.", true);
     accountDetailsLoadedOnce = false;
     hubAuthBack();
-    await refreshAuthUI();
-    try {
-      await loadLeaderboard();
-    } catch (e) {}
-    window.location.href = "./index.html";
+    window.location.replace("./index.html");
   }
 
   async function syncToCloud() {

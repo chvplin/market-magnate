@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Create Account - Market Magnate</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./avatar.css" />
+</head>
+<body>
+  <main class="loginBoard">
+    <section class="loginCard">
+      <div class="loginTop"><div class="loginMark">MM</div></div>
+      <h1 class="loginTitle">Create Account</h1>
+      <p class="loginSub">Create a new account to sync your progress and profile.</p>
+      <div class="loginStack">
+        <input id="authEmail" type="email" placeholder="Email" autocomplete="username" />
+        <input id="authPassword" type="password" placeholder="Password" autocomplete="new-password" />
+        <input id="authUsername" type="text" placeholder="Username" autocomplete="nickname" />
+      </div>
+      <div class="loginActions">
+        <button type="button" id="signUpBtn">Create account</button>
+        <a href="./index.html" class="btn secondary">Back</a>
+      </div>
+      <p id="authMessage" class="muted" style="margin-top:14px;text-align:center"></p>
+      <div class="loginMeta"><div id="authStatus">Not signed in</div></div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./config.js"></script>
+  <script src="./supabase-client.js"></script>
+  <script src="./avatar-engine.js"></script>
+  <script src="./social.js"></script>
+
+  <div style="display:none">
+    <button id="signInBtn" type="button"></button>
+    <button id="signOutBtn" type="button"></button>
+    <button id="playBtn" type="button"></button>
+    <button id="hubPickSignIn" type="button"></button>
+    <button id="hubPickSignUp" type="button"></button>
+    <button id="hubAuthBack" type="button"></button>
+    <button id="syncBtn" type="button"></button>
+    <button id="loadBtn" type="button"></button>
+    <div id="hubAuthChoice"></div>
+    <div id="hubAuthStage"></div>
+    <div id="hubSignedInRow"></div>
+    <div id="hubAccountSection"></div>
+    <div id="hubUsernameRow"></div>
+    <table><tbody id="leaderboardBody"><tr><td colspan="5">Loading…</td></tr></tbody></table>
+    <tbody id="signinLeaderboardBody"></tbody>
+  </div>
+</body>
+</html>
