@@ -35,6 +35,8 @@
     hubPickSignUp: () => $("#hubPickSignUp"),
     hubAuthBack: () => $("#hubAuthBack")
   };
+  const isIndexPage = /\/index\.html$/i.test(location.pathname) || /\/$/i.test(location.pathname);
+  const isAccountPage = /\/account\.html$/i.test(location.pathname);
 
   function readHubAvatarDNA() {
     if (!window.MM_AVATAR) return {};
@@ -448,6 +450,14 @@ async function getUser() {
 
     if (el.syncBtn()) el.syncBtn().hidden = true;
     if (el.loadBtn()) el.loadBtn().hidden = true;
+
+    if (user && isIndexPage) {
+      window.location.href = "./account.html";
+      return;
+    }
+    if (!user && isAccountPage) {
+      window.location.href = "./index.html";
+    }
   }
 
   async function prepareGameSessionHints() {
@@ -545,8 +555,9 @@ async function getUser() {
       updated_at: new Date().toISOString()
     });
 
-    flash(el.authMessage(), "Account created. Save your account details, then click Play game.", true);
+    flash(el.authMessage(), "Account created. Redirecting to your account...", true);
     await refreshAuthUI();
+    window.location.href = "./account.html";
   }
 
   async function signIn() {
@@ -567,8 +578,9 @@ async function getUser() {
       }
     } catch (e) {}
 
-    flash(el.authMessage(), "Signed in. Save your account details if needed, then click Play game.", true);
+    flash(el.authMessage(), "Signed in. Redirecting to your account...", true);
     await refreshAuthUI();
+    window.location.href = "./account.html";
   }
 
   async function signOut() {
@@ -609,6 +621,7 @@ async function getUser() {
     try {
       await loadLeaderboard();
     } catch (e) {}
+    window.location.href = "./index.html";
   }
 
   async function syncToCloud() {

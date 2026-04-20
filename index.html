@@ -175,49 +175,6 @@
     </section>
 
     <section class="loginSide">
-      <section id="hubAccountSection" class="leaderPeek sectionCard" style="margin-top:0" hidden>
-        <h3>Account Details</h3>
-        <form id="profileForm" class="loginStack">
-          <input id="profileUsername" type="text" placeholder="Username" />
-          <input id="profileDisplayName" type="text" placeholder="Display name" />
-          <textarea id="profileBio" placeholder="Bio" style="min-height:82px"></textarea>
-          <input id="profileFavoriteStock" type="text" placeholder="Favorite stock" />
-          <div class="hubCharCreator" id="hubCharCreatorBlock">
-            <div class="inventoryLabel">Character look</div>
-            <p class="muted" style="margin:0 0 10px;font-size:.82rem;line-height:1.45">Same options as in the game Empire tab. Updates your local <code>market_magnate_ultra_save_v11</code> avatar when a save exists; otherwise it is stored in this browser only.</p>
-            <div class="hubCharTop">
-              <div class="hubCharPreview">
-                <div id="hubAvatarHost" class="mmAvatarHost mmAvatarHost--hub" aria-hidden="true"></div>
-              </div>
-              <div id="hubAvatarStudio" style="flex:1;min-width:0"></div>
-            </div>
-          </div>
-        <div class="inventorySection">
-          <div class="inventoryLabel">Owned Avatars</div>
-          <div id="ownedAvatarInventory" class="ownedInventory"></div>
-        </div>
-        <div class="inventorySection">
-          <div class="inventoryLabel">Owned Banners</div>
-          <div id="ownedBannerInventory" class="ownedBannerInventory"></div>
-        </div>
-        <select id="profileTheme">
-            <option value="default">Default</option>
-            <option value="luxury">Luxury</option>
-            <option value="neon">Neon</option>
-            <option value="midnight">Midnight</option>
-          </select>
-          <button type="submit">Save account details</button>
-          <div id="profileMessage" class="muted"></div>
-        </form>
-      </section>
-
-      <section class="leaderPeek sectionCard" id="publicProfileCard" style="display:none;margin-top:0"><h3>Player Profile</h3><div id="publicProfileBody"></div></section>
-
-      <section class="leaderPeek sectionCard">
-        <h3>Online Players <span id="onlineCount" class="muted" style="font-weight:700"></span></h3>
-        <div id="onlinePlayersList" class="miniLead"><div class="muted">Checking activity…</div></div>
-      </section>
-
       <section class="leaderPeek sectionCard">
         <h3>Leaderboard</h3>
         <div class="tableWrap" style="max-height:320px;overflow:auto">
