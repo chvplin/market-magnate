@@ -195,7 +195,7 @@ linear-gradient(180deg,#2c7df0,#145dcb);position:relative;overflow:hidden}
 .heroGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .heroCard{padding:14px;border-radius:13px;background:var(--panel2);border:1px solid var(--line)}
 .heroCard .label{font-size:.75rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
-.heroCard .value{margin-top:7px;font-size:1.15rem;font-weight:900}
+.heroCard .value{margin-top:7px;font-size:1.15rem;font-weight:900;min-height:1.35em;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media (prefers-reduced-motion: no-preference){
   body.mm-motion .heroCard{transition:transform .28s cubic-bezier(.2,.85,.2,1),box-shadow .3s ease,border-color .25s ease}
   body.mm-motion .heroCard:hover{box-shadow:0 12px 30px rgba(24,119,242,.12)}
@@ -210,7 +210,7 @@ linear-gradient(180deg,#2c7df0,#145dcb);position:relative;overflow:hidden}
 .panelTitle{font-size:1.35rem;font-weight:900}
 .panelSub{color:#59616b;font-size:.95rem}
 .hidden{display:none!important}
-.stocksWrap{display:grid;grid-template-columns:380px minmax(0,1fr);gap:18px}
+.stocksWrap{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:18px;min-width:0;align-items:start}
 .stockList{display:flex;flex-direction:column;gap:10px;max-height:900px;overflow:auto;padding-right:4px}
 .stockItem{padding:14px;border-radius:13px;background:var(--panel2);border:1px solid var(--line);display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;transition:transform .22s cubic-bezier(.2,.85,.2,1),background .22s ease,box-shadow .28s ease,border-color .22s ease}
 .stockItem:hover{background:#f6faff;box-shadow:0 8px 22px rgba(24,119,242,.1)}
@@ -232,8 +232,8 @@ linear-gradient(180deg,#2c7df0,#145dcb);position:relative;overflow:hidden}
 .down{color:var(--red)}
 .neutral{color:var(--yellow)}
 .stockDetail{display:flex;flex-direction:column;gap:14px}
-.detailTop{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}
-.detailCard{padding:16px;border-radius:11px;background:var(--panel2);border:1px solid var(--line);transition:transform .26s cubic-bezier(.2,.85,.2,1),box-shadow .28s ease}
+.detailTop{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:14px;min-width:0;align-items:start}
+.detailCard{padding:16px;border-radius:11px;background:var(--panel2);border:1px solid var(--line);transition:transform .26s cubic-bezier(.2,.85,.2,1),box-shadow .28s ease;min-width:0;max-width:100%;overflow:hidden}
 @media (prefers-reduced-motion: no-preference){
   body.mm-motion .detailCard:hover{box-shadow:0 10px 26px rgba(24,119,242,.1)}
 }
@@ -248,7 +248,7 @@ linear-gradient(180deg,#2c7df0,#145dcb);position:relative;overflow:hidden}
 }
 .canvasWrap canvas{position:relative;z-index:2}
 canvas{width:100%;height:100%}
-.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+.metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px;min-width:0}
 .metric{padding:12px;border-radius:11px;background:#fff;border:1px solid var(--line)}
 .metric .k{font-size:.74rem;color:var(--muted);text-transform:uppercase;letter-spacing:.11em}
 .metric .v{margin-top:6px;font-weight:900}
@@ -262,8 +262,13 @@ canvas{width:100%;height:100%}
 .qtyBtn{padding:9px 12px;border-radius:999px;background:#eaf2ff;border:1px solid #d4e2f5}
 .qtyBtn.active{background:#1877f2;color:#fff}
 .portfolioTable,.ownedTable{display:grid;gap:10px}
-.holding{padding:12px 14px;border-radius:10px;background:#f8fafc;border:1px solid var(--line);display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr) minmax(0,.8fr) minmax(0,.8fr);gap:10px;align-items:center;min-width:0}
+.holding{padding:12px 14px;border-radius:10px;background:#f8fafc;border:1px solid var(--line);display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr) minmax(0,.8fr) minmax(0,.8fr);gap:10px;align-items:center;min-width:0;cursor:pointer;transition:background .18s ease,border-color .18s ease}
+.holding:hover{background:#f0f6ff;border-color:#c9daf6}
 .holding > div{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.holdingQuick{margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.holdingQuick .mmQuickSell{padding:4px 8px;border-radius:8px;font-size:.72rem;font-weight:800;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+.holdingQuick .mmQuickSell:hover{background:#ffe8ea;border-color:#f4c8cf}
+.holdingQuick .mmQuickSell--all{background:#eaf2ff;border-color:#b9d2fb}
 .marketFeed{display:grid;gap:12px}
 .newsFeedScroll{
   max-height:min(68vh, 640px);
@@ -3780,8 +3785,33 @@ function mmMergeResetPreservedMarket(){
     try{ sessionStorage.removeItem(MM_RESET_MARKET_KEY); }catch(_e){}
   }
 }
+function mmEnsureHeroOpenMarkers(){
+  if(!Array.isArray(game.stocks)) return;
+  for(const s of game.stocks){
+    if(!Number.isFinite(s._openForSimDay) || s._openForSimDay <= 0) s._openForSimDay = Math.max(1e-9, Number(s.price) || 1);
+  }
+}
+function mmSetDailyHeroFromRets(rets, stocks){
+  const n = rets && rets.length;
+  if(!n || !stocks || stocks.length !== n) return;
+  let moodScore = 0;
+  const dc = Number(game.dayCount) || 1;
+  let idx = ((dc - 1) * 7) % Math.max(1, n);
+  const steps = Math.min(8, n);
+  for(let k = 0; k < steps; k++){
+    moodScore += Number(rets[idx]) || 0;
+    idx = (idx + Math.max(1, Math.floor(n / 5))) % n;
+  }
+  game._dailyMoodHero = moodScore > 0.06 ? 'Euphoric' : moodScore < -0.06 ? 'Capitulation' : moodScore > 0.02 ? 'Risk-On' : moodScore < -0.02 ? 'Shaky' : 'Balanced';
+  let bi = 0;
+  for(let i = 1; i < n; i++) if(Number(rets[i]) > Number(rets[bi])) bi = i;
+  const sym = stocks[bi] && stocks[bi].symbol ? stocks[bi].symbol : '—';
+  game._dailyBestHero = `${sym} ${pct(Number(rets[bi]) || 0)}`;
+}
 function mmApplySharedMarketPayload(payload){
   if(!payload || !Array.isArray(game.stocks)) return;
+  mmEnsureHeroOpenMarkers();
+  const prevCloseSnap = game.stocks.map(s => Number(s.price) || 0);
   const __prevDayForCredit = Number(game.dayCount || 1);
   const __targetDay = typeof payload.dayCount === 'number' && Number.isFinite(payload.dayCount) ? Math.floor(payload.dayCount) : __prevDayForCredit;
   if(mmSharedMarketConfigured() && __targetDay > __prevDayForCredit){
@@ -3851,6 +3881,17 @@ function mmApplySharedMarketPayload(payload){
     if(Array.isArray(r.history) && r.history.length){
       s.history = r.history.slice(-100);
       if(s.history.length < 2) s.history.unshift(s.price);
+    }
+  }
+  if(__targetDay > __prevDayForCredit && prevCloseSnap.length === game.stocks.length){
+    const rets = game.stocks.map((s, i)=>{
+      const c = prevCloseSnap[i];
+      const d = Number(s._openForSimDay);
+      return d > 1e-12 && c > 0 ? c / d - 1 : 0;
+    });
+    mmSetDailyHeroFromRets(rets, game.stocks);
+    for(let i = 0; i < game.stocks.length; i++){
+      game.stocks[i]._openForSimDay = prevCloseSnap[i] || game.stocks[i].price;
     }
   }
 }
@@ -3964,6 +4005,8 @@ async function marketTick(){
       mmPushArenaFeed('world', 'Everyone: ' + wPulse.title);
     }catch(e){}
   }
+
+  const heroOpenSnap = isNewDayStart ? game.stocks.map(s => Number(s.price) || 0) : null;
 
   for(const s of game.stocks){
     if(isNewDayStart){
@@ -4159,6 +4202,18 @@ async function marketTick(){
     }
   }
 
+  if(isNewDayStart && heroOpenSnap && heroOpenSnap.length === game.stocks.length){
+    const rets = game.stocks.map((s, i)=>{
+      const c = heroOpenSnap[i];
+      const d = Number(s._openForSimDay);
+      return d > 1e-12 && c > 0 ? c / d - 1 : 0;
+    });
+    mmSetDailyHeroFromRets(rets, game.stocks);
+    for(let i = 0; i < game.stocks.length; i++){
+      game.stocks[i]._openForSimDay = heroOpenSnap[i] || game.stocks[i].price;
+    }
+  }
+
   const n = game.stocks.length;
   let moodScore = 0;
   let idx = (t * 7) % Math.max(1, n);
@@ -4312,6 +4367,61 @@ function sellStock(){
   if(value >= 380000) void mmInsertSharedActivityFeed('trade_sell', `Sold ~${fmt(value)} ${s.symbol}`, { symbol: s.symbol, qty, notional: value });
   toast(`Sold ${fmtNum(qty)} ${s.symbol}`, 'success');
   refresh();
+}
+
+function bindPortfolioTableInteractionsOnce(){
+  const wrap = $('#portfolioTable');
+  if(!wrap || wrap._mmPortBound) return;
+  wrap._mmPortBound = true;
+  wrap.addEventListener('click', ev=>{
+    const btn = ev.target.closest('[data-quick-sell]');
+    const row = ev.target.closest('.holding[data-stock-index]');
+    if(btn){
+      ev.preventDefault();
+      ev.stopPropagation();
+      const h = btn.closest('.holding');
+      if(!h) return;
+      const idx = Number(h.dataset.stockIndex);
+      mmQuickSellFromHolding(idx, String(btn.dataset.quickSell || ''));
+      return;
+    }
+    if(row){
+      const idx = Number(row.dataset.stockIndex);
+      if(!Number.isFinite(idx) || idx < 0 || idx >= game.stocks.length) return;
+      game.selectedStock = idx;
+      try{ playClickSound(); }catch(_){}
+      if(!patchStockListDOM()) renderStocks({ force: true });
+      else{
+        updateStockDetailDOM();
+        patchQtyRowDOM();
+        renderPortfolio();
+      }
+    }
+  });
+}
+
+function mmQuickSellFromHolding(stockIndex, mode){
+  const i = Math.floor(Number(stockIndex));
+  if(!Number.isFinite(i) || i < 0 || i >= game.stocks.length) return;
+  const s = game.stocks[i];
+  if(!s || s.owned < 1) return;
+  const lev = game.leverage || 1;
+  if(lev > 1 && (s.levOwned || 0) > 0){
+    toast('Close leveraged positions from the trade panel', 'warning');
+    return;
+  }
+  const prevSel = game.selectedStock;
+  const prevQty = game.tradeQty;
+  game.selectedStock = i;
+  if(mode === 'all') game.tradeQty = 'max';
+  else if(mode === '1') game.tradeQty = 1;
+  else if(mode === '0.25') game.tradeQty = Math.max(1, Math.floor(s.owned * 0.25));
+  else if(mode === '0.5') game.tradeQty = Math.max(1, Math.floor(s.owned * 0.5));
+  else game.tradeQty = 1;
+  sellStock();
+  game.tradeQty = prevQty;
+  game.selectedStock = prevSel;
+  try{ refreshLive(); }catch(e){}
 }
 
 function getItemById(id){ return businessItems.find(x=>x.id===id) || shoppingItems.find(x=>x.id===id); }
@@ -4518,6 +4628,7 @@ function load(){
     if(!game.nextBonusAt) game.nextBonusAt = game.simNow + irand(15000,60000);
     if(!game.nextLifeAt) game.nextLifeAt = game.simNow + irand(60000,300000);
     mmMergeResetPreservedMarket();
+    mmEnsureHeroOpenMarkers();
     void mmHydrateSharedTapeFromCloud();
     recalc();
     try{ document.body.classList.add('mm-motion'); }catch(e){}
@@ -5786,13 +5897,22 @@ function renderCasino(){
 }
 
 function renderPortfolio(){
-  const wrap=$('#portfolioTable'); wrap.innerHTML='';
+  const wrap = $('#portfolioTable');
+  if(!wrap) return;
+  bindPortfolioTableInteractionsOnce();
+  wrap.innerHTML = '';
   const holdings = game.stocks.filter(s=>s.owned>0).sort((a,b)=>(b.owned*b.price)-(a.owned*a.price));
-  if(!holdings.length){ wrap.innerHTML='<div class="panelSub">No positions yet. Buy your first stock.</div>'; return; }
+  if(!holdings.length){
+    wrap.innerHTML = '<div class="panelSub">No positions yet. Buy your first stock.</div>';
+    return;
+  }
   holdings.forEach(s=>{
+    const idx = game.stocks.indexOf(s);
     const pl = s.owned * (s.price - s.avg);
-    const row=document.createElement('div'); row.className='holding';
-    row.innerHTML=`<div><b>${s.symbol}</b><div class="panelSub" style="margin-top:4px">${s.name}</div></div><div><b>${fmtNum(s.owned)} shares</b><div class="panelSub" style="margin-top:4px">Avg ${fmt(s.avg)}</div></div><div><b>${fmt(s.owned*s.price)}</b><div class="panelSub" style="margin-top:4px">Value</div></div><div class="${pl>0?'up':pl<0?'down':'neutral'}"><b>${fmt(pl)}</b><div class="panelSub" style="margin-top:4px">P/L</div></div>`;
+    const row = document.createElement('div');
+    row.className = 'holding';
+    row.dataset.stockIndex = String(idx);
+    row.innerHTML = `<div><b>${s.symbol}</b><div class="panelSub" style="margin-top:4px">${s.name}</div><div class="holdingQuick"><button type="button" class="mmQuickSell" data-quick-sell="1">1</button><button type="button" class="mmQuickSell" data-quick-sell="0.25">25%</button><button type="button" class="mmQuickSell" data-quick-sell="0.5">50%</button><button type="button" class="mmQuickSell mmQuickSell--all" data-quick-sell="all">All</button></div></div><div><b>${fmtNum(s.owned)} shares</b><div class="panelSub" style="margin-top:4px">Avg ${fmt(s.avg)}</div></div><div><b>${fmt(s.owned*s.price)}</b><div class="panelSub" style="margin-top:4px">Value</div></div><div class="${pl>0?'up':pl<0?'down':'neutral'}"><b>${fmt(pl)}</b><div class="panelSub" style="margin-top:4px">P/L</div></div>`;
     wrap.appendChild(row);
   });
 }
@@ -6557,8 +6677,12 @@ function updateHud(){
   if(creditCycleEl) creditCycleEl.textContent = `${(Number(game.simHourOfDay) || 0) + 1} / ${SIM_HOURS_PER_CAL_DAY}`;
   $('#activeTickerHero').textContent = game.stocks[game.selectedStock].symbol;
   const best = [...game.stocks].sort((a,b)=>b.lastDelta-a.lastDelta)[0];
-  $('#bestTickerHero').textContent = `${best.symbol} ${pct(best.lastDelta)}`;
-  $('#marketMoodHero').textContent = game.mood;
+  if(typeof game._dailyBestHero === 'string' && game._dailyBestHero.length){
+    $('#bestTickerHero').textContent = game._dailyBestHero;
+  }else{
+    $('#bestTickerHero').textContent = `${best.symbol} ${pct(best.lastDelta)}`;
+  }
+  $('#marketMoodHero').textContent = (typeof game._dailyMoodHero === 'string' && game._dailyMoodHero.length) ? game._dailyMoodHero : game.mood;
   $('#assetCountHero').textContent = game.businessOwned.length + game.shoppingOwned.length - 1;
 }
 
@@ -7357,7 +7481,7 @@ async function fetchLeaderboardRowsUnified(){
       .select('*')
       .order('net_worth', { ascending:false })
       .limit(100);
-    if(!res.error && Array.isArray(res.data)) return res.data;
+    if(!res.error && Array.isArray(res.data) && res.data.length) return res.data;
   }catch(e){}
 
   try{
@@ -7403,7 +7527,16 @@ async function fetchPlayerStatsRecentActivity(maxRows){
       .limit(maxRows);
     if(statsRes.error || !Array.isArray(statsRes.data)) return [];
     const statsRows = statsRes.data || [];
-    const ids = [...new Set(statsRows.map(r => r.user_id).filter(Boolean))];
+    let presenceRows = [];
+    try{
+      const pr = await window.mmSupabase
+        .from('online_presence')
+        .select('user_id,username,display_name,last_seen,updated_at')
+        .order('last_seen', { ascending: false })
+        .limit(maxRows);
+      if(!pr.error && Array.isArray(pr.data)) presenceRows = pr.data;
+    }catch(e){}
+    const ids = [...new Set([...statsRows.map(r => r.user_id), ...presenceRows.map(r => r.user_id)].filter(Boolean))];
     if(!ids.length) return [];
     const profileRes = await window.mmSupabase
       .from('profiles')
@@ -7411,20 +7544,39 @@ async function fetchPlayerStatsRecentActivity(maxRows){
       .in('id', ids);
     const profiles = Array.isArray(profileRes.data) ? profileRes.data : [];
     const byId = new Map(profiles.map(p => [p.id, p]));
-    return statsRows.map(r => {
-      const p = byId.get(r.user_id) || {};
+    const byPresence = new Map(presenceRows.map(r => [r.user_id, r]));
+    const mapOne = (r, p, pres)=>{
+      const un = (p.username && String(p.username).trim()) || (pres && pres.username && String(pres.username).trim()) || '';
+      const fallback = r.user_id ? `player_${String(r.user_id).slice(0, 8)}` : '';
+      const username = un || fallback || 'unknown';
+      const display_name = (p.display_name && String(p.display_name).trim()) || (pres && pres.display_name && String(pres.display_name).trim()) || username;
+      const stamp = r.updated_at || pres?.last_seen || pres?.updated_at || r.last_seen || r.last_active || null;
       return {
-        username: p.username || 'unknown',
-        display_name: p.display_name || p.username || 'Unknown',
+        username,
+        display_name,
         net_worth: r.net_worth || 0,
         prestige: r.prestige || 0,
         empire_tier: r.empire_tier || '-',
-        updated_at: r.updated_at || null,
-        last_seen: r.last_seen != null ? r.last_seen : null,
+        updated_at: stamp,
+        last_seen: r.last_seen != null ? r.last_seen : (pres && pres.last_seen != null ? pres.last_seen : null),
         last_active: r.last_active != null ? r.last_active : null,
         avatar_dna: r.avatar_dna != null ? r.avatar_dna : null
       };
-    }).filter(r => r.username && r.username !== 'unknown');
+    };
+    const outMap = new Map();
+    statsRows.forEach(r=>{
+      if(!r.user_id) return;
+      const p = byId.get(r.user_id) || {};
+      const pres = byPresence.get(r.user_id);
+      outMap.set(r.user_id, mapOne(r, p, pres));
+    });
+    presenceRows.forEach(pres=>{
+      if(!pres.user_id || outMap.has(pres.user_id)) return;
+      const p = byId.get(pres.user_id) || {};
+      const stub = { user_id: pres.user_id, net_worth: 0, prestige: 0, empire_tier: 'Online', updated_at: null, last_seen: null, last_active: null, avatar_dna: null };
+      outMap.set(pres.user_id, mapOne(stub, p, pres));
+    });
+    return [...outMap.values()].filter(r => r.username);
   }catch(e){
     return [];
   }
