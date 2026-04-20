@@ -2550,7 +2550,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
     </div>
     <div class="railCard">
       <div class="railTitle">Global Leaderboard</div>
-      <div class="leaderMini" id="leaderMini"><div class="layoutHint">Sign in to load rankings.</div></div>
+      <div class="leaderMini" id="leaderMini"><div class="layoutHint">Loading rankings…</div></div>
     </div>
     <div class="railCard">
       <div class="railTitle">Online Players <span id="onlineCountGame" class="layoutHint"></span></div>
@@ -7007,7 +7007,7 @@ setInterval(async ()=>{
     }
   }
   try{ syncStatsToCloud(); }catch(e){}
-  try{ loadLeaderboardSocial(); }catch(e){}
+  try{ if(typeof window.loadLeaderboardSocial === 'function') void window.loadLeaderboardSocial(); }catch(e){}
 
   refreshLive();
   if(Date.now() - game.lastSaved > 25000) save(false);
@@ -7597,13 +7597,24 @@ async function fetchPlayerStatsRecentActivity(maxRows){
 }
 
 async function loadLeaderboardSocial(){
-  const rows = await fetchLeaderboardRowsUnified();
-  const activityRows = await fetchPlayerStatsRecentActivity(160);
-
   const mini = qs('#leaderMini');
   const modal = qs('#leaderboardModalBody');
   const onlineWrap = qs('#onlinePlayersGame');
   const onlineCount = qs('#onlineCountGame');
+
+  let rows = [];
+  let activityRows = [];
+  try{
+    rows = await fetchLeaderboardRowsUnified();
+    activityRows = await fetchPlayerStatsRecentActivity(160);
+  }catch(err){
+    console.warn('[MM] loadLeaderboardSocial fetch failed', err && (err.message || err));
+    if(mini) mini.innerHTML = '<div class="layoutHint">Could not load rankings.</div>';
+    if(modal) modal.innerHTML = '<tr><td colspan="4">Could not load rankings.</td></tr>';
+    if(onlineWrap) onlineWrap.innerHTML = '<div class="layoutHint">Could not load online players.</div>';
+    if(onlineCount) onlineCount.textContent = '(—)';
+    return;
+  }
 
   if(!rows.length){
     if(mini) mini.innerHTML = '<div class="layoutHint">No leaderboard data yet.</div>';
@@ -7815,12 +7826,14 @@ function bindSocialUI(){
     renderBannerGrid();
     renderCosmeticStore();
 
+    void loadLeaderboardSocial().catch(function(e){ try{ console.warn('[MM] early leaderboard refresh', e && (e.message || e)); }catch(x){} });
+
     await loadSocialProfile();
     renderAvatarGrid();
     renderBannerGrid();
     renderCosmeticStore();
 
-    await loadLeaderboardSocial().catch(()=>{});
+    await loadLeaderboardSocial().catch(function(e){ try{ console.warn('[MM] leaderboard after profile', e && (e.message || e)); }catch(x){} });
     await syncStatsToCloud().catch(()=>{});
 
     // Retry account hydration after initial page load in case auth session is still restoring.
@@ -7834,10 +7847,20 @@ function bindSocialUI(){
     }
 
     setInterval(syncStatsToCloud, 1500);
-    setInterval(loadLeaderboardSocial, 1500);
+    setInterval(function(){ loadLeaderboardSocial().catch(function(){}); }, 1500);
     setInterval(()=>{ if (typeof renderCosmeticStore === 'function') renderCosmeticStore(); }, 5000);
   }
-  document.addEventListener('DOMContentLoaded', initSocialLayer);
+
+  try{ window.loadLeaderboardSocial = loadLeaderboardSocial; }catch(e){}
+
+  function bootSocialLayer(){
+    initSocialLayer().catch(function(e){ try{ console.warn('[MM] initSocialLayer', e && (e.message || e)); }catch(x){} });
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', bootSocialLayer);
+  }else{
+    bootSocialLayer();
+  }
 })();
 </script>
 

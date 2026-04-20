@@ -898,6 +898,11 @@ async function loadLeaderboard() {
     bindEvents();
     try { ensureHubAvatarStudio(); } catch (e) {}
     await refreshAuthUI();
+    void loadLeaderboard().catch(function (e) {
+      try {
+        console.warn("[MM] early hub leaderboard", e && (e.message || e));
+      } catch (x) {}
+    });
     await loadMyProfile();
     await loadLeaderboard();
     await maybeLoadProfileFromURL();
@@ -936,5 +941,16 @@ async function loadLeaderboard() {
     });
   }
 
-  document.addEventListener("DOMContentLoaded", init);
+  function bootHub() {
+    init().catch(function (e) {
+      try {
+        console.warn("[MM] hub init", e && (e.message || e));
+      } catch (x) {}
+    });
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bootHub);
+  } else {
+    bootHub();
+  }
 })();
