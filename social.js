@@ -578,6 +578,22 @@ async function getUser() {
       return null;
     }
   }
+  async function mmRestSelectHub(path) {
+    try {
+      const base = String(window.MM_CONFIG?.SUPABASE_URL || "").replace(/\/+$/, "");
+      const key = String(window.MM_CONFIG?.SUPABASE_ANON_KEY || "");
+      if (!base || !key || !path) return null;
+      const res = await fetch(base + "/rest/v1/" + path, {
+        method: "GET",
+        headers: { apikey: key }
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return Array.isArray(data) ? data : null;
+    } catch (e) {
+      return null;
+    }
+  }
   async function mmRpcPublicOnlineHub(limit) {
     try {
       if (!window.mmSupabase || typeof window.mmSupabase.rpc !== "function") return null;
@@ -594,6 +610,8 @@ async function getUser() {
     if (!window.mmSupabase) return [];
     const rpcRows = await mmRpcPublicLeaderboardHub(100);
     if (rpcRows) return rpcRows;
+    const restRows = await mmRestSelectHub("leaderboard_public?select=*&order=net_worth.desc&limit=100");
+    if (restRows && restRows.length) return restRows;
     try {
       const res = await window.mmSupabase
         .from("leaderboard_public")
@@ -654,6 +672,19 @@ async function getUser() {
           prestige: Number(r.prestige || 0),
           empire_tier: r.empire_tier || "-",
           updated_at: r.updated_at || null,
+          last_seen: r.last_seen != null ? r.last_seen : null,
+          last_active: null
+        }));
+      }
+      const restPresence = await mmRestSelectHub(`online_presence?select=user_id,username,display_name,last_seen,updated_at&order=last_seen.desc&limit=${Math.min(500, Math.max(1, Number(maxRows) || 120))}`);
+      if (Array.isArray(restPresence) && restPresence.length) {
+        return restPresence.map(r => ({
+          username: r.username || (r.user_id ? `player_${String(r.user_id).slice(0, 8)}` : "unknown"),
+          display_name: r.display_name || r.username || "Unknown",
+          net_worth: 0,
+          prestige: 0,
+          empire_tier: "Online",
+          updated_at: r.updated_at || r.last_seen || null,
           last_seen: r.last_seen != null ? r.last_seen : null,
           last_active: null
         }));
