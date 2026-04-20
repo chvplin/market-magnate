@@ -255,7 +255,19 @@ function renderOwnedAccountCosmetics(owned){
   }
 
   function hubOnlineRowHtml(row) {
-    const isSelf = !!row.__self;
+    let isSelf = !!row.__self;
+    if (!isSelf) {
+      try {
+        const hint = JSON.parse(localStorage.getItem("MM_PROFILE_HINT") || "null");
+        const su = String(hint?.username || "")
+          .trim()
+          .toLowerCase();
+        const ru = String(row.username || "")
+          .trim()
+          .toLowerCase();
+        if (su && ru && su === ru) isSelf = true;
+      } catch (e) {}
+    }
     const name = row.display_name || row.username || "Unknown";
     const tier = row.empire_tier || "-";
     const amt = isSelf ? "Online" : fmtMoney(row.net_worth);
@@ -566,39 +578,65 @@ async function getUser() {
     window.MMGameAdapter.applyLoadedGame(data.save_data);
   }
 
-  
+  /** Must match `interval '30 minutes'` in public.mm_public_online_players (leaderboard_public_rpc.sql). */
+  const MM_ONLINE_PRESENCE_WINDOW_MS = 30 * 60 * 1000;
+
+  function mmDebugSocial(label, payload) {
+    try {
+      if (window.MM_DEBUG_SOCIAL) console.debug("[MM]" + label, payload);
+    } catch (e) {}
+  }
+
+  function mmMapOnlineRpcRowHub(r) {
+    return {
+      user_id: r.user_id,
+      username: r.username || "unknown",
+      display_name: r.display_name || r.username || "Unknown",
+      net_worth: Number(r.net_worth || 0),
+      prestige: Number(r.prestige || 0),
+      empire_tier: r.empire_tier || "-",
+      updated_at: r.updated_at != null ? r.updated_at : null,
+      last_seen: r.last_seen != null ? r.last_seen : null,
+      last_active: null,
+      avatar_dna: r.avatar_dna != null ? r.avatar_dna : null
+    };
+  }
+
+  function mmFinalizeOnlineListHub(mappedRows, opts) {
+    const maxSlots = (opts && opts.maxSlots) || 12;
+    const now = Date.now();
+    const windowMs = (opts && opts.windowMs) || MM_ONLINE_PRESENCE_WINDOW_MS;
+    const inWindow = r => {
+      const raw = r.last_seen || r.updated_at || r.last_active || null;
+      if (!raw) return false;
+      const t = new Date(raw).getTime();
+      return Number.isFinite(t) && now - t >= 0 && now - t <= windowMs;
+    };
+    const stamp = r => new Date(r.last_seen || r.updated_at || r.last_active || 0).getTime();
+    const candidates = (mappedRows || []).filter(inWindow);
+    candidates.sort((a, b) => stamp(b) - stamp(a));
+    const seen = new Set();
+    const out = [];
+    for (let i = 0; i < candidates.length; i++) {
+      const r = candidates[i];
+      const uid = r.user_id ? String(r.user_id) : "";
+      const key = String(r.username || "")
+        .trim()
+        .toLowerCase();
+      const dedupe = uid || key;
+      if (!dedupe || seen.has(dedupe)) continue;
+      seen.add(dedupe);
+      out.push(r);
+      if (out.length >= maxSlots) break;
+    }
+    return out;
+  }
+
   async function mmRpcPublicLeaderboardHub(limit) {
     try {
       if (!window.mmSupabase || typeof window.mmSupabase.rpc !== "function") return null;
       const lim = Math.min(500, Math.max(1, Number(limit) || 100));
       const { data, error } = await window.mmSupabase.rpc("mm_public_leaderboard", { limit_rows: lim });
-      if (error || !Array.isArray(data) || !data.length) return null;
-      return data;
-    } catch (e) {
-      return null;
-    }
-  }
-  async function mmRestSelectHub(path) {
-    try {
-      const base = String(window.MM_CONFIG?.SUPABASE_URL || "").replace(/\/+$/, "");
-      const key = String(window.MM_CONFIG?.SUPABASE_ANON_KEY || "");
-      if (!base || !key || !path) return null;
-      const res = await fetch(base + "/rest/v1/" + path, {
-        method: "GET",
-        headers: { apikey: key }
-      });
-      if (!res.ok) return null;
-      const data = await res.json();
-      return Array.isArray(data) ? data : null;
-    } catch (e) {
-      return null;
-    }
-  }
-  async function mmRpcPublicOnlineHub(limit) {
-    try {
-      if (!window.mmSupabase || typeof window.mmSupabase.rpc !== "function") return null;
-      const lim = Math.min(500, Math.max(1, Number(limit) || 120));
-      const { data, error } = await window.mmSupabase.rpc("mm_public_online_players", { limit_rows: lim });
       if (error || !Array.isArray(data)) return null;
       return data;
     } catch (e) {
@@ -609,199 +647,47 @@ async function getUser() {
   async function fetchLeaderboardRowsIndex() {
     if (!window.mmSupabase) return [];
     const rpcRows = await mmRpcPublicLeaderboardHub(100);
-    if (rpcRows) return rpcRows;
-    const restRows = await mmRestSelectHub("leaderboard_public?select=*&order=net_worth.desc&limit=100");
-    if (restRows && restRows.length) return restRows;
+    if (Array.isArray(rpcRows)) {
+      mmDebugSocial("[leaderboard][hub] mm_public_leaderboard rows=", rpcRows.length);
+      return rpcRows;
+    }
     try {
       const res = await window.mmSupabase
         .from("leaderboard_public")
         .select("*")
         .order("net_worth", { ascending: false })
         .limit(100);
-      if (!res.error && Array.isArray(res.data) && res.data.length) return res.data;
+      if (!res.error && Array.isArray(res.data)) {
+        mmDebugSocial("[leaderboard][hub] leaderboard_public view rows=", res.data.length);
+        return res.data;
+      }
     } catch (e) {}
-
-    try {
-      const statsRes = await window.mmSupabase
-        .from("player_stats")
-        .select("*")
-        .order("net_worth", { ascending: false })
-        .limit(100);
-      if (statsRes.error || !Array.isArray(statsRes.data)) {
-        try {
-          console.warn("[MM] hub leaderboard player_stats", statsRes.error && (statsRes.error.message || statsRes.error));
-        } catch (e) {}
-        return [];
-      }
-      const statsRows = statsRes.data || [];
-      const profileRes = await window.mmSupabase.from("profiles").select("id,username,display_name");
-      const profiles = !profileRes.error && Array.isArray(profileRes.data) ? profileRes.data : [];
-      if (profileRes.error) {
-        try {
-          console.warn("[MM] hub leaderboard profiles", profileRes.error.message || profileRes.error);
-        } catch (e) {}
-      }
-      const byId = new Map(profiles.map(p => [p.id, p]));
-      return statsRows.map(r => {
-        const p = byId.get(r.user_id) || {};
-        return {
-          username: p.username || "unknown",
-          display_name: p.display_name || p.username || "Unknown",
-          net_worth: r.net_worth || 0,
-          prestige: r.prestige || 0,
-          empire_tier: r.empire_tier || "-",
-          updated_at: r.updated_at || null,
-          last_seen: r.last_seen != null ? r.last_seen : null,
-          last_active: r.last_active != null ? r.last_active : null
-        };
-      });
-    } catch (e) {
-      return [];
-    }
+    console.warn("[MM][leaderboard][hub] no rows (RPC unavailable and view failed)");
+    return [];
   }
 
-  async function fetchPlayerStatsRecentActivityIndex(maxRows) {
+  /** Single path: RPC mm_public_online_players (online_presence + profiles + player_stats in SQL). */
+  async function fetchOnlinePlayersHub(maxRows) {
     if (!window.mmSupabase || !maxRows) return [];
     try {
-      const rpcOnline = await mmRpcPublicOnlineHub(maxRows);
-      if (Array.isArray(rpcOnline) && rpcOnline.length) {
-        return rpcOnline.map(r => ({
-          username: r.username || "unknown",
-          display_name: r.display_name || r.username || "Unknown",
-          net_worth: Number(r.net_worth || 0),
-          prestige: Number(r.prestige || 0),
-          empire_tier: r.empire_tier || "-",
-          updated_at: r.updated_at || null,
-          last_seen: r.last_seen != null ? r.last_seen : null,
-          last_active: null
-        }));
+      const lim = Math.min(500, Math.max(1, Number(maxRows) || 120));
+      const { data, error } = await window.mmSupabase.rpc("mm_public_online_players", { limit_rows: lim });
+      if (error) {
+        console.warn("[MM][online][hub] mm_public_online_players", error.message || error);
+        return [];
       }
-      const restPresence = await mmRestSelectHub(`online_presence?select=user_id,username,display_name,last_seen,updated_at&order=last_seen.desc&limit=${Math.min(500, Math.max(1, Number(maxRows) || 120))}`);
-      if (Array.isArray(restPresence) && restPresence.length) {
-        return restPresence.map(r => ({
-          username: r.username || (r.user_id ? `player_${String(r.user_id).slice(0, 8)}` : "unknown"),
-          display_name: r.display_name || r.username || "Unknown",
-          net_worth: 0,
-          prestige: 0,
-          empire_tier: "Online",
-          updated_at: r.updated_at || r.last_seen || null,
-          last_seen: r.last_seen != null ? r.last_seen : null,
-          last_active: null
-        }));
-      }
-      let statsRows = [];
-      const statsRes = await window.mmSupabase
-        .from("player_stats")
-        .select("user_id, net_worth, prestige, empire_tier, updated_at, last_seen, last_active")
-        .order("updated_at", { ascending: false })
-        .limit(maxRows);
-      if (statsRes.error) {
-        try {
-          console.warn("[MM] hub activity player_stats", statsRes.error.message || statsRes.error);
-        } catch (e) {}
-      } else if (Array.isArray(statsRes.data)) {
-        statsRows = statsRes.data;
-      }
-      let presenceRows = [];
-      try {
-        const pr = await window.mmSupabase
-          .from("online_presence")
-          .select("user_id,username,display_name,last_seen,updated_at")
-          .order("last_seen", { ascending: false })
-          .limit(maxRows);
-        if (!pr.error && Array.isArray(pr.data)) presenceRows = pr.data;
-      } catch (e) {}
-      const ids = [...new Set([...statsRows.map(r => r.user_id), ...presenceRows.map(r => r.user_id)].filter(Boolean))].slice(0, 120);
-      if (!ids.length) return [];
-      const profileRes = await window.mmSupabase.from("profiles").select("id,username,display_name").in("id", ids);
-      const profiles = !profileRes.error && Array.isArray(profileRes.data) ? profileRes.data : [];
-      const byId = new Map(profiles.map(p => [p.id, p]));
-      const byPresence = new Map(presenceRows.map(r => [r.user_id, r]));
-      const mapOne = (r, p, pres) => {
-        const un = (p.username && String(p.username).trim()) || (pres && pres.username && String(pres.username).trim()) || "";
-        const fallback = r.user_id ? `player_${String(r.user_id).slice(0, 8)}` : "";
-        const username = un || fallback || "unknown";
-        const display_name =
-          (p.display_name && String(p.display_name).trim()) ||
-          (pres && pres.display_name && String(pres.display_name).trim()) ||
-          username;
-        const stamp = r.updated_at || pres?.last_seen || pres?.updated_at || r.last_seen || r.last_active || null;
-        return {
-          username,
-          display_name,
-          net_worth: r.net_worth || 0,
-          prestige: r.prestige || 0,
-          empire_tier: r.empire_tier || "-",
-          updated_at: stamp,
-          last_seen: r.last_seen != null ? r.last_seen : pres && pres.last_seen != null ? pres.last_seen : null,
-          last_active: r.last_active != null ? r.last_active : null
-        };
-      };
-      const outMap = new Map();
-      statsRows.forEach(r => {
-        if (!r.user_id) return;
-        const p = byId.get(r.user_id) || {};
-        const pres = byPresence.get(r.user_id);
-        outMap.set(r.user_id, mapOne(r, p, pres));
-      });
-      presenceRows.forEach(pres => {
-        if (!pres.user_id || outMap.has(pres.user_id)) return;
-        const p = byId.get(pres.user_id) || {};
-        const stub = {
-          user_id: pres.user_id,
-          net_worth: 0,
-          prestige: 0,
-          empire_tier: "Online",
-          updated_at: null,
-          last_seen: null,
-          last_active: null
-        };
-        outMap.set(pres.user_id, mapOne(stub, p, pres));
-      });
-      return [...outMap.values()].filter(r => r.username);
+      if (!Array.isArray(data)) return [];
+      mmDebugSocial("[online][hub] rpc rows=", data.length);
+      return data.map(mmMapOnlineRpcRowHub);
     } catch (e) {
+      console.warn("[MM][online][hub] fetch failed", e);
       return [];
     }
-  }
-
-  function buildOnlinePlayersListHub(leaderRows, activityRows, opts) {
-    const now = Date.now();
-    const ONLINE_WINDOW_MS = opts && opts.windowMs ? opts.windowMs : 18 * 60 * 1000;
-    const maxSlots = opts && opts.maxSlots ? opts.maxSlots : 12;
-    const passes = row => {
-      const raw = row.updated_at || row.last_seen || row.last_active || null;
-      if (!raw) return false;
-      const t = new Date(raw).getTime();
-      return Number.isFinite(t) && now - t >= 0 && now - t <= ONLINE_WINDOW_MS;
-    };
-    const stamp = row => new Date(row.updated_at || row.last_seen || row.last_active || 0).getTime();
-    const candidates = [];
-    (activityRows || []).forEach(r => {
-      if (passes(r)) candidates.push(r);
-    });
-    (leaderRows || []).forEach(r => {
-      if (passes(r)) candidates.push(r);
-    });
-    candidates.sort((a, b) => stamp(b) - stamp(a));
-    const seen = new Set();
-    const out = [];
-    for (let i = 0; i < candidates.length; i++) {
-      const r = candidates[i];
-      const key = String(r.username || "")
-        .trim()
-        .toLowerCase();
-      if (!key || seen.has(key)) continue;
-      seen.add(key);
-      out.push(r);
-      if (out.length >= maxSlots) break;
-    }
-    return out;
   }
 
 async function loadLeaderboard() {
     const data = await fetchLeaderboardRowsIndex();
-    const activityRows = await fetchPlayerStatsRecentActivityIndex(160);
-    const ONLINE_WINDOW_MS = 18 * 60 * 1000;
+    const onlineSourceRows = await fetchOnlinePlayersHub(160);
 
     if (!data.length) {
       leaderboardTargets().forEach(t => {
@@ -812,39 +698,8 @@ async function loadLeaderboard() {
       const onlineWrap = $("#onlinePlayersList");
       const onlineCount = $("#onlineCount");
       if (onlineWrap) {
-        let online = buildOnlinePlayersListHub([], activityRows, { windowMs: ONLINE_WINDOW_MS, maxSlots: 12 });
-        const now = Date.now();
-        const inWindow = r => {
-          const raw = r.updated_at || r.last_seen || r.last_active || null;
-          if (!raw) return false;
-          const t = new Date(raw).getTime();
-          return Number.isFinite(t) && now - t >= 0 && now - t <= ONLINE_WINDOW_MS;
-        };
-        let selfProfile = null;
-        try {
-          selfProfile = JSON.parse(localStorage.getItem("MM_PROFILE_HINT") || "null");
-        } catch (e) {}
-        const selfUsername = selfProfile?.username || "";
-        const selfFresh =
-          (selfUsername &&
-            activityRows.some(r => {
-              const key = String(r.username || "")
-                .trim()
-                .toLowerCase();
-              return key === String(selfUsername).trim().toLowerCase() && inWindow(r);
-            })) ||
-          false;
-        if (selfUsername && selfFresh && !online.some(r => (r.username || "") === selfUsername)) {
-          online.unshift({
-            username: selfUsername,
-            display_name: selfProfile.display_name || selfUsername,
-            empire_tier: "Online",
-            net_worth: 0,
-            __self: true,
-            updated_at: new Date().toISOString()
-          });
-        }
-        online = online.slice(0, 12);
+        const online = mmFinalizeOnlineListHub(onlineSourceRows, { windowMs: MM_ONLINE_PRESENCE_WINDOW_MS, maxSlots: 12 });
+        mmDebugSocial("[online][hub] render count=", online.length);
         onlineWrap.innerHTML = online.length
           ? online.map(row => hubOnlineRowHtml(row)).join("")
           : '<div class="muted">No players active right now.</div>';
@@ -880,47 +735,8 @@ async function loadLeaderboard() {
     const onlineWrap = $("#onlinePlayersList");
     const onlineCount = $("#onlineCount");
     if (onlineWrap) {
-      const now = Date.now();
-      const inWindow = r => {
-        const raw = r.updated_at || r.last_seen || r.last_active || null;
-        if (!raw) return false;
-        const t = new Date(raw).getTime();
-        return Number.isFinite(t) && now - t >= 0 && now - t <= ONLINE_WINDOW_MS;
-      };
-      let online = buildOnlinePlayersListHub(data, activityRows, { windowMs: ONLINE_WINDOW_MS, maxSlots: 12 });
-
-      let selfProfile = null;
-      try {
-        selfProfile = JSON.parse(localStorage.getItem("MM_PROFILE_HINT") || "null");
-      } catch (e) {}
-      const selfUsername = selfProfile?.username || "";
-      const selfFresh =
-        !!selfUsername &&
-        ((data || []).some(r => {
-          const key = String(r.username || "")
-            .trim()
-            .toLowerCase();
-          return key === String(selfUsername).trim().toLowerCase() && inWindow(r);
-        }) ||
-          activityRows.some(r => {
-            const key = String(r.username || "")
-              .trim()
-              .toLowerCase();
-            return key === String(selfUsername).trim().toLowerCase() && inWindow(r);
-          }));
-      if (selfUsername && selfFresh && !online.some(r => (r.username || "") === selfUsername)) {
-        online.unshift({
-          username: selfUsername,
-          display_name: selfProfile.display_name || selfUsername,
-          empire_tier: "Online",
-          net_worth: 0,
-          __self: true,
-          updated_at: new Date().toISOString()
-        });
-      }
-
-      online = online.slice(0, 12);
-
+      const online = mmFinalizeOnlineListHub(onlineSourceRows, { windowMs: MM_ONLINE_PRESENCE_WINDOW_MS, maxSlots: 12 });
+      mmDebugSocial("[online][hub] render count=", online.length);
       onlineWrap.innerHTML = online.length
         ? online.map(row => hubOnlineRowHtml(row)).join("")
         : '<div class="muted">No players active right now.</div>';

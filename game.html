@@ -7485,257 +7485,115 @@ async function saveSocialProfile(){
 }
 
 
-async function mmRpcPublicLeaderboard(limit){
-  try{
-    if(!window.mmSupabase || typeof window.mmSupabase.rpc !== 'function') return null;
-    const { data, error } = await window.mmSupabase.rpc('mm_public_leaderboard', { limit_rows: Math.min(500, Math.max(1, Number(limit) || 100)) });
-    if(error || !Array.isArray(data) || !data.length) return null;
-    return data;
-  }catch(e){
-    return null;
-  }
-}
-async function mmRestSelect(path){
-  try{
-    const base = String(window.MM_CONFIG?.SUPABASE_URL || '').replace(/\/+$/, '');
-    const key = String(window.MM_CONFIG?.SUPABASE_ANON_KEY || '');
-    if(!base || !key || !path) return null;
-    const res = await fetch(base + '/rest/v1/' + path, {
-      method: 'GET',
-      headers: { apikey: key }
-    });
-    if(!res.ok) return null;
-    const data = await res.json();
-    return Array.isArray(data) ? data : null;
-  }catch(e){
-    return null;
-  }
-}
-async function mmRpcPublicOnlinePlayers(limit){
-  try{
-    if(!window.mmSupabase || typeof window.mmSupabase.rpc !== 'function') return null;
-    const { data, error } = await window.mmSupabase.rpc('mm_public_online_players', { limit_rows: Math.min(500, Math.max(1, Number(limit) || 120)) });
-    if(error || !Array.isArray(data)) return null;
-    return data;
-  }catch(e){
-    return null;
-  }
+/** Must match `interval '30 minutes'` in public.mm_public_online_players (leaderboard_public_rpc.sql). */
+var MM_ONLINE_PRESENCE_WINDOW_MS = 30 * 60 * 1000;
+
+function mmDebugSocialGame(label, payload){
+  try{ if(window.MM_DEBUG_SOCIAL) console.debug('[MM]' + label, payload); }catch(e){}
 }
 
-async function fetchLeaderboardRowsGame(){
-  if(!window.mmSupabase) return [];
-  const rpcRows = await mmRpcPublicLeaderboard(25);
-  if(rpcRows) return rpcRows;
-  // primary path
+function mmIsSelfOnlineRowGame(row){
   try{
-    const res = await window.mmSupabase.from('leaderboard_public').select('*').order('net_worth',{ascending:false}).limit(25);
-    if(!res.error && Array.isArray(res.data) && res.data.length) return res.data;
-  }catch(e){}
-  // fallback path for signed-in sessions
-  try{
-    const statsRes = await window.mmSupabase.from('player_stats').select('*').order('net_worth',{ascending:false}).limit(25);
-    if(statsRes.error || !Array.isArray(statsRes.data)) return [];
-    const statsRows = statsRes.data || [];
-    const profileRes = await window.mmSupabase.from('profiles').select('id,username,display_name');
-    const profiles = Array.isArray(profileRes.data) ? profileRes.data : [];
-    const byId = new Map(profiles.map(p => [p.id, p]));
-    return statsRows.map(r => {
-      const p = byId.get(r.user_id) || {};
-      return {
-        username: p.username || 'unknown',
-        display_name: p.display_name || p.username || 'Unknown',
-        net_worth: r.net_worth || 0,
-        prestige: r.prestige || 0,
-        empire_tier: r.empire_tier || '-',
-        updated_at: r.updated_at || null,
-        avatar_dna: r.avatar_dna != null ? r.avatar_dna : null
-      };
-    });
-  }catch(e){
-    return [];
-  }
+    var su = String(mmSocial && mmSocial.profile && mmSocial.profile.username || '').trim().toLowerCase();
+    var ru = String(row && row.username || '').trim().toLowerCase();
+    return !!(su && ru && su === ru);
+  }catch(e){ return false; }
 }
 
-
-async function fetchLeaderboardRowsUnified(){
-  if(!window.mmSupabase) return [];
-  const rpcRows = await mmRpcPublicLeaderboard(100);
-  if(rpcRows) return rpcRows;
-  const restRows = await mmRestSelect('leaderboard_public?select=*&order=net_worth.desc&limit=100');
-  if(restRows && restRows.length) return restRows;
-  try{
-    const res = await window.mmSupabase
-      .from('leaderboard_public')
-      .select('*')
-      .order('net_worth', { ascending:false })
-      .limit(100);
-    if(!res.error && Array.isArray(res.data) && res.data.length) return res.data;
-  }catch(e){}
-
-  try{
-    const statsRes = await window.mmSupabase
-      .from('player_stats')
-      .select('*')
-      .order('net_worth', { ascending:false })
-      .limit(100);
-    if(statsRes.error || !Array.isArray(statsRes.data)){
-      try{ console.warn('[MM] leaderboard player_stats', statsRes.error && (statsRes.error.message || statsRes.error)); }catch(e){}
-      return [];
-    }
-    const statsRows = statsRes.data || [];
-
-    const profileRes = await window.mmSupabase
-      .from('profiles')
-      .select('id,username,display_name');
-
-    const profiles = !profileRes.error && Array.isArray(profileRes.data) ? profileRes.data : [];
-    if(profileRes.error){
-      try{ console.warn('[MM] leaderboard profiles', profileRes.error.message || profileRes.error); }catch(e){}
-    }
-    const byId = new Map(profiles.map(p => [p.id, p]));
-
-    return statsRows.map(r => {
-      const p = byId.get(r.user_id) || {};
-      return {
-        username: p.username || 'unknown',
-        display_name: p.display_name || p.username || 'Unknown',
-        net_worth: r.net_worth || 0,
-        prestige: r.prestige || 0,
-        empire_tier: r.empire_tier || '-',
-        updated_at: r.updated_at || null,
-        avatar_dna: r.avatar_dna != null ? r.avatar_dna : null
-      };
-    });
-  }catch(e){
-    return [];
-  }
+function mmMapOnlineRpcRowGame(r){
+  return {
+    user_id: r.user_id,
+    username: r.username || 'unknown',
+    display_name: r.display_name || r.username || 'Unknown',
+    net_worth: Number(r.net_worth || 0),
+    prestige: Number(r.prestige || 0),
+    empire_tier: r.empire_tier || '-',
+    updated_at: r.updated_at != null ? r.updated_at : null,
+    last_seen: r.last_seen != null ? r.last_seen : null,
+    last_active: null,
+    avatar_dna: r.avatar_dna != null ? r.avatar_dna : null
+  };
 }
 
-async function fetchPlayerStatsRecentActivity(maxRows){
-  if(!window.mmSupabase || !maxRows) return [];
-  try{
-    const rpcOnline = await mmRpcPublicOnlinePlayers(maxRows);
-    if(Array.isArray(rpcOnline) && rpcOnline.length){
-      return rpcOnline.map(r => ({
-        username: r.username || 'unknown',
-        display_name: r.display_name || r.username || 'Unknown',
-        net_worth: Number(r.net_worth || 0),
-        prestige: Number(r.prestige || 0),
-        empire_tier: r.empire_tier || '-',
-        updated_at: r.updated_at || null,
-        last_seen: r.last_seen != null ? r.last_seen : null,
-        last_active: null,
-        avatar_dna: r.avatar_dna != null ? r.avatar_dna : null
-      }));
-    }
-    const restPresence = await mmRestSelect(`online_presence?select=user_id,username,display_name,last_seen,updated_at&order=last_seen.desc&limit=${Math.min(500, Math.max(1, Number(maxRows) || 120))}`);
-    if(Array.isArray(restPresence) && restPresence.length){
-      return restPresence.map(r => ({
-        username: r.username || (r.user_id ? `player_${String(r.user_id).slice(0, 8)}` : 'unknown'),
-        display_name: r.display_name || r.username || 'Unknown',
-        net_worth: 0,
-        prestige: 0,
-        empire_tier: 'Online',
-        updated_at: r.updated_at || r.last_seen || null,
-        last_seen: r.last_seen != null ? r.last_seen : null,
-        last_active: null,
-        avatar_dna: null
-      }));
-    }
-    let statsRows = [];
-    const statsRes = await window.mmSupabase
-      .from('player_stats')
-      .select('user_id, net_worth, prestige, empire_tier, updated_at, avatar_dna, last_seen, last_active')
-      .order('updated_at', { ascending: false })
-      .limit(maxRows);
-    if(statsRes.error){
-      try{ console.warn('[MM] activity player_stats', statsRes.error.message || statsRes.error); }catch(e){}
-    }else if(Array.isArray(statsRes.data)){
-      statsRows = statsRes.data;
-    }
-    let presenceRows = [];
-    try{
-      const pr = await window.mmSupabase
-        .from('online_presence')
-        .select('user_id,username,display_name,last_seen,updated_at')
-        .order('last_seen', { ascending: false })
-        .limit(maxRows);
-      if(!pr.error && Array.isArray(pr.data)) presenceRows = pr.data;
-    }catch(e){}
-    const ids = [...new Set([...statsRows.map(r => r.user_id), ...presenceRows.map(r => r.user_id)].filter(Boolean))].slice(0, 120);
-    if(!ids.length) return [];
-    const profileRes = await window.mmSupabase
-      .from('profiles')
-      .select('id,username,display_name')
-      .in('id', ids);
-    const profiles = Array.isArray(profileRes.data) ? profileRes.data : [];
-    const byId = new Map(profiles.map(p => [p.id, p]));
-    const byPresence = new Map(presenceRows.map(r => [r.user_id, r]));
-    const mapOne = (r, p, pres)=>{
-      const un = (p.username && String(p.username).trim()) || (pres && pres.username && String(pres.username).trim()) || '';
-      const fallback = r.user_id ? `player_${String(r.user_id).slice(0, 8)}` : '';
-      const username = un || fallback || 'unknown';
-      const display_name = (p.display_name && String(p.display_name).trim()) || (pres && pres.display_name && String(pres.display_name).trim()) || username;
-      const stamp = r.updated_at || pres?.last_seen || pres?.updated_at || r.last_seen || r.last_active || null;
-      return {
-        username,
-        display_name,
-        net_worth: r.net_worth || 0,
-        prestige: r.prestige || 0,
-        empire_tier: r.empire_tier || '-',
-        updated_at: stamp,
-        last_seen: r.last_seen != null ? r.last_seen : (pres && pres.last_seen != null ? pres.last_seen : null),
-        last_active: r.last_active != null ? r.last_active : null,
-        avatar_dna: r.avatar_dna != null ? r.avatar_dna : null
-      };
-    };
-    const outMap = new Map();
-    statsRows.forEach(r=>{
-      if(!r.user_id) return;
-      const p = byId.get(r.user_id) || {};
-      const pres = byPresence.get(r.user_id);
-      outMap.set(r.user_id, mapOne(r, p, pres));
-    });
-    presenceRows.forEach(pres=>{
-      if(!pres.user_id || outMap.has(pres.user_id)) return;
-      const p = byId.get(pres.user_id) || {};
-      const stub = { user_id: pres.user_id, net_worth: 0, prestige: 0, empire_tier: 'Online', updated_at: null, last_seen: null, last_active: null, avatar_dna: null };
-      outMap.set(pres.user_id, mapOne(stub, p, pres));
-    });
-    return [...outMap.values()].filter(r => r.username);
-  }catch(e){
-    return [];
-  }
-}
-
-function buildOnlinePlayersList(leaderRows, activityRows, opts){
-  const now = Date.now();
-  const ONLINE_WINDOW_MS = opts && opts.windowMs ? opts.windowMs : (18 * 60 * 1000);
-  const maxSlots = opts && opts.maxSlots ? opts.maxSlots : 12;
-  const passes = function(row){
-    const raw = row.updated_at || row.last_seen || row.last_active || null;
+function mmFinalizeOnlineListGame(mappedRows, opts){
+  var maxSlots = (opts && opts.maxSlots) || 12;
+  var now = Date.now();
+  var windowMs = (opts && opts.windowMs) || MM_ONLINE_PRESENCE_WINDOW_MS;
+  function inWindow(r){
+    var raw = r.last_seen || r.updated_at || r.last_active || null;
     if(!raw) return false;
-    const t = new Date(raw).getTime();
-    return Number.isFinite(t) && (now - t) >= 0 && (now - t) <= ONLINE_WINDOW_MS;
-  };
-  const stamp = function(row){
-    return new Date(row.updated_at || row.last_seen || row.last_active || 0).getTime();
-  };
-  const candidates = [];
-  (activityRows || []).forEach(function(r){ if(passes(r)) candidates.push(r); });
-  (leaderRows || []).forEach(function(r){ if(passes(r)) candidates.push(r); });
+    var t = new Date(raw).getTime();
+    return Number.isFinite(t) && (now - t) >= 0 && (now - t) <= windowMs;
+  }
+  function stamp(r){ return new Date(r.last_seen || r.updated_at || r.last_active || 0).getTime(); }
+  var candidates = (mappedRows || []).filter(inWindow);
   candidates.sort(function(a, b){ return stamp(b) - stamp(a); });
-  const seen = new Set();
-  const out = [];
-  for(let i = 0; i < candidates.length; i++){
-    const r = candidates[i];
-    const key = String(r.username || '').trim().toLowerCase();
-    if(!key || seen.has(key)) continue;
-    seen.add(key);
+  var seen = new Set();
+  var out = [];
+  for(var i = 0; i < candidates.length; i++){
+    var r = candidates[i];
+    var uid = r.user_id ? String(r.user_id) : '';
+    var key = String(r.username || '').trim().toLowerCase();
+    var dedupe = uid || key;
+    if(!dedupe || seen.has(dedupe)) continue;
+    seen.add(dedupe);
     out.push(r);
     if(out.length >= maxSlots) break;
   }
   return out;
+}
+
+async function mmRpcPublicLeaderboard(limit){
+  try{
+    if(!window.mmSupabase || typeof window.mmSupabase.rpc !== 'function') return null;
+    var lim = Math.min(500, Math.max(1, Number(limit) || 100));
+    var res = await window.mmSupabase.rpc('mm_public_leaderboard', { limit_rows: lim });
+    if(res.error || !Array.isArray(res.data)) return null;
+    return res.data;
+  }catch(e){
+    return null;
+  }
+}
+
+async function fetchLeaderboardRowsUnified(){
+  if(!window.mmSupabase) return [];
+  var rpcRows = await mmRpcPublicLeaderboard(100);
+  if(Array.isArray(rpcRows)){
+    mmDebugSocialGame('[leaderboard][game] mm_public_leaderboard rows=', rpcRows.length);
+    return rpcRows;
+  }
+  try{
+    var res = await window.mmSupabase
+      .from('leaderboard_public')
+      .select('*')
+      .order('net_worth', { ascending:false })
+      .limit(100);
+    if(!res.error && Array.isArray(res.data)){
+      mmDebugSocialGame('[leaderboard][game] leaderboard_public view rows=', res.data.length);
+      return res.data;
+    }
+  }catch(e){}
+  console.warn('[MM][leaderboard][game] no rows (RPC unavailable and view failed)');
+  return [];
+}
+
+/** Presence-backed rows for online UI + tape hints; single source: mm_public_online_players. */
+async function fetchPlayerStatsRecentActivity(maxRows){
+  if(!window.mmSupabase || !maxRows) return [];
+  try{
+    var lim = Math.min(500, Math.max(1, Number(maxRows) || 120));
+    var res = await window.mmSupabase.rpc('mm_public_online_players', { limit_rows: lim });
+    if(res.error){
+      console.warn('[MM][online][game] mm_public_online_players', res.error.message || res.error);
+      return [];
+    }
+    if(!Array.isArray(res.data)) return [];
+    mmDebugSocialGame('[online][game] rpc rows=', res.data.length);
+    return res.data.map(mmMapOnlineRpcRowGame);
+  }catch(e){
+    console.warn('[MM][online][game] fetch failed', e);
+    return [];
+  }
 }
 
 async function loadLeaderboardSocial(){
@@ -7752,26 +7610,15 @@ async function loadLeaderboardSocial(){
     if(modal) modal.innerHTML = '<tr><td colspan="4">No leaderboard data yet.</td></tr>';
     mmSocial.leaderRows = activityRows.length ? activityRows : [];
     if(onlineWrap){
-      const selfUsername = mmSocial?.profile?.username || '';
-      let online = buildOnlinePlayersList([], activityRows, {});
-      const selfDisplay = mmSocial?.profile?.display_name || selfUsername;
-      const selfFresh = activityRows.some(function(r){
-        const key = String(r.username || '').trim().toLowerCase();
-        const raw = r.updated_at || r.last_seen || r.last_active || null;
-        if(!selfUsername || !raw) return false;
-        const t = new Date(raw).getTime();
-        return key === String(selfUsername).trim().toLowerCase() && Number.isFinite(t) && (Date.now() - t) >= 0 && (Date.now() - t) <= (18 * 60 * 1000);
-      });
-      if(selfUsername && selfFresh && !online.some(function(r){ return (r.username || '') === selfUsername; })){
-        online.unshift({ username: selfUsername, display_name: selfDisplay, empire_tier: 'Online', net_worth: (typeof netWorth === 'function') ? netWorth() : 0, __self: true, updated_at: new Date().toISOString() });
-      }
-      online = online.slice(0, 12);
+      const online = mmFinalizeOnlineListGame(activityRows, { windowMs: MM_ONLINE_PRESENCE_WINDOW_MS, maxSlots: 12 });
+      mmDebugSocialGame('[online][game] render count (no lb rows)=', online.length);
       onlineWrap.innerHTML = online.length
         ? online.map(function(row){
-          const nm = escapeHtml(String(row.display_name || row.username || 'Unknown')) + (row.__self ? ' (You)' : '');
+          const self = mmIsSelfOnlineRowGame(row);
+          const nm = escapeHtml(String(row.display_name || row.username || 'Unknown')) + (self ? ' (You)' : '');
           const un = escapeHtml(String(row.username || 'unknown'));
           const tier = escapeHtml(String(row.empire_tier || 'Online'));
-          const amt = row.__self ? 'Online' : formatMoney(row.net_worth);
+          const amt = self ? 'Online' : formatMoney(row.net_worth);
           return '<a class="leaderMiniRow livePlayerRow" data-username="' + String(row.username || '').replace(/"/g, '') + '" href="./index.html?u=' + encodeURIComponent(row.username || '') + '">'
             + '<div class="rankBubble">●</div>'
             + '<div class="mmLbMid"><div class="mmLbName">' + nm + '</div><div class="layoutHint">@' + un + '</div></div>'
@@ -7826,56 +7673,25 @@ async function loadLeaderboardSocial(){
   }
 
   if(onlineWrap){
-    const now = Date.now();
-    const ONLINE_WINDOW_MS = 18 * 60 * 1000;
-
-    let online = buildOnlinePlayersList(rows, activityRows, { windowMs: ONLINE_WINDOW_MS, maxSlots: 12 });
-
-    const selfUsername = mmSocial?.profile?.username || '';
-    const selfDisplay = mmSocial?.profile?.display_name || selfUsername;
-    const inWindow = function(r){
-      const raw = r.updated_at || r.last_seen || r.last_active || null;
-      if(!raw) return false;
-      const t = new Date(raw).getTime();
-      return Number.isFinite(t) && (now - t) >= 0 && (now - t) <= ONLINE_WINDOW_MS;
-    };
-    const selfFresh = rows.some(r => {
-      const key = String(r.username || '').trim().toLowerCase();
-      if(!selfUsername || !inWindow(r)) return false;
-      return key === String(selfUsername).trim().toLowerCase();
-    }) || activityRows.some(r => {
-      const key = String(r.username || '').trim().toLowerCase();
-      if(!selfUsername || !inWindow(r)) return false;
-      return key === String(selfUsername).trim().toLowerCase();
-    });
-
-    if(selfUsername && selfFresh && !online.some(r => (r.username || '') === selfUsername)){
-      online.unshift({
-        username: selfUsername,
-        display_name: selfDisplay,
-        empire_tier: 'Online',
-        net_worth: (typeof netWorth === 'function') ? netWorth() : 0,
-        __self: true,
-        updated_at: new Date().toISOString()
-      });
-    }
-
-    online = online.slice(0, 12);
-
+    const online = mmFinalizeOnlineListGame(activityRows, { windowMs: MM_ONLINE_PRESENCE_WINDOW_MS, maxSlots: 12 });
+    mmDebugSocialGame('[online][game] render count=', online.length);
     onlineWrap.innerHTML = online.length
-      ? online.map(row => `
+      ? online.map(row => {
+          const self = mmIsSelfOnlineRowGame(row);
+          return `
           <a class="leaderMiniRow livePlayerRow" data-username="${row.username || ""}" href="./index.html?u=${encodeURIComponent(row.username || "")}">
             <div class="rankBubble">●</div>
             <div class="mmLbMid">
-              <div class="mmLbName">${escapeHtml(String(row.display_name || row.username || 'Unknown'))}${row.__self ? ' (You)' : ''}</div>
+              <div class="mmLbName">${escapeHtml(String(row.display_name || row.username || 'Unknown'))}${self ? ' (You)' : ''}</div>
               <div class="layoutHint">@${escapeHtml(String(row.username || 'unknown'))}</div>
             </div>
             <div class="mmLbAmtCol">
-              <div class="mmLbAmt">${row.__self ? 'Online' : formatMoney(row.net_worth)}</div>
+              <div class="mmLbAmt">${self ? 'Online' : formatMoney(row.net_worth)}</div>
               <div class="layoutHint">${escapeHtml(String(row.empire_tier || 'Online'))}</div>
             </div>
           </a>
-        `).join('')
+        `;
+        }).join('')
       : '<div class="layoutHint">No players active right now.</div>';
 
     if(onlineCount) onlineCount.textContent = `(${online.length})`;
