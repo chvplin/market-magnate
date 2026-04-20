@@ -12,6 +12,9 @@
       display:flex;
       align-items:center;
       justify-content:center;
+      width:100%;
+      max-width:100vw;
+      box-sizing:border-box;
       background:
         radial-gradient(circle at top left, rgba(29,111,232,.16), transparent 26%),
         radial-gradient(circle at top right, rgba(66,183,42,.10), transparent 20%),
@@ -80,31 +83,56 @@
       margin:0 0 10px;
       font-size:.95rem;
     }
-    .miniLead{display:grid;gap:8px}
+    .miniLead{display:grid;gap:8px;min-width:0}
     .miniLeadRow{
-      display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;
-      padding:10px 12px;border-radius:11px;background:#fff;border:1px solid var(--line);
+      display:grid;
+      grid-template-columns:auto minmax(0,1fr) minmax(0,38%);
+      gap:10px;
+      align-items:center;
+      padding:10px 12px;
+      border-radius:11px;
+      background:#fff;
+      border:1px solid var(--line);
+      min-width:0;
+      max-width:100%;
+      text-decoration:none;
+      color:inherit;
+    }
+    .miniLbMid{min-width:0;overflow:hidden}
+    .miniLbName{font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .miniLbSub{font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .miniLbAmtCol{min-width:0;text-align:right}
+    .miniLbAmt{
+      font-weight:900;
+      font-variant-numeric:tabular-nums;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      color:var(--brand);
     }
     .miniRank{
       width:30px;height:30px;border-radius:9px;background:#edf3fb;display:grid;place-items:center;
-      font-weight:900;color:#2f537d;
+      font-weight:900;color:#2f537d;flex-shrink:0
     }
-  
-html,body{cursor:auto !important;}}
-
-
-html,body,*{cursor:auto !important}
-}
-
-
-html, body, body *, body *::before, body *::after { cursor:auto !important; }
-}
-
-
-html, body, body *, body *::before, body *::after { cursor:auto !important; }
-}
-
-</style>
+    main.loginBoard{min-width:0;max-width:100%}
+    .leaderPeek .tableWrap{min-width:0;max-width:100%}
+    .leaderPeek .tableWrap table.hubLeaderTable{
+      table-layout:fixed;
+      width:100%;
+    }
+    .leaderPeek .tableWrap table.hubLeaderTable th,
+    .leaderPeek .tableWrap table.hubLeaderTable td{
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      max-width:0;
+    }
+    .leaderPeek .tableWrap table.hubLeaderTable th:nth-child(1),
+    .leaderPeek .tableWrap table.hubLeaderTable td:nth-child(1){width:40px}
+    .leaderPeek .tableWrap table.hubLeaderTable th:nth-child(3),
+    .leaderPeek .tableWrap table.hubLeaderTable td:nth-child(3){width:32%}
+    html,body,body *,body *::before,body *::after{cursor:auto !important}
+  </style>
 
 </head>
 <body>
@@ -182,7 +210,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
       <section class="leaderPeek sectionCard">
         <h3>Leaderboard</h3>
         <div class="tableWrap" style="max-height:320px;overflow:auto">
-          <table>
+          <table class="hubLeaderTable">
             <thead>
               <tr><th>#</th><th>User</th><th>Net Worth</th><th>Empire</th></tr>
             </thead>

@@ -174,10 +174,101 @@ function renderOwnedAccountCosmetics(owned){
   }
 }
 
+  /** US short-scale suffixes through decillion; matches game `MM_MONEY_SUFFIX_STEPS` for hub-only pages. */
+  const MM_HUB_SUFFIX_STEPS = [
+    [1e33, "De"],
+    [1e30, "No"],
+    [1e27, "Oc"],
+    [1e24, "Sp"],
+    [1e21, "Sx"],
+    [1e18, "Qi"],
+    [1e15, "Qa"],
+    [1e12, "T"],
+    [1e9, "B"],
+    [1e6, "M"],
+    [1e3, "K"]
+  ];
+
+  function escapeHtml(s) {
+    return String(s ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function hubFmtMoney(n) {
+    const num = Number(n);
+    if (!isFinite(num)) return "$0";
+    const neg = num < 0;
+    const abs = Math.abs(num);
+    const p = neg ? "-" : "";
+    if (abs < 1000) {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        maximumFractionDigits: abs >= 100 ? 0 : 2
+      }).format(num);
+    }
+    for (const [th, suf] of MM_HUB_SUFFIX_STEPS) {
+      if (abs >= th) {
+        const v = abs / th;
+        const dec = v >= 100 ? 0 : v >= 10 ? 1 : 2;
+        return p + "$" + v.toFixed(dec) + suf;
+      }
+    }
+    const e = Math.floor(Math.log10(abs));
+    const m = abs / Math.pow(10, e);
+    return p + "$" + m.toFixed(3) + "×10^" + e;
+  }
+
+  function hubFmtStat(n) {
+    const x = Number(n);
+    if (!isFinite(x)) return "0";
+    const ri = Math.round(x);
+    const a = Math.abs(ri);
+    const neg = ri < 0 ? "-" : "";
+    if (a < 10000) return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(ri);
+    for (const [th, suf] of MM_HUB_SUFFIX_STEPS) {
+      if (a >= th) {
+        const v = a / th;
+        const dec = v >= 100 ? 0 : v >= 10 ? 1 : 2;
+        return neg + v.toFixed(dec) + suf;
+      }
+    }
+    const e = Math.floor(Math.log10(a));
+    const m = a / Math.pow(10, e);
+    return neg + m.toFixed(3) + "×10^" + e;
+  }
 
   function fmtMoney(n) {
     if (n == null || isNaN(n)) return "$0";
-    return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: n >= 1000 ? 0 : 2 }).format(Number(n));
+    const v = Number(n);
+    if (typeof window.mmFormatMoney === "function") return window.mmFormatMoney(v);
+    return hubFmtMoney(v);
+  }
+
+  function fmtStat(n) {
+    const v = Number(n);
+    if (typeof window.mmFormatStat === "function") return window.mmFormatStat(v);
+    return hubFmtStat(v);
+  }
+
+  function hubOnlineRowHtml(row) {
+    const isSelf = !!row.__self;
+    const name = row.display_name || row.username || "Unknown";
+    const tier = row.empire_tier || "-";
+    const amt = isSelf ? "Online" : fmtMoney(row.net_worth);
+    const href = `./index.html?u=${encodeURIComponent(row.username || "")}`;
+    return `
+      <a class="miniLeadRow livePlayerRow" href="${href}">
+        <div class="miniRank">●</div>
+        <div class="miniLbMid">
+          <div class="miniLbName">${escapeHtml(name)}${isSelf ? " (You)" : ""}</div>
+          <div class="miniLbSub muted">${escapeHtml(tier)}</div>
+        </div>
+        <div class="miniLbAmtCol"><div class="miniLbAmt">${amt}</div></div>
+      </a>`;
   }
 
   function setText(node, text) { if (node) node.textContent = text; }
@@ -596,7 +687,7 @@ async function loadLeaderboard() {
 
     if (!data.length) {
       leaderboardTargets().forEach(t => {
-        const cols = t.id === 'signinLeaderboardBody' ? 3 : 5;
+        const cols = t.id === "signinLeaderboardBody" ? 4 : 5;
         t.innerHTML = `<tr><td colspan="${cols}">No leaderboard data yet.</td></tr>`;
       });
 
@@ -637,17 +728,7 @@ async function loadLeaderboard() {
         }
         online = online.slice(0, 12);
         onlineWrap.innerHTML = online.length
-          ? online
-              .map(
-                row => `
-              <a class="miniLeadRow livePlayerRow" href="./index.html?u=${encodeURIComponent(row.username || "")}">
-                <div class="miniRank">●</div>
-                <div><div style="font-weight:900">${row.display_name || row.username || "Unknown"}${row.__self ? " (You)" : ""}</div><div class="muted" style="font-size:.8rem">${row.empire_tier || "-"}</div></div>
-                <div style="font-weight:900">${row.__self ? "Online" : fmtMoney(row.net_worth)}</div>
-              </a>
-            `
-              )
-              .join("")
+          ? online.map(row => hubOnlineRowHtml(row)).join("")
           : '<div class="muted">No players active right now.</div>';
         if (onlineCount) onlineCount.textContent = `(${online.length})`;
       }
@@ -657,24 +738,25 @@ async function loadLeaderboard() {
     const fullRows = (data || []).map((row, idx) => `
       <tr>
         <td>${idx + 1}</td>
-        <td>${row.display_name || row.username || "Unknown"}</td>
+        <td>${escapeHtml(row.display_name || row.username || "Unknown")}</td>
         <td>${fmtMoney(row.net_worth)}</td>
-        <td>${row.prestige || 0}</td>
-        <td>${row.empire_tier || "-"}</td>
+        <td>${fmtStat(row.prestige || 0)}</td>
+        <td>${escapeHtml(row.empire_tier || "-")}</td>
       </tr>`).join("");
 
     const signRows = (data || []).slice(0, 12).map((row, idx) => `
       <tr>
         <td>${idx + 1}</td>
-        <td>${row.display_name || row.username || "Unknown"}</td>
+        <td>${escapeHtml(row.display_name || row.username || "Unknown")}</td>
         <td>${fmtMoney(row.net_worth)}</td>
+        <td>${escapeHtml(row.empire_tier || "-")}</td>
       </tr>`).join("");
 
     if ($("#leaderboardBody")) {
       $("#leaderboardBody").innerHTML = fullRows || `<tr><td colspan="5">No players yet.</td></tr>`;
     }
     if ($("#signinLeaderboardBody")) {
-      $("#signinLeaderboardBody").innerHTML = signRows || `<tr><td colspan="3">No players yet.</td></tr>`;
+      $("#signinLeaderboardBody").innerHTML = signRows || `<tr><td colspan="4">No players yet.</td></tr>`;
     }
 
     const onlineWrap = $("#onlinePlayersList");
@@ -722,13 +804,7 @@ async function loadLeaderboard() {
       online = online.slice(0, 12);
 
       onlineWrap.innerHTML = online.length
-        ? online.map(row => `
-            <a class="miniLeadRow livePlayerRow" href="./index.html?u=${encodeURIComponent(row.username || "")}">
-              <div class="miniRank">●</div>
-              <div><div style="font-weight:900">${row.display_name || row.username || "Unknown"}${row.__self ? " (You)" : ""}</div><div class="muted" style="font-size:.8rem">${row.empire_tier || "-"}</div></div>
-              <div style="font-weight:900">${row.__self ? "Online" : fmtMoney(row.net_worth)}</div>
-            </a>
-          `).join("")
+        ? online.map(row => hubOnlineRowHtml(row)).join("")
         : '<div class="muted">No players active right now.</div>';
 
       if (onlineCount) onlineCount.textContent = `(${online.length})`;
@@ -836,14 +912,14 @@ async function loadLeaderboard() {
           <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">
             <div style="width:58px;height:58px;border-radius:16px;border:2px solid #fff;background:#f3f4f6;display:grid;place-items:center;font-size:1.7rem;box-shadow:0 10px 24px rgba(0,0,0,.08)">${avatar}</div>
             <div>
-              <h3 style="margin:0">${profile.display_name || profile.username}</h3>
-              <p style="margin:6px 0 0">@${profile.username}</p>
+              <h3 style="margin:0">${escapeHtml(profile.display_name || profile.username)}</h3>
+              <p style="margin:6px 0 0">@${escapeHtml(profile.username)}</p>
             </div>
           </div>
-          <p style="margin:0 0 12px">${profile.bio || ""}</p>
+          <p style="margin:0 0 12px">${escapeHtml(profile.bio || "")}</p>
           <div class="statGrid">
             <div class="statBox"><span>Net Worth</span><strong>${fmtMoney(stats?.net_worth || 0)}</strong></div>
-            <div class="statBox"><span>Prestige</span><strong>${stats?.prestige || 0}</strong></div>
+            <div class="statBox"><span>Prestige</span><strong>${fmtStat(stats?.prestige || 0)}</strong></div>
             <div class="statBox"><span>Empire</span><strong>${stats?.empire_tier || "-"}</strong></div>
             <div class="statBox"><span>Favorite Stock</span><strong>${profile.favorite_stock || "-"}</strong></div>
           </div>

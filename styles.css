@@ -23,7 +23,7 @@ textarea{min-height:110px;resize:vertical}
 button,a.buttonish{border:none;background:linear-gradient(180deg,var(--brand),var(--brand2));color:#fff;font-weight:800;padding:11px 14px;border-radius:12px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
 button.secondary{background:#f1f5f9;color:var(--ink);border:1px solid var(--line)}
 .muted{color:var(--muted);font-size:.92rem}
-.tableWrap{overflow:auto}
+.tableWrap{overflow:auto;min-width:0;max-width:100%}
 table{width:100%;border-collapse:collapse}
 th,td{text-align:left;padding:10px 8px;border-bottom:1px solid #edf1f5;font-size:.92rem}
 .statGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
@@ -260,6 +260,19 @@ html, body, button, a, input, textarea, select { cursor: none !important; }
 .loginSide{
   display:grid;
   gap:18px;
+  min-width:0;
+  max-width:100%;
+}
+.loginBoard > .loginCard,
+.loginBoard > .loginSide{
+  min-width:0;
+}
+.statBox strong{
+  display:block;
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 .sectionCard{
   margin-top:0 !important;
