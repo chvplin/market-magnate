@@ -3565,11 +3565,31 @@ async function mmHydrateSharedTapeFromCloud(){
     if(typeof window.mmRefreshLive === 'function') window.mmRefreshLive();
   }catch(e){ console.warn(e); }
 }
+function mmNormalizeStockHoldings(){
+  if(!Array.isArray(game.stocks)) return;
+  for(const s of game.stocks){
+    let o = Number(s.owned);
+    if(!Number.isFinite(o) || o <= 0){
+      s.owned = 0;
+      s.avg = 0;
+    }else{
+      s.owned = Math.floor(o);
+    }
+    let lv = Number(s.levOwned);
+    if(!Number.isFinite(lv) || lv <= 0){
+      s.levOwned = 0;
+      s.levAvg = 0;
+      s.levMult = 1;
+    }else{
+      s.levOwned = Math.floor(lv);
+    }
+  }
+}
+
 function mmApplyServerExchangePayload(row){
   if(!row || row.ok !== true) return;
   if(row.cash != null && Number.isFinite(Number(row.cash))) game.cash = Number(row.cash);
   const arr = Array.isArray(row.positions) ? row.positions : [];
-  if(!arr.length) return;
   const by = Object.create(null);
   for(const p of arr){
     if(p && p.symbol) by[String(p.symbol).toUpperCase()] = p;
@@ -3584,12 +3604,13 @@ function mmApplyServerExchangePayload(row){
       s.levMult = 1;
       continue;
     }
-    s.owned = Number(p.shares) || 0;
+    s.owned = Math.max(0, Math.floor(Number(p.shares) || 0));
     s.avg = Number(p.avg_cost) || 0;
-    s.levOwned = Number(p.lev_shares) || 0;
+    s.levOwned = Math.max(0, Math.floor(Number(p.lev_shares) || 0));
     s.levAvg = Number(p.lev_avg) || 0;
     s.levMult = Math.max(1, Math.floor(Number(p.lev_mult)) || 1);
   }
+  mmNormalizeStockHoldings();
 }
 async function mmPullServerExchangeState(){
   if(!mmServerTradeRpcEnabled()) return;
@@ -3619,10 +3640,15 @@ async function mmBuySellStockViaRpc(side, qty, lev){
       return;
     }
     await window.mmSupabase.rpc('mm_ensure_wallet', { p_seed_cash: game.cash });
+    const q = Math.max(0, Math.floor(Number(qty) || 0));
+    if(String(side).toUpperCase() === 'SELL' && q < 1){
+      toast('No shares to sell', 'warning');
+      return;
+    }
     const { data, error } = await window.mmSupabase.rpc('mm_execute_trade', {
       p_symbol: s.symbol,
       p_side: side,
-      p_qty: qty,
+      p_qty: q,
       p_leverage: lev || 1
     });
     if(error) throw error;
@@ -3632,14 +3658,15 @@ async function mmBuySellStockViaRpc(side, qty, lev){
     const px = Number(data.price);
     for(const st of game.stocks){
       if(String(st.symbol || '').toUpperCase() !== sym) continue;
-      st.owned = Number(data.shares) || 0;
+      st.owned = Math.max(0, Math.floor(Number(data.shares) || 0));
       st.avg = Number(data.avg_cost) || 0;
-      st.levOwned = Number(data.lev_shares) || 0;
+      st.levOwned = Math.max(0, Math.floor(Number(data.lev_shares) || 0));
       st.levAvg = Number(data.lev_avg) || 0;
       st.levMult = Math.max(1, Math.floor(Number(data.lev_mult)) || 1);
       if(Number.isFinite(px)) st._mmDisplayPrice = px;
       break;
     }
+    mmNormalizeStockHoldings();
     await mmPullSharedMarketBeforeTick({ force: true });
     game.trades++;
     if(String(side).toUpperCase() === 'BUY'){
@@ -4372,8 +4399,9 @@ function sellStock(){
   const lev = game.leverage || 1;
 
   if(lev > 1){
-    if(!(s.levOwned > 0) || s.levMult !== lev) return toast('No matching leveraged position to close','warning');
-    const qty = game.tradeQty === 'max' ? s.levOwned : Math.min(game.tradeQty, s.levOwned);
+    const levOwned = Math.max(0, Math.floor(Number(s.levOwned) || 0));
+    if(!(levOwned > 0) || s.levMult !== lev) return toast('No matching leveraged position to close','warning');
+    const qty = game.tradeQty === 'max' ? levOwned : Math.min(game.tradeQty, levOwned);
     if(qty < 1) return toast('No leveraged contracts to sell','warning');
     if(mmServerTradeRpcEnabled() && mmSharedSignedIn()){
       void mmBuySellStockViaRpc('SELL', qty, lev);
@@ -4393,15 +4421,16 @@ function sellStock(){
     return;
   }
 
-  const qty = game.tradeQty === 'max' ? s.owned : Math.min(game.tradeQty,s.owned);
-  if(qty<1) return toast('No shares to sell','warning');
+  const spotOwned = Math.max(0, Math.floor(Number(s.owned) || 0));
+  const qty = game.tradeQty === 'max' ? spotOwned : Math.min(game.tradeQty, spotOwned);
+  if(qty < 1) return toast('No shares to sell','warning');
   if(mmServerTradeRpcEnabled() && mmSharedSignedIn()){
     void mmBuySellStockViaRpc('SELL', qty, 1);
     return;
   }
   const value = qty*s.price;
   game.cash += value;
-  s.owned -= qty;
+  s.owned = Math.max(0, spotOwned - qty);
   if(s.owned<=0){ s.owned=0; s.avg=0; }
   game.totalEarned += Math.max(0, value);
   game.trades++;
@@ -4449,7 +4478,7 @@ function mmQuickSellFromHolding(stockIndex, mode){
   const i = Math.floor(Number(stockIndex));
   if(!Number.isFinite(i) || i < 0 || i >= game.stocks.length) return;
   const s = game.stocks[i];
-  if(!s || s.owned < 1) return;
+  if(!s || Math.floor(Number(s.owned) || 0) < 1) return;
   const lev = game.leverage || 1;
   if(lev > 1 && (s.levOwned || 0) > 0){
     toast('Close leveraged positions from the trade panel', 'warning');
@@ -4618,6 +4647,7 @@ function load(){
       );
       return merged;
     });
+    mmNormalizeStockHoldings();
     game.speedIndex = Number.isInteger(parsed.speedIndex) ? parsed.speedIndex : 1;
     game.speedIndex = Math.max(0, Math.min(SPEEDS.length-1, game.speedIndex));
     game.speedLabel = SPEEDS[game.speedIndex].label;
@@ -5944,9 +5974,10 @@ function renderCasino(){
 function renderPortfolio(){
   const wrap = $('#portfolioTable');
   if(!wrap) return;
+  mmNormalizeStockHoldings();
   bindPortfolioTableInteractionsOnce();
   wrap.innerHTML = '';
-  const holdings = game.stocks.filter(s=>s.owned>0).sort((a,b)=>(b.owned*b.price)-(a.owned*a.price));
+  const holdings = game.stocks.filter(s=>Math.floor(Number(s.owned)||0) > 0).sort((a,b)=>(b.owned*b.price)-(a.owned*a.price));
   if(!holdings.length){
     wrap.innerHTML = '<div class="panelSub">No positions yet. Buy your first stock.</div>';
     return;
@@ -6733,6 +6764,7 @@ function updateHud(){
 
 function refresh(){
   bindCasinoOnce();
+  try{ mmNormalizeStockHoldings(); }catch(e){}
   try{ checkBankruptcy(); }catch(e){}
   updateHud();
   renderMenu(); renderStocks(); renderShopTabs('shopping'); renderShopTabs('business'); renderItems('shopping'); renderItems('business'); renderNews(); renderNewsDock(); syncNewsTicker(); renderUser(); renderFinance(); renderEmpire(); renderCasino(); renderRail(); renderMobileNav(); renderMobileTrade();
