@@ -567,28 +567,51 @@ async function getUser() {
   }
 
   
+  async function mmRpcPublicLeaderboardHub(limit) {
+    try {
+      if (!window.mmSupabase || typeof window.mmSupabase.rpc !== "function") return null;
+      const lim = Math.min(500, Math.max(1, Number(limit) || 100));
+      const { data, error } = await window.mmSupabase.rpc("mm_public_leaderboard", { limit_rows: lim });
+      if (error || !Array.isArray(data) || !data.length) return null;
+      return data;
+    } catch (e) {
+      return null;
+    }
+  }
+
   async function fetchLeaderboardRowsIndex() {
-    // primary path
+    if (!window.mmSupabase) return [];
+    const rpcRows = await mmRpcPublicLeaderboardHub(100);
+    if (rpcRows) return rpcRows;
     try {
       const res = await window.mmSupabase
         .from("leaderboard_public")
         .select("*")
         .order("net_worth", { ascending: false })
         .limit(100);
-      if (!res.error && Array.isArray(res.data)) return res.data;
+      if (!res.error && Array.isArray(res.data) && res.data.length) return res.data;
     } catch (e) {}
 
-    // fallback path
     try {
       const statsRes = await window.mmSupabase
         .from("player_stats")
         .select("*")
         .order("net_worth", { ascending: false })
         .limit(100);
-      if (statsRes.error || !Array.isArray(statsRes.data)) return [];
+      if (statsRes.error || !Array.isArray(statsRes.data)) {
+        try {
+          console.warn("[MM] hub leaderboard player_stats", statsRes.error && (statsRes.error.message || statsRes.error));
+        } catch (e) {}
+        return [];
+      }
       const statsRows = statsRes.data || [];
       const profileRes = await window.mmSupabase.from("profiles").select("id,username,display_name");
-      const profiles = Array.isArray(profileRes.data) ? profileRes.data : [];
+      const profiles = !profileRes.error && Array.isArray(profileRes.data) ? profileRes.data : [];
+      if (profileRes.error) {
+        try {
+          console.warn("[MM] hub leaderboard profiles", profileRes.error.message || profileRes.error);
+        } catch (e) {}
+      }
       const byId = new Map(profiles.map(p => [p.id, p]));
       return statsRows.map(r => {
         const p = byId.get(r.user_id) || {};
@@ -611,36 +634,76 @@ async function getUser() {
   async function fetchPlayerStatsRecentActivityIndex(maxRows) {
     if (!window.mmSupabase || !maxRows) return [];
     try {
+      let statsRows = [];
       const statsRes = await window.mmSupabase
         .from("player_stats")
         .select("user_id, net_worth, prestige, empire_tier, updated_at, last_seen, last_active")
         .order("updated_at", { ascending: false })
         .limit(maxRows);
-      if (statsRes.error || !Array.isArray(statsRes.data)) return [];
-      const statsRows = statsRes.data || [];
-      const ids = [...new Set(statsRows.map(r => r.user_id).filter(Boolean))];
+      if (statsRes.error) {
+        try {
+          console.warn("[MM] hub activity player_stats", statsRes.error.message || statsRes.error);
+        } catch (e) {}
+      } else if (Array.isArray(statsRes.data)) {
+        statsRows = statsRes.data;
+      }
+      let presenceRows = [];
+      try {
+        const pr = await window.mmSupabase
+          .from("online_presence")
+          .select("user_id,username,display_name,last_seen,updated_at")
+          .order("last_seen", { ascending: false })
+          .limit(maxRows);
+        if (!pr.error && Array.isArray(pr.data)) presenceRows = pr.data;
+      } catch (e) {}
+      const ids = [...new Set([...statsRows.map(r => r.user_id), ...presenceRows.map(r => r.user_id)].filter(Boolean))].slice(0, 120);
       if (!ids.length) return [];
-      const profileRes = await window.mmSupabase
-        .from("profiles")
-        .select("id,username,display_name")
-        .in("id", ids);
-      const profiles = Array.isArray(profileRes.data) ? profileRes.data : [];
+      const profileRes = await window.mmSupabase.from("profiles").select("id,username,display_name").in("id", ids);
+      const profiles = !profileRes.error && Array.isArray(profileRes.data) ? profileRes.data : [];
       const byId = new Map(profiles.map(p => [p.id, p]));
-      return statsRows
-        .map(r => {
-          const p = byId.get(r.user_id) || {};
-          return {
-            username: p.username || "unknown",
-            display_name: p.display_name || p.username || "Unknown",
-            net_worth: r.net_worth || 0,
-            prestige: r.prestige || 0,
-            empire_tier: r.empire_tier || "-",
-            updated_at: r.updated_at || null,
-            last_seen: r.last_seen != null ? r.last_seen : null,
-            last_active: r.last_active != null ? r.last_active : null
-          };
-        })
-        .filter(r => r.username && r.username !== "unknown");
+      const byPresence = new Map(presenceRows.map(r => [r.user_id, r]));
+      const mapOne = (r, p, pres) => {
+        const un = (p.username && String(p.username).trim()) || (pres && pres.username && String(pres.username).trim()) || "";
+        const fallback = r.user_id ? `player_${String(r.user_id).slice(0, 8)}` : "";
+        const username = un || fallback || "unknown";
+        const display_name =
+          (p.display_name && String(p.display_name).trim()) ||
+          (pres && pres.display_name && String(pres.display_name).trim()) ||
+          username;
+        const stamp = r.updated_at || pres?.last_seen || pres?.updated_at || r.last_seen || r.last_active || null;
+        return {
+          username,
+          display_name,
+          net_worth: r.net_worth || 0,
+          prestige: r.prestige || 0,
+          empire_tier: r.empire_tier || "-",
+          updated_at: stamp,
+          last_seen: r.last_seen != null ? r.last_seen : pres && pres.last_seen != null ? pres.last_seen : null,
+          last_active: r.last_active != null ? r.last_active : null
+        };
+      };
+      const outMap = new Map();
+      statsRows.forEach(r => {
+        if (!r.user_id) return;
+        const p = byId.get(r.user_id) || {};
+        const pres = byPresence.get(r.user_id);
+        outMap.set(r.user_id, mapOne(r, p, pres));
+      });
+      presenceRows.forEach(pres => {
+        if (!pres.user_id || outMap.has(pres.user_id)) return;
+        const p = byId.get(pres.user_id) || {};
+        const stub = {
+          user_id: pres.user_id,
+          net_worth: 0,
+          prestige: 0,
+          empire_tier: "Online",
+          updated_at: null,
+          last_seen: null,
+          last_active: null
+        };
+        outMap.set(pres.user_id, mapOne(stub, p, pres));
+      });
+      return [...outMap.values()].filter(r => r.username);
     } catch (e) {
       return [];
     }

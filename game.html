@@ -7440,12 +7440,25 @@ async function saveSocialProfile(){
 }
 
 
+async function mmRpcPublicLeaderboard(limit){
+  try{
+    if(!window.mmSupabase || typeof window.mmSupabase.rpc !== 'function') return null;
+    const { data, error } = await window.mmSupabase.rpc('mm_public_leaderboard', { limit_rows: Math.min(500, Math.max(1, Number(limit) || 100)) });
+    if(error || !Array.isArray(data) || !data.length) return null;
+    return data;
+  }catch(e){
+    return null;
+  }
+}
+
 async function fetchLeaderboardRowsGame(){
   if(!window.mmSupabase) return [];
+  const rpcRows = await mmRpcPublicLeaderboard(25);
+  if(rpcRows) return rpcRows;
   // primary path
   try{
     const res = await window.mmSupabase.from('leaderboard_public').select('*').order('net_worth',{ascending:false}).limit(25);
-    if(!res.error && Array.isArray(res.data)) return res.data;
+    if(!res.error && Array.isArray(res.data) && res.data.length) return res.data;
   }catch(e){}
   // fallback path for signed-in sessions
   try{
@@ -7475,6 +7488,8 @@ async function fetchLeaderboardRowsGame(){
 
 async function fetchLeaderboardRowsUnified(){
   if(!window.mmSupabase) return [];
+  const rpcRows = await mmRpcPublicLeaderboard(100);
+  if(rpcRows) return rpcRows;
   try{
     const res = await window.mmSupabase
       .from('leaderboard_public')
@@ -7490,14 +7505,20 @@ async function fetchLeaderboardRowsUnified(){
       .select('*')
       .order('net_worth', { ascending:false })
       .limit(100);
-    if(statsRes.error || !Array.isArray(statsRes.data)) return [];
+    if(statsRes.error || !Array.isArray(statsRes.data)){
+      try{ console.warn('[MM] leaderboard player_stats', statsRes.error && (statsRes.error.message || statsRes.error)); }catch(e){}
+      return [];
+    }
     const statsRows = statsRes.data || [];
 
     const profileRes = await window.mmSupabase
       .from('profiles')
       .select('id,username,display_name');
 
-    const profiles = Array.isArray(profileRes.data) ? profileRes.data : [];
+    const profiles = !profileRes.error && Array.isArray(profileRes.data) ? profileRes.data : [];
+    if(profileRes.error){
+      try{ console.warn('[MM] leaderboard profiles', profileRes.error.message || profileRes.error); }catch(e){}
+    }
     const byId = new Map(profiles.map(p => [p.id, p]));
 
     return statsRows.map(r => {
@@ -7520,13 +7541,17 @@ async function fetchLeaderboardRowsUnified(){
 async function fetchPlayerStatsRecentActivity(maxRows){
   if(!window.mmSupabase || !maxRows) return [];
   try{
+    let statsRows = [];
     const statsRes = await window.mmSupabase
       .from('player_stats')
       .select('user_id, net_worth, prestige, empire_tier, updated_at, avatar_dna, last_seen, last_active')
       .order('updated_at', { ascending: false })
       .limit(maxRows);
-    if(statsRes.error || !Array.isArray(statsRes.data)) return [];
-    const statsRows = statsRes.data || [];
+    if(statsRes.error){
+      try{ console.warn('[MM] activity player_stats', statsRes.error.message || statsRes.error); }catch(e){}
+    }else if(Array.isArray(statsRes.data)){
+      statsRows = statsRes.data;
+    }
     let presenceRows = [];
     try{
       const pr = await window.mmSupabase
@@ -7536,7 +7561,7 @@ async function fetchPlayerStatsRecentActivity(maxRows){
         .limit(maxRows);
       if(!pr.error && Array.isArray(pr.data)) presenceRows = pr.data;
     }catch(e){}
-    const ids = [...new Set([...statsRows.map(r => r.user_id), ...presenceRows.map(r => r.user_id)].filter(Boolean))];
+    const ids = [...new Set([...statsRows.map(r => r.user_id), ...presenceRows.map(r => r.user_id)].filter(Boolean))].slice(0, 120);
     if(!ids.length) return [];
     const profileRes = await window.mmSupabase
       .from('profiles')
