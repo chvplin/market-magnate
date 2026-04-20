@@ -143,19 +143,29 @@
         <div class="loginMark">MM</div>
       </div>
       <h1 class="loginTitle">Market Magnate</h1>
-      <p class="loginSub">Sign in to sync your save and manage your profile. After you sign in, save your account details, then use <b>Play game</b> to enter the market.</p>
+      <p class="loginSub" id="hubLoginSub">Choose <b>Sign in</b> or <b>Create account</b>. After you are signed in, you can edit this account’s profile, then press <b>Play game</b> to load your cloud save and enter the market.</p>
 
-      <div class="loginStack">
-        <input id="authEmail" type="email" placeholder="Email" />
-        <input id="authPassword" type="password" placeholder="Password" />
-        <input id="authUsername" type="text" placeholder="Username for new accounts" />
+      <div id="hubAuthChoice" class="loginActions">
+        <button type="button" id="hubPickSignIn">Sign in</button>
+        <button type="button" id="hubPickSignUp">Create account</button>
       </div>
 
-      <div class="loginActions">
-        <button type="button" id="signInBtn">Sign in</button>
-        <button type="button" id="signUpBtn">Create account</button>
-        <button type="button" id="signOutBtn" class="secondary" hidden>Sign out</button>
-        <button id="playBtn" type="button" hidden>Play game</button>
+      <div id="hubAuthStage" class="loginStack" hidden style="margin-top:4px">
+        <input id="authEmail" type="email" placeholder="Email" autocomplete="username" />
+        <input id="authPassword" type="password" placeholder="Password" autocomplete="current-password" />
+        <div id="hubUsernameRow" class="usernameRow loginStack" hidden>
+          <input id="authUsername" type="text" placeholder="Username for new accounts" autocomplete="nickname" />
+        </div>
+        <div class="loginActions" style="margin-top:4px">
+          <button type="button" id="signInBtn" hidden>Sign in</button>
+          <button type="button" id="signUpBtn" hidden>Create account</button>
+          <button type="button" id="hubAuthBack" class="secondary">Back</button>
+        </div>
+      </div>
+
+      <div id="hubSignedInRow" class="loginActions" hidden style="margin-top:14px">
+        <button id="playBtn" type="button">Play game</button>
+        <button type="button" id="signOutBtn" class="secondary">Sign out</button>
       </div>
 
       <p id="authMessage" class="muted" style="margin-top:14px;text-align:center">Not signed in</p>
@@ -165,7 +175,7 @@
     </section>
 
     <section class="loginSide">
-      <section class="leaderPeek sectionCard" style="margin-top:0">
+      <section id="hubAccountSection" class="leaderPeek sectionCard" style="margin-top:0" hidden>
         <h3>Account Details</h3>
         <form id="profileForm" class="loginStack">
           <input id="profileUsername" type="text" placeholder="Username" />

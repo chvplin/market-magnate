@@ -57,8 +57,8 @@ linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.42));pointer-events:n
 }
 button,input,select{font:inherit}
 button{cursor:pointer;border:none;color:var(--text)}
-.topbar{position:sticky;top:0;z-index:130;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 16px;background:rgba(12,12,18,.78);backdrop-filter:blur(18px) saturate(1.2);border-bottom:var(--glass-border);box-shadow:0 8px 32px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.05);width:100%;max-width:100%;box-sizing:border-box;overflow-x:hidden}
-.topLeft{display:flex;align-items:center;gap:10px;flex:1 1 auto;min-width:0;max-width:100%}
+.topbar{position:sticky;top:0;z-index:130;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 16px;background:rgba(12,12,18,.78);backdrop-filter:blur(18px) saturate(1.2);border-bottom:var(--glass-border);box-shadow:0 8px 32px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.05);width:100%;max-width:100%;box-sizing:border-box;overflow-x:clip;overflow-y:visible}
+.topLeft{display:flex;align-items:center;gap:10px;flex:1 1 auto;min-width:0;max-width:100%;overflow:visible}
 .topRight{display:flex;align-items:center;gap:10px;flex:0 0 auto;min-width:0}
 .mmMark{width:40px;height:40px;border-radius:12px;background:var(--accent-gradient);color:#fff;display:grid;place-items:center;font-weight:900;font-size:1rem;box-shadow:var(--glow-accent),0 8px 22px rgba(0,0,0,.35);position:relative;overflow:hidden}
 @media (prefers-reduced-motion: no-preference){
@@ -72,7 +72,7 @@ button{cursor:pointer;border:none;color:var(--text)}
 linear-gradient(90deg,transparent 0 6%, rgba(255,255,255,.14) 6% 8%, transparent 8% 26%, rgba(255,255,255,.14) 26% 28%, transparent 28% 46%, rgba(255,255,255,.14) 46% 48%, transparent 48% 100%);
 border-radius:8px}
 .mmMark span{position:relative;z-index:1;letter-spacing:.02em;text-shadow:0 1px 2px rgba(0,0,0,.12)}
-.searchWrap{position:relative;flex:1 1 auto;min-width:0;max-width:min(560px,min(52vw,calc(100vw - 220px)))}
+.searchWrap{position:relative;z-index:2147483200;flex:1 1 auto;min-width:0;max-width:min(560px,min(52vw,calc(100vw - 220px)))}
 .searchBar{
   display:flex;
   align-items:center;
@@ -98,7 +98,7 @@ border-radius:8px}
 }
 .searchBar input{border:none;outline:none;background:transparent;flex:1 1 auto;min-width:0;width:0;font-size:.96rem;color:var(--text);font-weight:500}
 .searchBar input::placeholder{color:var(--muted);opacity:.85}
-.searchResults{position:absolute;top:calc(100% + 10px);left:0;right:0;background:rgba(18,18,26,.96);border:var(--glass-border);border-radius:14px;box-shadow:var(--shadow),var(--glow-accent);padding:10px;display:none;max-height:min(70vh,520px);overflow:auto;z-index:150}
+.searchResults{position:absolute;top:calc(100% + 10px);left:0;right:0;background:rgba(18,18,26,.96);border:var(--glass-border);border-radius:14px;box-shadow:var(--shadow),var(--glow-accent);padding:10px;display:none;max-height:min(70vh,520px);overflow:auto;z-index:2147483201}
 .searchResults.open{display:block}
 .searchHint{padding:12px 14px;color:var(--muted);font-size:.92rem}
 .searchSectionLabel{padding:10px 12px 4px;color:var(--muted);font-size:.78rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
@@ -6987,6 +6987,11 @@ document.addEventListener('visibilitychange', ()=>{
     if(mmSharedMarketConfigured()) void mmHydrateSharedTapeFromCloud();
   }catch(e){}
 }, { passive: true });
+window.addEventListener('pagehide', function(){
+  try{
+    if(typeof window.mmSyncStatsToCloud === 'function') void window.mmSyncStatsToCloud();
+  }catch(e){}
+}, { capture: true });
 
 
 let __realLast = Date.now();
@@ -7059,9 +7064,6 @@ setInterval(async ()=>{
       }
     }
   }
-  try{ syncStatsToCloud(); }catch(e){}
-  try{ if(typeof window.loadLeaderboardSocial === 'function') void window.loadLeaderboardSocial(); }catch(e){}
-
   refreshLive();
   if(Date.now() - game.lastSaved > 25000) save(false);
 }, 250);
@@ -7543,6 +7545,8 @@ async function saveSocialProfile(){
 
 /** Must match `interval '30 minutes'` in public.mm_public_online_players (leaderboard_public_rpc.sql). */
 var MM_ONLINE_PRESENCE_WINDOW_MS = 30 * 60 * 1000;
+/** UI-only: hide players whose last_seen/updated_at is older than this (faster than SQL window so closed tabs drop off). */
+var MM_ONLINE_UI_MAX_AGE_MS = 90 * 1000;
 
 function mmDebugSocialGame(label, payload){
   try{ if(window.MM_DEBUG_SOCIAL) console.debug('[MM]' + label, payload); }catch(e){}
@@ -7695,7 +7699,7 @@ async function loadLeaderboardSocial(){
     return;
   }
 
-  var onlineOpts = { skipWindow: true, windowMs: MM_ONLINE_PRESENCE_WINDOW_MS, maxSlots: 12 };
+  var onlineOpts = { skipWindow: false, windowMs: MM_ONLINE_UI_MAX_AGE_MS, maxSlots: 12 };
 
   try{
     console.info('[MM][rail] render prep lb=', rows.length, 'onlineRaw=', activityRows.length, '#leaderMini=', !!mini, '#onlinePlayersGame=', !!onlineWrap);
@@ -7845,13 +7849,13 @@ async function loadLeaderboardSocial(){
       }catch(e){}
 
       try{
-        await window.mmSupabase
-          .from('save_slots')
-          .upsert({ user_id:user.id, save_data:getCurrentSave(), updated_at:nowIso });
-      }catch(e){}
-
-      try{
-        await loadLeaderboardSocial();
+        var nowSlot = Date.now();
+        if(!game._mmLastSaveSlotUpsert || nowSlot - game._mmLastSaveSlotUpsert > 60000){
+          game._mmLastSaveSlotUpsert = nowSlot;
+          await window.mmSupabase
+            .from('save_slots')
+            .upsert({ user_id:user.id, save_data:getCurrentSave(), updated_at:nowIso });
+        }
       }catch(e){}
 
       try{
@@ -7937,12 +7941,13 @@ function bindSocialUI(){
       });
     }
 
-    setInterval(syncStatsToCloud, 1500);
-    setInterval(function(){ loadLeaderboardSocial().catch(function(){}); }, 1500);
+    setInterval(function(){ syncStatsToCloud().catch(function(){}); }, 12000);
+    setInterval(function(){ loadLeaderboardSocial().catch(function(){}); }, 8000);
     setInterval(()=>{ if (typeof renderCosmeticStore === 'function') renderCosmeticStore(); }, 5000);
   }
 
   try{ window.loadLeaderboardSocial = loadLeaderboardSocial; }catch(e){}
+  try{ window.mmSyncStatsToCloud = syncStatsToCloud; }catch(e){}
 
   function bootSocialLayer(){
     initSocialLayer().catch(function(e){ try{ console.warn('[MM] initSocialLayer', e && (e.message || e)); }catch(x){} });
@@ -8276,9 +8281,17 @@ document.addEventListener('DOMContentLoaded', function(){
     });
   }
 
+  var mmQuickViewRefreshTimer = null;
+  var mmQuickViewOpenUser = null;
+
   function closePlayerQuickView(){
     const overlay = q('#playerQuickViewOverlay');
     if (!overlay) return;
+    if(mmQuickViewRefreshTimer){
+      try{ clearInterval(mmQuickViewRefreshTimer); }catch(e){}
+      mmQuickViewRefreshTimer = null;
+    }
+    mmQuickViewOpenUser = null;
     unbindOutsideClose();
     unbindQuickResize();
     overlay.classList.remove('is-open');
@@ -8303,13 +8316,21 @@ document.addEventListener('DOMContentLoaded', function(){
     return simple[key] || simple.default_banner;
   }
 
+  function mmEscapeIlikeExact(str){
+    return String(str ?? '')
+      .replace(/\\/g, '\\\\')
+      .replace(/%/g, '\\%')
+      .replace(/_/g, '\\_');
+  }
+
   async function fetchPlayerQuickView(username, opts){
     if (!window.mmSupabase || !username) return null;
     try{
+      const uEsc = mmEscapeIlikeExact(String(username).trim());
       const profRes = await window.mmSupabase
         .from('profiles')
         .select('*')
-        .eq('username', username)
+        .ilike('username', uEsc)
         .maybeSingle();
       const profile = profRes?.data || null;
       if (!profile) return null;
@@ -8327,12 +8348,6 @@ document.addEventListener('DOMContentLoaded', function(){
       if(lr && typeof lr === 'object'){
         stats = Object.assign({}, lr, stats || {});
       }
-      try{
-        const selfU = window.mmSocial && window.mmSocial.profile && window.mmSocial.profile.username;
-        if(selfU && String(username).trim().toLowerCase() === String(selfU).trim().toLowerCase() && window.game && window.game.avatarDNA && typeof window.normalizeAvatarDNA === 'function'){
-          stats = Object.assign({}, stats || {}, { avatar_dna: JSON.stringify(window.normalizeAvatarDNA(window.game.avatarDNA)) });
-        }
-      }catch(e){}
       return { profile, stats };
     }catch(e){
       return null;
@@ -8490,6 +8505,22 @@ document.addEventListener('DOMContentLoaded', function(){
     const payload = await fetchPlayerQuickView(u, { leaderRow: leaderRow });
     if(seq !== mmQuickViewSeq) return;
     renderPlayerQuickView(payload);
+    mmQuickViewOpenUser = u;
+    if(mmQuickViewRefreshTimer){
+      try{ clearInterval(mmQuickViewRefreshTimer); }catch(e2){}
+      mmQuickViewRefreshTimer = null;
+    }
+    mmQuickViewRefreshTimer = setInterval(function(){
+      const un = mmQuickViewOpenUser;
+      if(!un || !window.mmSupabase) return;
+      const seqAtStart = mmQuickViewSeq;
+      fetchPlayerQuickView(un, { leaderRow: null }).then(function(fresh){
+        if(seqAtStart !== mmQuickViewSeq) return;
+        const ov = q('#playerQuickViewOverlay');
+        if(!ov || ov.hasAttribute('hidden')) return;
+        renderPlayerQuickView(fresh);
+      }).catch(function(){});
+    }, 5000);
   }
 
   window.handlePlayerQuickView = handlePlayerQuickView;

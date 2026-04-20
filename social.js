@@ -25,7 +25,15 @@
     ownedAvatarInventory: () => $("#ownedAvatarInventory"),
     ownedBannerInventory: () => $("#ownedBannerInventory"),
     profileMessage: () => $("#profileMessage"),
-    authMessage: () => $("#authMessage")
+    authMessage: () => $("#authMessage"),
+    hubAuthChoice: () => $("#hubAuthChoice"),
+    hubAuthStage: () => $("#hubAuthStage"),
+    hubSignedInRow: () => $("#hubSignedInRow"),
+    hubAccountSection: () => $("#hubAccountSection"),
+    hubUsernameRow: () => $("#hubUsernameRow"),
+    hubPickSignIn: () => $("#hubPickSignIn"),
+    hubPickSignUp: () => $("#hubPickSignUp"),
+    hubAuthBack: () => $("#hubAuthBack")
   };
 
   function readHubAvatarDNA() {
@@ -195,6 +203,13 @@ function renderOwnedAccountCosmetics(owned){
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
+  }
+
+  function mmEscapeIlikeExact(str) {
+    return String(str ?? "")
+      .replace(/\\/g, "\\\\")
+      .replace(/%/g, "\\%")
+      .replace(/_/g, "\\_");
   }
 
   function hubFmtMoney(n) {
@@ -369,6 +384,37 @@ function renderOwnedAccountCosmetics(owned){
 
   let accountDetailsLoadedOnce = false;
 
+  function hubEnterSignIn() {
+    const stage = el.hubAuthStage();
+    const choice = el.hubAuthChoice();
+    const urow = el.hubUsernameRow();
+    if (choice) choice.hidden = true;
+    if (stage) stage.hidden = false;
+    if (urow) urow.hidden = true;
+    if (el.signInBtn()) el.signInBtn().hidden = false;
+    if (el.signUpBtn()) el.signUpBtn().hidden = true;
+  }
+
+  function hubEnterSignUp() {
+    const stage = el.hubAuthStage();
+    const choice = el.hubAuthChoice();
+    const urow = el.hubUsernameRow();
+    if (choice) choice.hidden = true;
+    if (stage) stage.hidden = false;
+    if (urow) urow.hidden = false;
+    if (el.signInBtn()) el.signInBtn().hidden = true;
+    if (el.signUpBtn()) el.signUpBtn().hidden = false;
+  }
+
+  function hubAuthBack() {
+    const stage = el.hubAuthStage();
+    const choice = el.hubAuthChoice();
+    if (stage) stage.hidden = true;
+    if (choice) choice.hidden = false;
+    if (el.signInBtn()) el.signInBtn().hidden = true;
+    if (el.signUpBtn()) el.signUpBtn().hidden = true;
+  }
+
 async function getUser() {
     const { data, error } = await window.mmSupabase.auth.getUser();
     if (error) throw error;
@@ -378,13 +424,30 @@ async function getUser() {
   async function refreshAuthUI() {
     const user = await getUser().catch(() => null);
     setText(el.authStatus(), user ? `Signed in as ${user.email}` : "Not signed in");
-    if (el.signOutBtn()) el.signOutBtn().hidden = !user;
-    if (el.signInBtn()) el.signInBtn().hidden = !!user;
-    if (el.signUpBtn()) el.signUpBtn().hidden = !!user;
-    if (el.authUsername()) el.authUsername().closest('.usernameRow')?.classList.toggle('hidden', !!user);
+    const choice = el.hubAuthChoice();
+    const stage = el.hubAuthStage();
+    const signedRow = el.hubSignedInRow();
+    const acct = el.hubAccountSection();
+
+    if (user) {
+      if (choice) choice.hidden = true;
+      if (stage) stage.hidden = true;
+      if (signedRow) signedRow.hidden = false;
+      if (acct) acct.hidden = false;
+      if (el.signInBtn()) el.signInBtn().hidden = true;
+      if (el.signUpBtn()) el.signUpBtn().hidden = true;
+    } else {
+      if (signedRow) signedRow.hidden = true;
+      if (acct) acct.hidden = true;
+      if (!stage || stage.hidden) {
+        if (choice) choice.hidden = false;
+      }
+      if (el.signInBtn()) el.signInBtn().hidden = true;
+      if (el.signUpBtn()) el.signUpBtn().hidden = true;
+    }
+
     if (el.syncBtn()) el.syncBtn().hidden = true;
     if (el.loadBtn()) el.loadBtn().hidden = true;
-    if (el.playBtn()) el.playBtn().hidden = !user;
   }
 
   async function prepareGameSessionHints() {
@@ -413,6 +476,7 @@ async function getUser() {
       flash(el.authMessage(), "Sign in first.", false);
       return;
     }
+    await loadMyProfile(true);
     await prepareGameSessionHints();
     window.location.href = "./game.html";
   }
@@ -533,13 +597,18 @@ async function getUser() {
       localStorage.removeItem("MM_LAST_LOGIN");
       localStorage.removeItem("MM_PROFILE_HINT");
     } catch (e) {}
+    try {
+      if (el.authPassword()) el.authPassword().value = "";
+      if (el.authEmail()) el.authEmail().value = "";
+      if (el.authUsername()) el.authUsername().value = "";
+    } catch (e) {}
     flash(el.authMessage(), "Signed out.", true);
     accountDetailsLoadedOnce = false;
+    hubAuthBack();
     await refreshAuthUI();
     try {
       await loadLeaderboard();
     } catch (e) {}
-    window.location.reload();
   }
 
   async function syncToCloud() {
@@ -580,6 +649,7 @@ async function getUser() {
 
   /** Must match `interval '30 minutes'` in public.mm_public_online_players (leaderboard_public_rpc.sql). */
   const MM_ONLINE_PRESENCE_WINDOW_MS = 30 * 60 * 1000;
+  const MM_ONLINE_UI_MAX_AGE_MS = 90 * 1000;
 
   function mmDebugSocial(label, payload) {
     try {
@@ -710,7 +780,7 @@ async function getUser() {
 async function loadLeaderboard() {
     const data = await fetchLeaderboardRowsIndex();
     const onlineSourceRows = await fetchOnlinePlayersHub(160);
-    const onlineOpts = { skipWindow: true, windowMs: MM_ONLINE_PRESENCE_WINDOW_MS, maxSlots: 12 };
+    const onlineOpts = { skipWindow: false, windowMs: MM_ONLINE_UI_MAX_AGE_MS, maxSlots: 12 };
 
     if (!data.length) {
       leaderboardTargets().forEach(t => {
@@ -832,10 +902,11 @@ async function loadLeaderboard() {
     body.innerHTML = '<div class="muted">Loading profile...</div>';
 
     try {
+      const uEsc = mmEscapeIlikeExact(String(username).trim());
       const profRes = await window.mmSupabase
         .from("profiles")
         .select("id,username,display_name,bio,favorite_stock,profile_theme,avatar_url,banner_url")
-        .eq("username", username)
+        .ilike("username", uEsc)
         .maybeSingle();
 
       const profile = profRes?.data || null;
@@ -899,6 +970,9 @@ async function loadLeaderboard() {
   }
 
   function bindEvents() {
+    el.hubPickSignIn()?.addEventListener("click", hubEnterSignIn);
+    el.hubPickSignUp()?.addEventListener("click", hubEnterSignUp);
+    el.hubAuthBack()?.addEventListener("click", hubAuthBack);
     el.signUpBtn()?.addEventListener("click", signUp);
     el.signInBtn()?.addEventListener("click", signIn);
     el.signOutBtn()?.addEventListener("click", signOut);
@@ -940,14 +1014,13 @@ async function loadLeaderboard() {
       const user = await getUser().catch(() => null);
       if (!user) return;
       await syncToCloud().catch(() => {});
-    }, 1500);
+    }, 12000);
 
-    // Keep the leaderboard feeling live on the hub page.
     leaderboardRefreshTimer = setInterval(async () => {
       try {
         await loadLeaderboard();
       } catch (e) {}
-    }, 1500);
+    }, 8000);
 
     document.addEventListener('visibilitychange', async () => {
       if (!document.hidden) {
