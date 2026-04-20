@@ -15,20 +15,21 @@
       width:100%;
       max-width:100vw;
       box-sizing:border-box;
-      background:
-        radial-gradient(circle at top left, rgba(29,111,232,.16), transparent 26%),
-        radial-gradient(circle at top right, rgba(66,183,42,.10), transparent 20%),
-        linear-gradient(180deg,#dbe4ee 0%, #d2dce7 48%, #cad5e0 100%);
+      background:#0b0b13;
+      background-image:
+        radial-gradient(ellipse 90% 70% at 12% 8%, rgba(138,43,226,.16), transparent 42%),
+        radial-gradient(ellipse 80% 60% at 88% 18%, rgba(59,91,253,.12), transparent 40%),
+        linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.45));
       padding:24px;
     }
     .loginShell{
       width:min(100%, 430px);
-      background:rgba(248,250,252,.92);
-      border:1px solid #d7dee7;
-      border-radius:11px;
+      background:rgba(22,22,32,.92);
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:16px;
       padding:28px;
-      box-shadow:0 24px 60px rgba(15,23,42,.12);
-      backdrop-filter:blur(14px);
+      box-shadow:0 24px 60px rgba(0,0,0,.45),0 0 48px rgba(138,43,226,.15);
+      backdrop-filter:blur(16px);
     }
     .loginTop{
       display:flex;
@@ -36,11 +37,11 @@
       margin-bottom:20px;
     }
     .loginMark{
-      width:58px;height:58px;border-radius:11px;
+      width:58px;height:58px;border-radius:14px;
       display:grid;place-items:center;
-      background:linear-gradient(135deg,#0f8bff,#1dc86a);
+      background:linear-gradient(135deg,#8a2be2,#d100d1);
       color:#fff;font-weight:900;font-size:1.1rem;
-      box-shadow:0 14px 30px rgba(24,119,242,.22);
+      box-shadow:0 14px 40px rgba(138,43,226,.28);
     }
     .loginTitle{
       text-align:center;
@@ -51,7 +52,7 @@
     }
     .loginSub{
       text-align:center;
-      color:#667589;
+      color:var(--muted);
       margin:10px 0 22px;
       line-height:1.5;
       font-size:.95rem;
@@ -66,18 +67,18 @@
     .loginMeta{
       margin-top:16px;
       padding-top:16px;
-      border-top:1px solid #e7edf4;
+      border-top:1px solid rgba(255,255,255,.08);
       display:grid;
       gap:8px;
-      color:#667589;
+      color:var(--muted);
       font-size:.9rem;
     }
     .leaderPeek{
       margin-top:20px;
       padding:14px;
-      border-radius:11px;
-      background:#eef4fb;
-      border:1px solid #dbe5f2;
+      border-radius:14px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.1);
     }
     .leaderPeek h3{
       margin:0 0 10px;
@@ -90,9 +91,9 @@
       gap:10px;
       align-items:center;
       padding:10px 12px;
-      border-radius:11px;
-      background:#fff;
-      border:1px solid var(--line);
+      border-radius:12px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.1);
       min-width:0;
       max-width:100%;
       text-decoration:none;
@@ -108,11 +109,11 @@
       overflow:hidden;
       text-overflow:ellipsis;
       white-space:nowrap;
-      color:var(--brand);
+      color:#e8d4ff;
     }
     .miniRank{
-      width:30px;height:30px;border-radius:9px;background:#edf3fb;display:grid;place-items:center;
-      font-weight:900;color:#2f537d;flex-shrink:0
+      width:30px;height:30px;border-radius:9px;background:rgba(138,43,226,.2);display:grid;place-items:center;
+      font-weight:900;color:#e8d4ff;flex-shrink:0;border:1px solid rgba(255,255,255,.08);
     }
     main.loginBoard{min-width:0;max-width:100%}
     .leaderPeek .tableWrap{min-width:0;max-width:100%}
