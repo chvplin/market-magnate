@@ -154,9 +154,19 @@ linear-gradient(180deg,#2c7df0,#145dcb);position:relative;overflow:hidden}
 .topbarStats{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;flex:0 0 auto;min-width:min-content}
 .topbarStats .pill{white-space:nowrap;padding:7px 11px;font-size:.85rem}
 #datePill,#topbarCashPill,#topbarNetPill{flex:0 0 auto}
+.mmFig{font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum" 1;display:inline-block;min-width:4.5ch;text-align:right}
+.bigCash .value,.bigCash .sub .mmFig{min-width:7ch}
+#netWorth{min-height:2.4rem;line-height:1.15}
+.pillRow .pill{min-width:min(100%,10.5rem)}
+.pillRow .pill b{min-width:6.5ch;display:inline-block;text-align:right;font-variant-numeric:tabular-nums}
+.stockRight{min-width:5.2rem}
+.stockRight .p{min-width:4.8ch;display:inline-block}
+.metrics .metric .v{min-height:1.35em}
+.liveFeedList{min-height:240px;display:flex;flex-direction:column;gap:6px}
+.mmMoneyFull{font-size:.82rem;font-weight:800;line-height:1.35;word-break:break-word;overflow-wrap:anywhere}
 @media (max-width:1100px){
   #datePill{max-width:min(300px,56vw);overflow:hidden;text-overflow:ellipsis}
-  #topbarCashPill,#topbarNetPill{max-width:min(180px,40vw);overflow:hidden;text-overflow:ellipsis}
+  #topbarCashPill,#topbarNetPill{max-width:min(220px,42vw);overflow:hidden;text-overflow:ellipsis}
 }
 @media (prefers-reduced-motion: no-preference){
   body.mm-motion .topbarStats .pill{transition:transform .22s cubic-bezier(.2,.85,.2,1),box-shadow .25s ease}
@@ -2079,7 +2089,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
     <div id="liveActivityFeed" class="liveFeedList"></div>
     <div class="arenaSubTitle">Chat</div>
     <div id="arenaChatRow" style="display:flex;gap:6px;margin-bottom:8px;align-items:center">
-      <input id="arenaChatInput" type="text" maxlength="200" placeholder="Message everyone…" autocomplete="off" style="flex:1;padding:8px 10px;border-radius:10px;border:1px solid var(--line);font:inherit" />
+      <input id="arenaChatInput" type="text" maxlength="400" placeholder="Message everyone… (emoji OK)" autocomplete="off" style="flex:1;padding:8px 10px;border-radius:10px;border:1px solid var(--line);font:inherit" />
       <button type="button" class="shopTab" id="arenaChatSend">Send</button>
     </div>
     <div class="arenaSubTitle">Quick ping</div>
@@ -2116,8 +2126,8 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
     <div class="statStack">
       <div class="bigCash">
         <div class="label">Total Net Worth</div>
-        <div class="value" id="netWorth">$500</div>
-        <div class="sub">Cash <span id="cashSub">$500</span> · Passive <span id="ppsSub">$0/s</span></div>
+        <div class="value mmFig" id="netWorth">$500</div>
+        <div class="sub">Cash <span id="cashSub" class="mmFig">$500</span> · Passive <span id="ppsSub" class="mmFig">$0/s</span></div>
       </div>
       <div class="miniStats">
         <div class="stat"><div class="k">Level</div><div class="v" id="levelStat">1</div></div>
@@ -2289,17 +2299,18 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
               <div style="color:#65676b;margin-top:5px" id="userSubtitle">Unknown Hustler</div><div style="font-size:.78rem;color:#65676b;margin-top:6px" id="titleProgressHint">Status rises with net worth and empire growth.</div>
             </div>
           </div>
+          <div class="layoutHint" style="margin-top:10px">Money below is the exact figure (wraps if huge). Sidebar and HUD use compact abbreviations.</div>
           <div class="metrics" style="margin-top:18px">
-            <div class="metric"><div class="k">Net Worth</div><div class="v" id="userNetWorth">$0</div></div>
-            <div class="metric"><div class="k">Cash</div><div class="v" id="userCash">$0</div></div>
-            <div class="metric"><div class="k">Portfolio Value</div><div class="v" id="userPortfolio">$0</div></div>
-            <div class="metric"><div class="k">Passive Income</div><div class="v" id="userPassive">$0/s</div></div>
+            <div class="metric"><div class="k">Net Worth</div><div class="v mmMoneyFull" id="userNetWorth">$0</div></div>
+            <div class="metric"><div class="k">Cash</div><div class="v mmMoneyFull" id="userCash">$0</div></div>
+            <div class="metric"><div class="k">Portfolio Value</div><div class="v mmMoneyFull" id="userPortfolio">$0</div></div>
+            <div class="metric"><div class="k">Passive Income</div><div class="v mmMoneyFull" id="userPassive">$0/s</div></div>
             <div class="metric"><div class="k">Business Assets</div><div class="v" id="userBizCount">0</div></div>
             <div class="metric"><div class="k">Lifestyle Assets</div><div class="v" id="userLifeCount">0</div></div>
-            <div class="metric"><div class="k">Lifetime Earned</div><div class="v" id="userEarned">$0</div></div>
+            <div class="metric"><div class="k">Lifetime Earned</div><div class="v mmMoneyFull" id="userEarned">$0</div></div>
             <div class="metric"><div class="k">Trades Made</div><div class="v" id="userTrades">0</div></div>
-            <div class="metric"><div class="k">Debt</div><div class="v" id="userDebt">$0</div></div>
-            <div class="metric"><div class="k">Leverage Exposure</div><div class="v" id="userLev">$0</div></div>
+            <div class="metric"><div class="k">Debt</div><div class="v mmMoneyFull" id="userDebt">$0</div></div>
+            <div class="metric"><div class="k">Leverage Exposure</div><div class="v mmMoneyFull" id="userLev">$0</div></div>
           </div>
         </div>
         <div class="profileCard">
@@ -2451,6 +2462,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
           <div class="panelTitle" style="font-size:1.05rem">Leverage Trading</div>
           <div class="panelSub" style="margin-top:6px">Choose your leverage before buying. Higher leverage means smaller margin required but much bigger gains and losses.</div>
           <div class="qtyRow" id="leverageRow" style="margin-top:14px"></div>
+          <div id="levLockHint" class="layoutHint" style="margin-top:8px;display:none"></div>
           <div class="metrics" style="margin-top:14px">
             <div class="metric"><div class="k">Selected Leverage</div><div class="v" id="levSelected">1x</div></div>
             <div class="metric"><div class="k">Current Stock Leveraged Position</div><div class="v" id="levPosition">None</div></div>
@@ -2643,13 +2655,60 @@ function playWarningSound(){ tone(260,0.07,'sawtooth',0.015); tone(190,0.08,'tri
 function playNotificationSound(){ tone(740,0.05,'triangle',0.015); tone(980,0.07,'sine',0.012,0.03); }
 window.addEventListener('pointerdown', ()=>{ ensureAudio(); }, {once:false, passive:true});
 const clamp = (n,a,b)=>Math.min(b,Math.max(a,n));
-const fmt = n => {
-  if (!isFinite(n)) return '$0';
+/** US short-scale suffixes through decillion (10^33); beyond that uses scientific mantissa×10^exp. */
+const MM_MONEY_SUFFIX_STEPS = [
+  [1e33, 'De'],
+  [1e30, 'No'],
+  [1e27, 'Oc'],
+  [1e24, 'Sp'],
+  [1e21, 'Sx'],
+  [1e18, 'Qi'],
+  [1e15, 'Qa'],
+  [1e12, 'T'],
+  [1e9, 'B'],
+  [1e6, 'M'],
+  [1e3, 'K']
+];
+const MM_LEVERAGE_UNLOCK_NET = 1_000_000;
+function mmLeverageUnlocked(){
+  try{
+    return netWorth() >= MM_LEVERAGE_UNLOCK_NET;
+  }catch(e){
+    return false;
+  }
+}
+/** Compact money for HUD, lists, toasts (stable width via CSS .mmFig where needed). */
+function fmt(n){
+  if(!isFinite(n)) return '$0';
+  const neg = n < 0;
   const abs = Math.abs(n);
-  const units = [['T',1e12],['B',1e9],['M',1e6],['K',1e3]];
-  for (const [u,v] of units){ if(abs>=v) return (n<0?'-':'') + '$' + (abs/v).toFixed(abs>=v*100?0:abs>=v*10?1:2) + u; }
-  return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:abs>=100?0:2}).format(n);
-};
+  const p = neg ? '-' : '';
+  if(abs < 1000){
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: abs >= 100 ? 0 : 2 }).format(n);
+  }
+  for(const [th, suf] of MM_MONEY_SUFFIX_STEPS){
+    if(abs >= th){
+      const v = abs / th;
+      const dec = v >= 100 ? 0 : v >= 10 ? 1 : 2;
+      return p + '$' + v.toFixed(dec) + suf;
+    }
+  }
+  const e = Math.floor(Math.log10(abs));
+  const m = abs / Math.pow(10, e);
+  return p + '$' + m.toFixed(3) + '×10^' + e;
+}
+/** Full-precision display for profile / audits (wraps; uses scientific beyond ~1e15 when JS loses integer cents). */
+function fmtMoneyFull(n){
+  if(!isFinite(n)) return '$0.00';
+  const abs = Math.abs(n);
+  if(abs < 1e15){
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+  }
+  const neg = n < 0 ? '-' : '';
+  const e = Math.floor(Math.log10(abs));
+  const m = abs / Math.pow(10, e);
+  return neg + '$' + m.toFixed(4) + '×10^' + e;
+}
 const fmtNum = n => new Intl.NumberFormat('en-US',{maximumFractionDigits:n>=100?0:2}).format(n);
 const SIM_HOURS_PER_CAL_DAY = 24;
 const MARKET_TICK_MS = 3000;
@@ -3303,6 +3362,49 @@ function mmEdgeAuthorityActive(){
     return !!(mmSharedMarketConfigured() && window.MM_CONFIG && window.MM_CONFIG.USE_EDGE_MARKET_AUTHORITY);
   }catch(e){ return false; }
 }
+/** When false (default), signed-in clients do not run the shared CAS tick loop in-browser. */
+function mmClientMarketSimAllowed(){
+  try{
+    return !!(mmSharedMarketConfigured() && window.MM_CONFIG && window.MM_CONFIG.ALLOW_CLIENT_CAS_MARKET_TICK);
+  }catch(e){ return false; }
+}
+/** Shared tape should only advance from browsers when explicit legacy CAS is enabled. */
+function mmSharedBrowserSimSkips(){
+  try{
+    return mmSharedMarketConfigured() && (mmEdgeAuthorityActive() || !mmClientMarketSimAllowed());
+  }catch(e){ return false; }
+}
+function mmServerTradeRpcEnabled(){
+  try{
+    if(!mmSharedMarketConfigured()) return false;
+    if(window.MM_CONFIG && window.MM_CONFIG.USE_SERVER_TRADE_RPC === false) return false;
+    return !!(window.mmSupabase && typeof window.mmSupabase.rpc === 'function');
+  }catch(e){ return false; }
+}
+function mmSharedSignedIn(){
+  try{
+    return !!(window.mmSupabase?.auth?.getSession?.()?.data?.session?.user?.id);
+  }catch(e){ return false; }
+}
+function mmGetDisplayPrice(s){
+  if(!s) return 0;
+  if(!mmSharedMarketConfigured()) return Number(s.price) || 0;
+  const t = Number(s.price) || 0;
+  let d = s._mmDisplayPrice;
+  if(typeof d !== 'number' || !Number.isFinite(d)) d = t;
+  return d;
+}
+function mmStepSharedPriceTween(){
+  if(!mmSharedMarketConfigured()) return;
+  for(const s of game.stocks){
+    const t = Number(s.price) || 0;
+    let d = s._mmDisplayPrice;
+    if(typeof d !== 'number' || !Number.isFinite(d)) d = t;
+    d += (t - d) * 0.22;
+    if(Math.abs(t - d) < Math.max(0.0001, t * 0.00015)) d = t;
+    s._mmDisplayPrice = d;
+  }
+}
 /** Deterministic PRNG stream for one market tick; all clients use the same sim_gen → same tape. */
 function mmCreateSharedRng(baseGen){
   const gen = (Number(baseGen) >>> 0) || 0;
@@ -3373,8 +3475,128 @@ async function mmHydrateSharedTapeFromCloud(){
   try{
     game._lastSharedSnapSeen = 0;
     await mmPullSharedMarketBeforeTick({ force: true });
+    await mmPullServerExchangeState();
     if(typeof window.mmRefreshLive === 'function') window.mmRefreshLive();
   }catch(e){ console.warn(e); }
+}
+function mmApplyServerExchangePayload(row){
+  if(!row || row.ok !== true) return;
+  if(row.cash != null && Number.isFinite(Number(row.cash))) game.cash = Number(row.cash);
+  const arr = Array.isArray(row.positions) ? row.positions : [];
+  if(!arr.length) return;
+  const by = Object.create(null);
+  for(const p of arr){
+    if(p && p.symbol) by[String(p.symbol).toUpperCase()] = p;
+  }
+  for(const s of game.stocks){
+    const p = by[String(s.symbol || '').toUpperCase()];
+    if(!p){
+      s.owned = 0;
+      s.avg = 0;
+      s.levOwned = 0;
+      s.levAvg = 0;
+      s.levMult = 1;
+      continue;
+    }
+    s.owned = Number(p.shares) || 0;
+    s.avg = Number(p.avg_cost) || 0;
+    s.levOwned = Number(p.lev_shares) || 0;
+    s.levAvg = Number(p.lev_avg) || 0;
+    s.levMult = Math.max(1, Math.floor(Number(p.lev_mult)) || 1);
+  }
+}
+async function mmPullServerExchangeState(){
+  if(!mmServerTradeRpcEnabled()) return;
+  try{
+    let { data, error } = await window.mmSupabase.rpc('mm_fetch_exchange_state');
+    if(error) return;
+    if(data && data.wallet_missing){
+      await window.mmSupabase.rpc('mm_ensure_wallet', { p_seed_cash: game.cash });
+      const r2 = await window.mmSupabase.rpc('mm_fetch_exchange_state');
+      if(r2.error || !r2.data) return;
+      data = r2.data;
+    }
+    if(data) mmApplyServerExchangePayload(data);
+  }catch(e){ console.warn('mmPullServerExchangeState', e); }
+}
+async function mmBuySellStockViaRpc(side, qty, lev){
+  try{
+    const u = await window.mmSupabase.auth.getUser();
+    if(!u?.data?.user?.id){
+      toast('Sign in to trade on the shared market', 'warning');
+      return;
+    }
+    const s = game.stocks[game.selectedStock];
+    const prevLevAvg = Number(s.levAvg) || 0;
+    if(String(side).toUpperCase() === 'BUY' && (lev || 1) > 1 && !mmLeverageUnlocked()){
+      toast(`Margin unlocks at ${fmt(MM_LEVERAGE_UNLOCK_NET)} net worth`, 'warning');
+      return;
+    }
+    await window.mmSupabase.rpc('mm_ensure_wallet', { p_seed_cash: game.cash });
+    const { data, error } = await window.mmSupabase.rpc('mm_execute_trade', {
+      p_symbol: s.symbol,
+      p_side: side,
+      p_qty: qty,
+      p_leverage: lev || 1
+    });
+    if(error) throw error;
+    if(!data || !data.ok) throw new Error((data && data.error) || 'trade_failed');
+    game.cash = Number(data.cash);
+    const sym = String(data.symbol || '').toUpperCase();
+    const px = Number(data.price);
+    for(const st of game.stocks){
+      if(String(st.symbol || '').toUpperCase() !== sym) continue;
+      st.owned = Number(data.shares) || 0;
+      st.avg = Number(data.avg_cost) || 0;
+      st.levOwned = Number(data.lev_shares) || 0;
+      st.levAvg = Number(data.lev_avg) || 0;
+      st.levMult = Math.max(1, Math.floor(Number(data.lev_mult)) || 1);
+      if(Number.isFinite(px)) st._mmDisplayPrice = px;
+      break;
+    }
+    await mmPullSharedMarketBeforeTick({ force: true });
+    game.trades++;
+    if(String(side).toUpperCase() === 'BUY'){
+      addXP((lev > 1 ? 4 : 2) + qty * (lev > 1 ? 0.03 : 0.02) + (lev > 1 ? lev : 0));
+      const notional = qty * (Number.isFinite(px) ? px : s.price);
+      if(lev > 1){
+        if(notional >= 220000) mmPushArenaFeed('trade', `Leveraged ${fmtNum(qty)} ${s.symbol} — tape moved`);
+        toast(`Opened ${fmtNum(qty)} ${s.symbol} at ${lev}x`, 'success');
+      }else{
+        if(notional >= 160000) mmPushArenaFeed('trade', `You bought ~${fmt(notional)} ${s.symbol}`);
+        if(notional >= 380000) mmSpectatorToast(`Big buy: ${fmt(notional)} ${s.symbol} — everyone watches the tape`);
+        if(notional >= 380000) void mmInsertSharedActivityFeed('trade_buy', `Bought ~${fmt(notional)} ${s.symbol}`, { symbol: s.symbol, qty, notional });
+        toast(`Bought ${fmtNum(qty)} ${s.symbol}`, 'success');
+      }
+    }else{
+      addXP((lev > 1 ? 4 : 2) + qty * (lev > 1 ? 0.03 : 0.02) + (lev > 1 ? lev : 0));
+      const notional = qty * (Number.isFinite(px) ? px : s.price);
+      if(lev > 1){
+        const pnl = (Number.isFinite(px) ? px - prevLevAvg : 0) * qty * lev;
+        game.totalEarned += Math.max(0, pnl);
+        toast(`${pnl >= 0 ? 'Closed' : 'Stopped'} ${fmtNum(qty)} ${s.symbol} ${lev}x`, pnl >= 0 ? 'success' : 'warning');
+      }else{
+        game.totalEarned += Math.max(0, notional);
+        if(notional >= 160000) mmPushArenaFeed('trade', `You sold ~${fmt(notional)} ${s.symbol}`);
+        if(notional >= 380000) mmSpectatorToast(`Size sell: ${fmt(notional)} ${s.symbol} — liquidity test`);
+        if(notional >= 380000) void mmInsertSharedActivityFeed('trade_sell', `Sold ~${fmt(notional)} ${s.symbol}`, { symbol: s.symbol, qty, notional });
+        toast(`Sold ${fmtNum(qty)} ${s.symbol}`, 'success');
+      }
+    }
+    refresh();
+  }catch(e){
+    console.warn('mmBuySellStockViaRpc', e);
+    const code = e && e.message ? String(e.message) : String(e || '');
+    const map = {
+      insufficient_cash: 'Not enough cash',
+      insufficient_shares: 'No shares to sell',
+      insufficient_lev: 'No leveraged contracts to sell',
+      lev_mismatch: 'Leverage mismatch for this symbol',
+      snapshot_concurrent_update: 'Market moved — retry the trade',
+      symbol_not_found: 'Symbol not on tape'
+    };
+    toast(map[code.trim()] || 'Trade failed — check connection or run shared_trade_rpc.sql', 'warning');
+  }
 }
 function mmBuildSharedMarketPayloadBody(genForPayload){
   mmArenaEnsureGameFields();
@@ -3424,7 +3646,7 @@ async function mmDoSharedMarketWrite(opts){
     uid = u && u.data && u.data.user && u.data.user.id;
   }catch(e){}
   if(!uid) return;
-  if(bumpGen && mmEdgeAuthorityActive()) return;
+  if(bumpGen && mmSharedBrowserSimSkips()) return;
   const prevGen = Number.isFinite(Number(game._sharedSimGen)) ? Number(game._sharedSimGen) : 0;
   const nextGen = bumpGen ? prevGen + 1 : prevGen;
   const tickBig = Date.now();
@@ -3643,8 +3865,8 @@ async function marketTick(){
     await mmPullSharedMarketBeforeTick(sharedOn ? { force: true } : {});
   }catch(e){}
   if(sharedOn && !uid) return;
-  if(sharedOn && mmEdgeAuthorityActive()) return;
-  if(sharedOn && uid && !mmEdgeAuthorityActive()) game._mmTickDayAdvanced = false;
+  if(sharedOn && mmSharedBrowserSimSkips()) return;
+  if(sharedOn && uid && mmClientMarketSimAllowed()) game._mmTickDayAdvanced = false;
   const rng = sharedOn ? mmCreateSharedRng(Number(game._sharedSimGen) || 0) : null;
   const rRand = rng ? (a, b)=>rng.rand(a, b) : rand;
   const rRandn = rng ? ()=>rng.randn() : randn;
@@ -3657,8 +3879,8 @@ async function marketTick(){
     isNewDayStart = true;
     game.dayCount = Number(game.dayCount || 1) + 1;
     if(!sharedOn) processCreditDay();
-    else if(sharedOn && !mmEdgeAuthorityActive()) processCreditDay();
-    if(sharedOn && uid && !mmEdgeAuthorityActive()) game._mmTickDayAdvanced = !!isNewDayStart;
+    else if(sharedOn && mmClientMarketSimAllowed()) processCreditDay();
+    if(sharedOn && uid && mmClientMarketSimAllowed()) game._mmTickDayAdvanced = !!isNewDayStart;
   }
   const t = (Number(game.dayCount || 1) - 1) * SIM_HOURS_PER_CAL_DAY + Number(game.simHourOfDay || 0);
   const _h = 1 / SIM_HOURS_PER_CAL_DAY;
@@ -3911,7 +4133,7 @@ async function marketTick(){
   }
   game.mood = moodScore > 0.06 ? 'Euphoric' : moodScore < -0.06 ? 'Capitulation' : moodScore > 0.02 ? 'Risk-On' : moodScore < -0.02 ? 'Shaky' : 'Balanced';
   game._sessionMktEwma = sessionMktEwmaPrev * 0.84 + sessionMkt * 0.16;
-  if(sharedOn && uid && !mmEdgeAuthorityActive()){
+  if(sharedOn && uid && mmClientMarketSimAllowed()){
     const g0 = Number(game._sharedSimGen) || 0;
     const metaRng = mmCreateSharedRng((g0 >>> 0) ^ 0xb7e15163);
     if(game._nextBonusGen == null || !Number.isFinite(game._nextBonusGen)){
@@ -3963,7 +4185,17 @@ function buyStock(){
 
   if(qty < 1) return toast('Not enough cash','warning');
 
+  if(mmServerTradeRpcEnabled() && mmSharedSignedIn()){
+    if(lev > 1 && !mmLeverageUnlocked()) return toast(`Margin unlocks at ${fmt(MM_LEVERAGE_UNLOCK_NET)} net worth`, 'warning');
+    if(lev > 1 && s.levOwned > 0 && s.levMult !== lev){
+      return toast('Close current leveraged position before switching leverage', 'warning');
+    }
+    void mmBuySellStockViaRpc('BUY', qty, lev);
+    return;
+  }
+
   if(lev > 1){
+    if(!mmLeverageUnlocked()) return toast(`Margin unlocks at ${fmt(MM_LEVERAGE_UNLOCK_NET)} net worth`, 'warning');
     if(s.levOwned > 0 && s.levMult !== lev) return toast('Close current leveraged position before switching leverage','warning');
     const marginCost = (qty * s.price) / lev;
     if(marginCost > game.cash) return toast('Not enough margin cash','warning');
@@ -4007,6 +4239,10 @@ function sellStock(){
     if(!(s.levOwned > 0) || s.levMult !== lev) return toast('No matching leveraged position to close','warning');
     const qty = game.tradeQty === 'max' ? s.levOwned : Math.min(game.tradeQty, s.levOwned);
     if(qty < 1) return toast('No leveraged contracts to sell','warning');
+    if(mmServerTradeRpcEnabled() && mmSharedSignedIn()){
+      void mmBuySellStockViaRpc('SELL', qty, lev);
+      return;
+    }
     const marginReturn = (qty * s.levAvg) / lev;
     const pnl = (s.price - s.levAvg) * qty * lev;
     game.cash += marginReturn + pnl;
@@ -4023,6 +4259,10 @@ function sellStock(){
 
   const qty = game.tradeQty === 'max' ? s.owned : Math.min(game.tradeQty,s.owned);
   if(qty<1) return toast('No shares to sell','warning');
+  if(mmServerTradeRpcEnabled() && mmSharedSignedIn()){
+    void mmBuySellStockViaRpc('SELL', qty, 1);
+    return;
+  }
   const value = qty*s.price;
   game.cash += value;
   s.owned -= qty;
@@ -4281,7 +4521,7 @@ function renderMobileTrade(){
   const price = $('#mobilePrice');
   const qty = $('#mobileQtyBtn');
   if(ticker) ticker.textContent = s.symbol;
-  if(price) price.textContent = fmt(s.price);
+  if(price) price.textContent = fmt(mmGetDisplayPrice(s));
   if(qty) qty.textContent = 'Qty ' + (game.tradeQty === 'max' ? 'Max' : game.tradeQty);
 }
 
@@ -4350,7 +4590,10 @@ function patchStockListDOM(){
     if(span) span.textContent = `${s.sector} · Own ${fmtNum(s.owned)} shares`;
     const p = el.querySelector('.stockRight .p');
     const d = el.querySelector('.stockRight .d');
-    if(p) p.textContent = fmt(s.price);
+    if(p){
+      p.textContent = fmt(mmGetDisplayPrice(s));
+      p.classList.add('mmFig');
+    }
     if(d){
       d.textContent = pct(s.lastDelta);
       d.className = 'd ' + (s.lastDelta > 0 ? 'up' : s.lastDelta < 0 ? 'down' : 'neutral');
@@ -4365,7 +4608,7 @@ function updateStockDetailDOM(){
   $('#stockDetailName').textContent = s.name;
   $('#stockDetailSub').textContent = `${s.symbol} · ${s.sector}`;
   $('#detailVol').textContent = `Volatility ${(s.baseVol + s.newsVol).toFixed(3)} · ${fmtNum(s.participants)} traders`;
-  $('#detailPrice').textContent = fmt(s.price);
+  $('#detailPrice').textContent = fmt(mmGetDisplayPrice(s));
   $('#detailDelta').textContent = pct(s.lastDelta);
   $('#detailDelta').className = 'v ' + (s.lastDelta > 0 ? 'up' : s.lastDelta < 0 ? 'down' : 'neutral');
   $('#detailHigh').textContent = fmt(s.dayHigh);
@@ -4433,7 +4676,7 @@ function renderStocks(opts){
       el.type = 'button';
       el.className = 'stockItem' + (i === game.selectedStock ? ' active' : '');
       el.dataset.stockIndex = String(i);
-      el.innerHTML = `<div class="ticker">${s.symbol.slice(0, 2)}</div><div class="stockMain"><b>${s.symbol} · ${s.name}</b><span>${s.sector} · Own ${fmtNum(s.owned)} shares</span></div><div class="stockRight"><div class="p">${fmt(s.price)}</div><div class="d ${s.lastDelta > 0 ? 'up' : s.lastDelta < 0 ? 'down' : 'neutral'}">${pct(s.lastDelta)}</div></div>`;
+      el.innerHTML = `<div class="ticker">${s.symbol.slice(0, 2)}</div><div class="stockMain"><b>${s.symbol} · ${s.name}</b><span>${s.sector} · Own ${fmtNum(s.owned)} shares</span></div><div class="stockRight"><div class="p mmFig">${fmt(s.price)}</div><div class="d ${s.lastDelta > 0 ? 'up' : s.lastDelta < 0 ? 'down' : 'neutral'}">${pct(s.lastDelta)}</div></div>`;
       list.appendChild(el);
     });
   }
@@ -4653,11 +4896,23 @@ function repayDebt(ratio){
 function renderLeverage(){
   const row = $('#leverageRow'); if(!row) return;
   row.innerHTML = '';
-  [1,2,5,10].forEach(mult=>{
+  const unlocked = mmLeverageUnlocked();
+  if(!unlocked && game.leverage > 1) game.leverage = 1;
+  [1, 2, 5, 10].forEach(mult=>{
     const b = document.createElement('button');
-    b.className = 'qtyBtn' + (game.leverage===mult ? ' active' : '');
+    const dis = mult > 1 && !unlocked;
+    b.className = 'qtyBtn' + (game.leverage === mult ? ' active' : '') + (dis ? ' disabled' : '');
     b.textContent = mult + 'x';
-    b.onclick = ()=>{ game.leverage = mult; refresh(); };
+    b.disabled = !!dis;
+    b.title = dis ? `Reach ${fmt(MM_LEVERAGE_UNLOCK_NET)} net worth to unlock margin` : '';
+    b.onclick = ()=>{
+      if(mult > 1 && !mmLeverageUnlocked()){
+        toast(`Margin unlocks at ${fmt(MM_LEVERAGE_UNLOCK_NET)} net worth`, 'warning');
+        return;
+      }
+      game.leverage = mult;
+      refresh();
+    };
     row.appendChild(b);
   });
 }
@@ -4838,12 +5093,16 @@ async function mmSendArenaChat(){
     const { error } = await window.mmSupabase.from('arena_ping').insert({
       user_id: user.id,
       username: un,
-      payload: raw.slice(0, 200),
+      payload: Array.from(raw).slice(0, 400).join(''),
       kind: 'chat'
     });
-    if(error) return toast('Chat send failed', 'warning');
+    if(error){
+      console.warn('arena_ping insert', error);
+      return toast(error.message || 'Chat send failed — run arena_ping_schema.sql and enable Realtime on arena_ping', 'warning');
+    }
     if(inp) inp.value = '';
   }catch(e){
+    console.warn(e);
     toast('Chat send failed', 'warning');
   }
 }
@@ -5011,7 +5270,17 @@ function renderFinance(){
   const ratioEl = $('#financeDebtRatio');
   ratioEl.textContent = pct(ratio);
   ratioEl.className = 'v ' + (ratio > 0.6 ? 'loanDanger' : '');
-  $('#levSelected').textContent = (game.leverage||1) + 'x';
+  $('#levSelected').textContent = (game.leverage || 1) + 'x';
+  const levHint = document.getElementById('levLockHint');
+  if(levHint){
+    if(mmLeverageUnlocked()){
+      levHint.style.display = 'none';
+      levHint.textContent = '';
+    }else{
+      levHint.style.display = 'block';
+      levHint.textContent = `Margin (2×–10×) unlocks at ${fmt(MM_LEVERAGE_UNLOCK_NET)} net worth. You are at ${fmt(netWorth())}.`;
+    }
+  }
   const marginNeeded = (game.tradeQty === 'max'
     ? (game.leverage>1 ? (Math.floor((game.cash*(game.leverage||1))/s.price) * s.price / (game.leverage||1)) : 0)
     : ((game.tradeQty||1) * s.price / Math.max(1,(game.leverage||1))));
@@ -6071,16 +6340,16 @@ function onEmpirePickChange(e){
 function renderUser(){
   $('#userTitle').textContent = currentStage();
   $('#userSubtitle').textContent = currentStatus();
-  $('#userNetWorth').textContent = fmt(netWorth());
-  $('#userCash').textContent = fmt(game.cash);
-  $('#userPortfolio').textContent = fmt(portfolioValue());
-  $('#userPassive').textContent = fmt(game.passivePerSec*game.incomeMult) + '/s';
+  $('#userNetWorth').textContent = fmtMoneyFull(netWorth());
+  $('#userCash').textContent = fmtMoneyFull(game.cash);
+  $('#userPortfolio').textContent = fmtMoneyFull(portfolioValue());
+  $('#userPassive').textContent = fmtMoneyFull(game.passivePerSec * game.incomeMult) + '/s';
   $('#userBizCount').textContent = game.businessOwned.length;
   $('#userLifeCount').textContent = game.shoppingOwned.length;
-  $('#userEarned').textContent = fmt(game.totalEarned);
+  $('#userEarned').textContent = fmtMoneyFull(game.totalEarned);
   $('#userTrades').textContent = fmtNum(game.trades);
-  $('#userDebt').textContent = fmt(game.debt);
-  $('#userLev').textContent = fmt(leveragedExposure());
+  $('#userDebt').textContent = fmtMoneyFull(game.debt);
+  $('#userLev').textContent = fmtMoneyFull(leveragedExposure());
   const debtMetric = document.getElementById('userDebtMetric') || null;
   const wrap=$('#assetList'); wrap.innerHTML='';
   const ids=[...game.businessOwned,...game.shoppingOwned].filter(id=>!id.endsWith('_0'));
@@ -6222,9 +6491,10 @@ function moveSearchSelection(dir){
 
 function updateHud(){
   recalc();
+  if(!mmLeverageUnlocked() && game.leverage > 1) game.leverage = 1;
   $('#netWorth').textContent = fmt(netWorth());
   $('#cashSub').textContent = fmt(game.cash);
-  $('#ppsSub').textContent = fmt(game.passivePerSec*game.incomeMult) + '/s';
+  $('#ppsSub').textContent = fmt(game.passivePerSec * game.incomeMult) + '/s';
   $('#levelStat').textContent = game.level;
   $('#xpStat').textContent = fmtNum(game.xp);
   $('#legacyStat').textContent = game.legacy;
@@ -6236,9 +6506,15 @@ function updateHud(){
   const dp = document.getElementById('datePill');
   if(dp) dp.textContent = formatGameDate();
   const tcp = document.getElementById('topbarCashPill');
-  if(tcp) tcp.textContent = 'Cash · ' + fmt(game.cash);
+  if(tcp){
+    tcp.classList.add('mmFig');
+    tcp.textContent = 'Cash · ' + fmt(game.cash);
+  }
   const tnp = document.getElementById('topbarNetPill');
-  if(tnp) tnp.textContent = 'Net worth · ' + fmt(netWorth());
+  if(tnp){
+    tnp.classList.add('mmFig');
+    tnp.textContent = 'Net worth · ' + fmt(netWorth());
+  }
   const creditDateEl = document.getElementById('creditDate');
   if(creditDateEl) creditDateEl.textContent = formatGameDate();
   const creditCycleEl = document.getElementById('creditCycleDay');
@@ -6262,6 +6538,7 @@ function refresh(){
 let __mmLiveTick = 0;
 let __mmLastShopPatchMs = 0;
 function refreshLive(){
+  mmStepSharedPriceTween();
   bindCasinoOnce();
   try{ checkBankruptcy(); }catch(e){}
   updateHud();
@@ -6516,7 +6793,7 @@ setInterval(async ()=>{
       mmProcessLifeEventWall();
       game._mmWallNextLifeAt = Date.now() + irand(120000, 480000);
     }
-    if(mmEdgeAuthorityActive()){
+    if(mmEdgeAuthorityActive() || !mmClientMarketSimAllowed()){
       if(!game._mmLocalNextOppAt) game._mmLocalNextOppAt = Date.now() + irand(15000, 60000);
       if(Date.now() >= game._mmLocalNextOppAt){
         triggerOpportunity();
@@ -6560,9 +6837,15 @@ setInterval(async ()=>{
 })();
 
 (function mmInitArenaPingChannel(){
+  function mmArenaPingConfigured(){
+    try{
+      return !!(window.mmSupabase && typeof window.mmSupabase.from === 'function' && typeof window.mmSupabase.channel === 'function');
+    }catch(e){
+      return false;
+    }
+  }
   async function prime(){
-    if(typeof mmSharedMarketConfigured !== 'function' || !mmSharedMarketConfigured()) return;
-    if(!window.mmSupabase || typeof window.mmSupabase.from !== 'function') return;
+    if(!mmArenaPingConfigured()) return;
     try{
       const res = await window.mmSupabase
         .from('arena_ping')
@@ -6579,8 +6862,7 @@ setInterval(async ()=>{
   }
   function bind(){
     if(window.__mmArenaPingChanBound) return;
-    if(typeof mmSharedMarketConfigured !== 'function' || !mmSharedMarketConfigured()) return;
-    if(!window.mmSupabase || typeof window.mmSupabase.channel !== 'function') return;
+    if(!mmArenaPingConfigured()) return;
     window.__mmArenaPingChanBound = true;
     void prime();
     window.mmSupabase
@@ -7320,6 +7602,16 @@ async function loadLeaderboardSocial(){
 
       try{
         await loadLeaderboardSocial();
+      }catch(e){}
+
+      try{
+        if(typeof mmServerTradeRpcEnabled === 'function' && mmServerTradeRpcEnabled()){
+          const t = Date.now();
+          if(t - (game._mmLastWalletPull || 0) > 45000){
+            game._mmLastWalletPull = t;
+            await mmPullServerExchangeState();
+          }
+        }
       }catch(e){}
     }catch(err){
       console.warn('syncStatsToCloud failed:', err?.message || err);
