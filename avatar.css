@@ -160,10 +160,10 @@
 /* Studio / hub creator UI */
 .mmAvStudio{margin-top:10px}
 .mmAvStudio details{
-  border:1px solid var(--line,#d7dee7);border-radius:12px;background:rgba(255,255,255,.55);margin-bottom:8px;padding:0 10px 8px;
+  border:1px solid var(--line,rgba(255,255,255,.1));border-radius:12px;background:rgba(255,255,255,.04);margin-bottom:8px;padding:0 10px 8px;color:var(--text,#f4f4fb);
 }
 .mmAvStudio summary{
-  cursor:pointer;font-weight:850;padding:10px 4px;list-style:none;display:flex;align-items:center;justify-content:space-between;
+  cursor:pointer;font-weight:850;padding:10px 4px;list-style:none;display:flex;align-items:center;justify-content:space-between;color:inherit;
 }
 .mmAvStudio summary::-webkit-details-marker{display:none}
 .mmAvStudio .mmAvGrid{
@@ -171,19 +171,19 @@
 }
 .mmAvStudio .mmAvRow{display:flex;flex-direction:column;gap:3px;min-width:0}
 .mmAvStudio .mmAvRow label{font-size:.68rem;font-weight:800;color:var(--muted,#667589);text-transform:uppercase;letter-spacing:.06em}
-.mmAvStudio .mmAvRow input[type="range"]{width:100%;accent-color:#1877f2}
-.mmAvStudio .mmAvRow select{width:100%;padding:7px 9px;border-radius:9px;border:1px solid var(--line,#d7dee7);font-weight:750;background:#fff}
+.mmAvStudio .mmAvRow input[type="range"]{width:100%;accent-color:#8a2be2}
+.mmAvStudio .mmAvRow select{width:100%;padding:7px 9px;border-radius:9px;border:1px solid var(--line,rgba(255,255,255,.1));font-weight:750;background:rgba(255,255,255,.06);color:var(--text,#f4f4fb)}
 .mmAvStudio .mmAvActions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .mmAvStudio .mmAvBtn{
-  padding:8px 12px;border-radius:999px;border:1px solid #c7d1dd;background:#eef3fb;font-weight:800;cursor:pointer;font-size:.85rem;
+  padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-weight:800;cursor:pointer;font-size:.85rem;color:var(--text,#f4f4fb);
 }
 .hubCharCreator{
-  margin:12px 0;padding:12px;border-radius:12px;border:1px solid #dbe5f2;background:#f8fbff;
+  margin:12px 0;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
 }
 .hubCharTop{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;margin-bottom:10px}
 .hubCharPreview{
-  flex:0 0 auto;padding:10px;border-radius:14px;border:1px solid #dbe5f2;
-  background:radial-gradient(circle at 50% 15%,rgba(255,255,255,.5),#e8eef8);
+  flex:0 0 auto;padding:10px;border-radius:14px;border:1px solid rgba(255,255,255,.1);
+  background:radial-gradient(circle at 50% 15%,rgba(138,43,226,.2),rgba(14,14,22,.95));
 }
 #hubAvatarStudio .mmAvStudio{
   max-height:min(52vh,440px);
