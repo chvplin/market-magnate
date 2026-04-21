@@ -2293,6 +2293,63 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 .pqvInboxRow:hover{border-color:rgba(91,140,255,.35);background:#1a2538}
 .pqvInboxMeta{font-size:.72rem;color:#93a0b3;font-weight:650}
 
+/* ========== Mobile app shell (≤767px) — presentation only; same DOM & game logic ========== */
+.mmMobileHomeMore{display:none}
+@media (max-width:767px){
+  body.mm-mobile-app .mmMobileHomeMore{display:block;margin-top:14px}
+  .mmMobileHomeMoreLabel{font-size:.72rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .mmMobileHomeMoreRow{display:flex;flex-wrap:wrap;gap:8px}
+  .mmMobJump{padding:10px 14px!important;border-radius:12px!important;font-weight:850!important;min-height:44px}
+  body.mm-mobile-app .app{
+    display:flex!important;
+    flex-direction:column!important;
+    grid-template-columns:unset!important;
+    max-width:100%!important;
+    padding:12px 12px calc(88px + env(safe-area-inset-bottom, 0px))!important;
+    gap:12px!important;
+    min-height:0;
+  }
+  body.mm-mobile-app .sidebar{display:none!important}
+  body.mm-mobile-app .content{width:100%!important;min-width:0!important;order:1}
+  body.mm-mobile-app aside.rightRail{
+    position:static!important;
+    width:100%!important;
+    min-width:0!important;
+    order:2;
+    display:none!important;
+    flex-direction:column!important;
+    gap:12px!important;
+    top:auto!important;
+    margin:0!important;
+    padding:0!important;
+    max-height:none!important;
+  }
+  body.mm-mobile-app.mm-tab-social aside.rightRail{display:flex!important}
+  body.mm-mobile-app.mm-tab-social main.content{display:none!important}
+  body.mm-mobile-app .hero{display:none!important}
+  body.mm-mobile-app.mm-tab-home .hero{display:grid!important}
+  body.mm-mobile-app.mm-tab-home section.panel{display:none!important}
+  body.mm-mobile-app .mobileNav{
+    display:grid!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    gap:6px!important;
+    padding:8px 8px calc(10px + env(safe-area-inset-bottom,0px))!important;
+    z-index:2147482800!important;
+  }
+  body.mm-mobile-app .mobileNavBtn{min-height:52px;padding:8px 2px 6px;border-radius:12px}
+  body.mm-mobile-app .mobileNavBtn b{font-size:.58rem;letter-spacing:-.02em}
+  body.mm-mobile-app .mobileQuickTrade{bottom:calc(74px + env(safe-area-inset-bottom,0px))!important}
+  body.mm-mobile-app{padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))!important}
+  body.mm-mobile-app.mm-tab-portfolio #financeView.panel{display:block!important}
+  body.mm-mobile-app.mm-tab-portfolio #stocksView.panel{display:block!important}
+  body.mm-mobile-app.mm-tab-portfolio .stocksWrap{display:flex;flex-direction:column;gap:14px}
+  body.mm-mobile-app.mm-tab-portfolio .detailTop{order:2}
+  body.mm-mobile-app.mm-tab-portfolio .stockList{max-height:min(200px,32vh)!important}
+}
+@media (min-width:768px){
+  body:not(.mm-mobile-app) .mmMobileHomeMore{display:none!important}
+}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2437,6 +2494,17 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
         <div class="heroActions">
           <button class="cta" id="jumpStocks">Go To Stocks</button>
           <button class="ctaAlt" id="jumpBusiness">View Upgrades</button>
+        </div>
+        <div class="mmMobileHomeMore" id="mmMobileHomeMore" aria-label="Quick navigation">
+          <div class="mmMobileHomeMoreLabel">Jump to</div>
+          <div class="mmMobileHomeMoreRow">
+            <button type="button" class="shopTab mmMobJump" data-mm-jump="shopping">Shop</button>
+            <button type="button" class="shopTab mmMobJump" data-mm-jump="business">Biz</button>
+            <button type="button" class="shopTab mmMobJump" data-mm-jump="news">News</button>
+            <button type="button" class="shopTab mmMobJump" data-mm-jump="casino">Casino</button>
+            <button type="button" class="shopTab mmMobJump" data-mm-jump="empire">Empire</button>
+            <button type="button" class="shopTab mmMobJump" data-mm-jump="finance">Finance</button>
+          </div>
         </div>
         <div class="heroGrid">
           <div class="heroCard"><div class="label">Active Ticker</div><div class="value" id="activeTickerHero">ALPH</div></div>
@@ -2786,13 +2854,11 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 
 
 <nav class="mobileNav" id="mobileNav" aria-label="Mobile navigation">
-  <button class="mobileNavBtn active" data-view="stocks"><span>📊</span><b>Stocks</b></button>
-  <button class="mobileNavBtn" data-view="shopping"><span>🛍️</span><b>Shop</b></button>
-  <button class="mobileNavBtn" data-view="news"><span>📰</span><b>News</b></button>
-  <button class="mobileNavBtn" data-view="business"><span>🏢</span><b>Biz</b></button>
-  <button class="mobileNavBtn" data-view="user"><span>👤</span><b>User</b></button>
-  <button class="mobileNavBtn" data-view="empire"><span>👑</span><b>Empire</b></button>
-  <button class="mobileNavBtn" data-view="casino"><span>🎰</span><b>Casino</b></button>
+  <button type="button" class="mobileNavBtn" data-mm-tab="home" aria-controls="app"><span>🏠</span><b>Home</b></button>
+  <button type="button" class="mobileNavBtn" data-mm-tab="stocks" aria-controls="stocksView"><span>📊</span><b>Stocks</b></button>
+  <button type="button" class="mobileNavBtn" data-mm-tab="portfolio" aria-controls="financeView"><span>💼</span><b>Portfolio</b></button>
+  <button type="button" class="mobileNavBtn" data-mm-tab="social" aria-controls="rightRail"><span>🌐</span><b>Social</b></button>
+  <button type="button" class="mobileNavBtn" data-mm-tab="profile" aria-controls="userView"><span>👤</span><b>Profile</b></button>
 </nav>
 
 <div class="mobileQuickTrade" id="mobileQuickTrade">
@@ -3181,7 +3247,7 @@ const game = {
   tradeBonus:0,
   style:0,
   network:0,
-  view:'stocks',
+  view:'home',
   selectedStock:0,
   tradeQty:1,
   newsBonusPool:0,
@@ -3217,7 +3283,9 @@ const game = {
   loanDueDay:8,
   loanDueAmount:0,
   loanPaidThisCycle:0,
-  marginTradingUnlocked:false
+  marginTradingUnlocked:false,
+  /** Mobile shell tab (Home | Stocks | Portfolio | Social | Profile) — UI only; desktop ignores. */
+  mmMobileTab:'home'
 };
 try{ window.game = game; }catch(e){}
 
@@ -3227,6 +3295,46 @@ Object.entries(topViewButtons).forEach(([id,view])=>{ const el=document.getEleme
 const menuToggleBtn = document.getElementById('menuToggle');
 if(menuToggleBtn) menuToggleBtn.addEventListener('click',()=> document.querySelector('.sidebar').classList.toggle('open'));
 function closeSidebarOnMobile(){ if(window.innerWidth<=1150) document.querySelector('.sidebar').classList.remove('open'); }
+
+function mmIsMobileLayout(){
+  try{ return window.matchMedia('(max-width: 767px)').matches; }catch(e){ return window.innerWidth <= 767; }
+}
+function mmSyncMobileBodyClass(){
+  const on = mmIsMobileLayout();
+  document.body.classList.toggle('mm-mobile-app', on);
+  if(!on){
+    ['home','stocks','portfolio','social','profile'].forEach(t=>{
+      try{ document.body.classList.remove('mm-tab-' + t); }catch(e){}
+    });
+  }
+}
+function mmSetBodyTabClass(tab){
+  const tabs = ['home','stocks','portfolio','social','profile'];
+  tabs.forEach(t=>{ try{ document.body.classList.remove('mm-tab-' + t); }catch(e){} });
+  if(tab && tabs.includes(tab)) document.body.classList.add('mm-tab-' + tab);
+}
+function mmSetMobileTab(tab){
+  if(!mmIsMobileLayout()) return;
+  game.mmMobileTab = tab;
+  if(tab === 'home') game.view = 'home';
+  else if(tab === 'stocks') game.view = 'stocks';
+  else if(tab === 'portfolio') game.view = 'stocks';
+  else if(tab === 'social') game.view = 'news';
+  else if(tab === 'profile') game.view = 'user';
+  mmSetBodyTabClass(tab);
+  refresh();
+}
+function mmOnResizeLayout(){
+  mmSyncMobileBodyClass();
+  try{ if(typeof mmSyncHeadStackLayout === 'function') mmSyncHeadStackLayout(); }catch(e){}
+  if(mmIsMobileLayout()){
+    mmSetBodyTabClass(game.mmMobileTab || 'home');
+    try{ refresh(); }catch(e){}
+  }else{
+    if(game.view === 'home') game.view = 'stocks';
+    try{ refresh(); }catch(e){}
+  }
+}
 
 function recalc(){
   game.passivePerSec = 0;
@@ -5211,7 +5319,7 @@ function doPrestige(){
   const legacy = game.legacy + gain;
   const keepAvatarDNA = JSON.parse(JSON.stringify(normalizeAvatarDNA(game.avatarDNA || {})));
   localStorage.removeItem(SAVE_KEY);
-  Object.assign(game,{cash:500,totalEarned:500,xp:0,level:1,legacy,passivePerSec:0,incomeMult:1,tradeBonus:0,style:0,network:0,view:'stocks',selectedStock:0,tradeQty:1,newsBonusPool:0,mood:'Balanced',trades:0,lastSaved:0,businessOwned:['business_headquarters_0'],shoppingOwned:[],empireShowcasePicks:{homes:'',cars:'',jewelry:'',watches:''},casinoTab:'blackjack',casino:null,ownedProfileAvatars:['default_avatar'],ownedProfileBanners:['default_banner','profile_banner_gold','profile_banner_neon','profile_banner_midnight'],stocks: JSON.parse(JSON.stringify(stockSeed)),news:[],newsArchive:[],ticksUntilNextNews:irand(18,48),paused:false,nextBonusAt:Date.now()+irand(15000,60000),nextLifeAt:Date.now()+irand(60000,300000),activeEvent:null,debt:0,debtInterestRate:0.00045,leverage:1,globalEvent:null,nextGlobalAt:Date.now()+irand(45000,120000),dayCount:1,simHourOfDay:0,creditScore:300,creditTier:0,onTimePayments:0,missedPayments:0,loanCycleStartDay:1,loanDueDay:8,loanDueAmount:0,loanPaidThisCycle:0});
+  Object.assign(game,{cash:500,totalEarned:500,xp:0,level:1,legacy,passivePerSec:0,incomeMult:1,tradeBonus:0,style:0,network:0,view:'home',mmMobileTab:'home',selectedStock:0,tradeQty:1,newsBonusPool:0,mood:'Balanced',trades:0,lastSaved:0,businessOwned:['business_headquarters_0'],shoppingOwned:[],empireShowcasePicks:{homes:'',cars:'',jewelry:'',watches:''},casinoTab:'blackjack',casino:null,ownedProfileAvatars:['default_avatar'],ownedProfileBanners:['default_banner','profile_banner_gold','profile_banner_neon','profile_banner_midnight'],stocks: JSON.parse(JSON.stringify(stockSeed)),news:[],newsArchive:[],ticksUntilNextNews:irand(18,48),paused:false,nextBonusAt:Date.now()+irand(15000,60000),nextLifeAt:Date.now()+irand(60000,300000),activeEvent:null,debt:0,debtInterestRate:0.00045,leverage:1,globalEvent:null,nextGlobalAt:Date.now()+irand(45000,120000),dayCount:1,simHourOfDay:0,creditScore:300,creditTier:0,onTimePayments:0,missedPayments:0,loanCycleStartDay:1,loanDueDay:8,loanDueAmount:0,loanPaidThisCycle:0});
   game.avatarDNA = keepAvatarDNA;
   recalc();
   makeNews(true);makeNews(true);
@@ -5303,6 +5411,10 @@ function load(){
   try{
     const parsed = JSON.parse(raw);
     Object.assign(game, parsed);
+    if(typeof game.mmMobileTab !== 'string' || !['home','stocks','portfolio','social','profile'].includes(game.mmMobileTab)){
+      game.mmMobileTab = 'home';
+    }
+    if(!mmIsMobileLayout() && game.view === 'home') game.view = 'stocks';
     game.stocks = parsed.stocks.map((s,i)=>{
       const merged = Object.assign(JSON.parse(JSON.stringify(stockSeed[i]||stockSeed[0])),s);
       merged.anchorPrice ??= merged.price;
@@ -5414,9 +5526,21 @@ function renderRail(){
 }
 
 function renderMobileNav(){
-  $$('.mobileNavBtn').forEach(btn=>btn.classList.toggle('active', btn.dataset.view===game.view));
   const quick = $('#mobileQuickTrade');
-  if(quick) quick.classList.toggle('hidden', game.view!=='stocks');
+  if(!mmIsMobileLayout()){
+    if(quick) quick.classList.add('hidden');
+    return;
+  }
+  const aux = ['shopping','news','business','casino','empire','finance'].includes(game.view);
+  const tab = game.mmMobileTab || 'home';
+  $$('#mobileNav .mobileNavBtn').forEach(btn=>{
+    const t = btn.getAttribute('data-mm-tab');
+    btn.classList.toggle('active', !aux && t === tab);
+  });
+  if(quick){
+    const showQ = game.view === 'stocks' && (tab === 'stocks' || tab === 'portfolio');
+    quick.classList.toggle('hidden', !showQ);
+  }
 }
 function renderMobileTrade(){
   const s = game.stocks[game.selectedStock];
@@ -5431,13 +5555,51 @@ function renderMobileTrade(){
 function switchView(view){
   closeSidebarOnMobile();
   game.view = view;
+  if(mmIsMobileLayout()){
+    const aux = ['shopping','news','business','casino','empire','finance'];
+    if(aux.includes(view)) game.mmMobileTab = 'home';
+    else if(view === 'stocks') game.mmMobileTab = 'stocks';
+    else if(view === 'user') game.mmMobileTab = 'profile';
+    else if(view === 'finance') game.mmMobileTab = 'portfolio';
+    else if(view === 'news') game.mmMobileTab = 'social';
+    mmSetBodyTabClass(game.mmMobileTab || 'home');
+  }
   refresh();
 }
 
 function renderMenu(){
-  $$('#menuBtns .menuBtn').forEach(btn=>btn.classList.toggle('active', btn.dataset.view===game.view));
+  if(mmIsMobileLayout()){
+    const tab = game.mmMobileTab || 'home';
+    mmSetBodyTabClass(tab);
+    const all = ['stocks','shopping','news','business','user','finance','empire','casino'];
+    const aux = ['shopping','news','business','casino','empire','finance'];
+    if(aux.includes(game.view)){
+      all.forEach(v=>{
+        const el = $('#'+v+'View');
+        if(el) el.classList.toggle('hidden', game.view !== v);
+      });
+      return;
+    }
+    all.forEach(v=>{ const el = $('#'+v+'View'); if(el) el.classList.add('hidden'); });
+    if(tab === 'home'){
+      /* hero only — CSS shows hero, hides panels */
+    }else if(tab === 'stocks'){
+      const el = $('#stocksView'); if(el) el.classList.remove('hidden');
+    }else if(tab === 'portfolio'){
+      const s = $('#stocksView'); const f = $('#financeView');
+      if(s) s.classList.remove('hidden');
+      if(f) f.classList.remove('hidden');
+    }else if(tab === 'social'){
+      /* leaderboard rail — CSS hides main, shows .rightRail */
+    }else if(tab === 'profile'){
+      const el = $('#userView'); if(el) el.classList.remove('hidden');
+    }
+    return;
+  }
+  const effectiveView = game.view === 'home' ? 'stocks' : game.view;
+  $$('#menuBtns .menuBtn').forEach(btn=>btn.classList.toggle('active', btn.dataset.view===effectiveView));
   ['stocks','shopping','news','business','user','finance','empire','casino'].forEach(v=>{
-    $('#'+v+'View').classList.toggle('hidden', game.view!==v);
+    $('#'+v+'View').classList.toggle('hidden', effectiveView!==v);
   });
 }
 
@@ -7596,6 +7758,8 @@ function updateHud(){
 }
 
 function refresh(){
+  mmSyncMobileBodyClass();
+  if(mmIsMobileLayout()) mmSetBodyTabClass(game.mmMobileTab || 'home');
   bindCasinoOnce();
   try{ mmNormalizeStockHoldings(); }catch(e){}
   try{ checkBankruptcy(); }catch(e){}
@@ -7612,17 +7776,19 @@ function refreshLive(){
   bindCasinoOnce();
   try{ checkBankruptcy(); }catch(e){}
   const v = game.view;
+  const mobileHome = mmIsMobileLayout() && game.mmMobileTab === 'home' && v === 'home';
+  const portTab = mmIsMobileLayout() && game.mmMobileTab === 'portfolio';
   __mmLiveTick++;
   if(__mmLiveTick % 120 === 0){
     try{
       if(typeof window.mmRefreshToolbarNotifyBadge === 'function') void window.mmRefreshToolbarNotifyBadge();
     }catch(e){}
   }
-  const stocksHudSkip = v === 'stocks' && !game.paused && (__mmLiveTick % 2 === 1);
+  const stocksHudSkip = !mobileHome && v === 'stocks' && !game.paused && (__mmLiveTick % 2 === 1);
   if(!stocksHudSkip) updateHud();
-  if(v !== 'stocks' || __mmLiveTick % 2 === 0) renderMenu();
+  if(v !== 'stocks' || __mmLiveTick % 2 === 0 || mobileHome || portTab) renderMenu();
   bindStockQtyDelegationOnce();
-  if(v === 'stocks'){
+  if(v === 'stocks' || portTab){
     if(!patchStockListDOM()) renderStocks({force:true});
     else{
       updateStockDetailDOM();
@@ -7644,7 +7810,7 @@ function refreshLive(){
     }
   }else if(v === 'news' && __mmLiveTick % 8 === 0){
     renderNews();
-  }else if(v === 'finance' && __mmLiveTick % 8 === 0){
+  }else if((v === 'finance' || portTab) && __mmLiveTick % 8 === 0){
     renderFinance();
   }
   if(__mmLiveTick % 5 === 0) renderRail();
@@ -7694,7 +7860,30 @@ const searchResultsEl = $('#searchResults');
 if(globalSearchInput){
   globalSearchInput.addEventListener('input', e => renderSearchResults(e.target.value));
   globalSearchInput.addEventListener('focus', e => renderSearchResults(e.target.value));
-  $$('.mobileNavBtn').forEach(btn=>btn.addEventListener('click', ()=>{ playClickSound(); switchView(btn.dataset.view); }));
+  const mobNav = document.getElementById('mobileNav');
+  if(mobNav){
+    mobNav.addEventListener('click', ev=>{
+      const btn = ev.target && ev.target.closest && ev.target.closest('.mobileNavBtn[data-mm-tab]');
+      if(!btn) return;
+      const tab = btn.getAttribute('data-mm-tab');
+      if(!tab) return;
+      try{ playClickSound(); }catch(e){}
+      mmSetMobileTab(tab);
+    });
+  }
+  document.querySelector('.content')?.addEventListener('click', ev=>{
+    const j = ev.target && ev.target.closest && ev.target.closest('.mmMobJump[data-mm-jump]');
+    if(!j || !mmIsMobileLayout()) return;
+    const view = j.getAttribute('data-mm-jump');
+    if(!view) return;
+    try{ playClickSound(); }catch(e){}
+    switchView(view);
+  }, { passive: true });
+  let __mmResizeLayoutTimer = 0;
+  window.addEventListener('resize', ()=>{
+    clearTimeout(__mmResizeLayoutTimer);
+    __mmResizeLayoutTimer = setTimeout(mmOnResizeLayout, 140);
+  }, { passive: true });
   const mobileBuy = $('#mobileBuyBtn'); if(mobileBuy) mobileBuy.addEventListener('click', ()=>{ playClickSound(); buyStock(); });
   const mobileSell = $('#mobileSellBtn'); if(mobileSell) mobileSell.addEventListener('click', ()=>{ playClickSound(); sellStock(); });
   const mobileQty = $('#mobileQtyBtn'); if(mobileQty) mobileQty.addEventListener('click', ()=>{
