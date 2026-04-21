@@ -3556,6 +3556,7 @@ function mmFeedWorldLiveFromLeaderDiffs(lines){
     if(ln && ln.text) mmPushWorldLiveFeed('📊 ' + String(ln.text), '');
   }
 }
+try{ window.mmFeedWorldLiveFromLeaderDiffs = mmFeedWorldLiveFromLeaderDiffs; }catch(e){}
 
 async function mmRefreshToolbarNotifyBadge(){
   const badge = document.getElementById('socialChipNotify');
@@ -3868,6 +3869,7 @@ function mmDiffNetFromActivity(rows){
   }
   return out.slice(0, 5);
 }
+try{ window.mmDiffNetFromActivity = mmDiffNetFromActivity; }catch(e){}
 
 function mmSharedMarketConfigured(){
   try{
@@ -8553,7 +8555,11 @@ async function loadLeaderboardSocial(){
     }catch(e){
       window.__mmLastActivityDiffLines = [];
     }
-    mmFeedWorldLiveFromLeaderDiffs(window.__mmLastActivityDiffLines || []);
+    try{
+      if(typeof window.mmFeedWorldLiveFromLeaderDiffs === 'function'){
+        window.mmFeedWorldLiveFromLeaderDiffs(window.__mmLastActivityDiffLines || []);
+      }
+    }catch(eWL){ console.warn('[MM] world live from leader diffs', eWL && (eWL.message || eWL)); }
     if(typeof tickArenaUi === 'function'){
       try{
         tickArenaUi(true);
@@ -8622,7 +8628,11 @@ async function loadLeaderboardSocial(){
   }catch(e){
     window.__mmLastActivityDiffLines = [];
   }
-  mmFeedWorldLiveFromLeaderDiffs(window.__mmLastActivityDiffLines || []);
+  try{
+    if(typeof window.mmFeedWorldLiveFromLeaderDiffs === 'function'){
+      window.mmFeedWorldLiveFromLeaderDiffs(window.__mmLastActivityDiffLines || []);
+    }
+  }catch(eWL2){ console.warn('[MM] world live from leader diffs', eWL2 && (eWL2.message || eWL2)); }
   if(typeof mmUpdateLeaderRankNudge === 'function'){
     try{
       mmUpdateLeaderRankNudge(rows);
