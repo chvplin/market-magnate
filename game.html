@@ -113,12 +113,15 @@ border-radius:8px}
 .searchSectionLabel{padding:10px 12px 4px;color:var(--muted);font-size:.78rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
 .searchItem{width:100%;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;padding:12px 12px;border-radius:11px;background:transparent;border:none;text-align:left}
 .searchItem:hover,.searchItem.active{background:rgba(138,43,226,.12)}
-.searchItemIcon{width:40px;height:40px;border-radius:10px;background:rgba(138,43,226,.15);display:grid;place-items:center;font-size:1.12rem}
+.searchItemIcon{width:40px;height:40px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,.14);display:grid;place-items:center;font-size:0;color:var(--text-secondary)}
+.searchItemIcon .mmIco{opacity:.92}
+.mmIco{display:block;flex-shrink:0}
+.mmAvatarImg{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
 .searchItemMain b{display:block;font-size:.95rem}
 .searchItemMain span{display:block;color:var(--muted);font-size:.84rem;margin-top:3px}
 .searchItemMeta{font-size:.84rem;color:var(--text-secondary);font-weight:800}
-.circleBtn{width:38px;height:38px;border-radius:999px;background:rgba(138,43,226,.14);border:1px solid rgba(209,0,209,.32);display:grid;place-items:center;font-size:1.05rem;color:var(--text);box-shadow:0 2px 12px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.06);transition:transform .2s ease,box-shadow .22s ease,background .2s ease,border-color .2s ease}
-.circleBtn:hover{background:rgba(138,43,226,.24);border-color:rgba(232,180,255,.45);box-shadow:var(--glow-accent),0 6px 20px rgba(0,0,0,.28);transform:translateY(-1px)}
+.circleBtn{width:38px;height:38px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.16);display:grid;place-items:center;font-size:0;color:var(--text);box-shadow:0 2px 10px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.04);transition:transform .2s ease,box-shadow .22s ease,background .2s ease,border-color .2s ease}
+.circleBtn:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.28);box-shadow:0 6px 18px rgba(0,0,0,.28);transform:translateY(-1px)}
 .menuToggle{display:none}
 .app{max-width:1580px;margin:0 auto;padding:16px 18px 22px;display:grid;grid-template-columns:minmax(0,278px) minmax(0,1fr) minmax(0,264px);gap:16px;align-items:start}
 .sidebar,.content,.rightRail{min-height:calc(100vh - 88px)}
@@ -129,7 +132,7 @@ border-radius:8px}
 .brand{padding:18px;border-radius:var(--radius);background:var(--accent-gradient);position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.12);color:#fff;box-shadow:var(--glow-accent)}
 .brand:after{content:"";position:absolute;right:-22px;top:-28px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle, rgba(255,255,255,.30), transparent 65%)}
 .logo{display:flex;align-items:center;gap:12px;font-weight:900;font-size:1.2rem;letter-spacing:.02em}
-.logoBadge{width:52px;height:52px;border-radius:10px;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:1.55rem;box-shadow:inset 0 1px 0 rgba(255,255,255,.28)}
+.logoBadge{width:52px;height:52px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,.22);display:grid;place-items:center;font-size:1.55rem;color:rgba(255,255,255,.9);box-shadow:none}
 .subtitle{margin-top:8px;color:rgba(255,255,255,.82);font-size:.95rem;line-height:1.4}
 .skyline{height:95px;margin-top:12px;border-radius:13px;background:
 linear-gradient(180deg, rgba(255,255,255,.16), transparent),
@@ -166,9 +169,9 @@ linear-gradient(180deg,#2c7df0,#145dcb);position:relative;overflow:hidden}
   box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
 }
 .stockItem{
-  background:rgba(138,43,226,.07);
-  border:1px solid rgba(209,0,209,.22);
-  box-shadow:0 2px 10px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.04);
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 2px 10px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.03);
 }
 .sidebar.collapsed{width:92px;padding:14px 10px}
 .sidebar.collapsed .brand,.sidebar.collapsed .menuText,.sidebar.collapsed .bigCash .sub,.sidebar.collapsed .miniStats,.sidebar.collapsed .sideActions{display:none}
@@ -176,7 +179,7 @@ linear-gradient(180deg,#2c7df0,#145dcb);position:relative;overflow:hidden}
 .sidebar.collapsed .menuIcon{margin:0}
 .sidebar.collapsed .bigCash{padding:12px 8px;text-align:center}
 .sidebar.collapsed .bigCash .value{font-size:1rem}
-.menuIcon{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;background:rgba(138,43,226,.2);font-size:1.2rem;border:1px solid rgba(255,255,255,.08)}
+.menuIcon{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;background:transparent;font-size:0;border:1px solid rgba(255,255,255,.14);color:var(--text-secondary)}
 .menuText b{display:block;font-size:1rem}
 .menuText span{display:block;font-size:.83rem;color:var(--muted);opacity:.95;margin-top:2px}
 .sideActions{margin-top:auto;display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -308,7 +311,7 @@ linear-gradient(180deg,#2c7df0,#145dcb);position:relative;overflow:hidden}
   0%,100%{box-shadow:0 2px 10px rgba(138,43,226,.08)}
   50%{box-shadow:0 10px 32px rgba(138,43,226,.2),0 0 0 1px rgba(209,0,209,.15)}
 }
-.ticker{width:50px;height:50px;border-radius:12px;display:grid;place-items:center;font-weight:900;background:var(--accent-gradient);color:#fff;box-shadow:var(--glow-accent)}
+.ticker{width:50px;height:50px;border-radius:12px;display:grid;place-items:center;font-weight:900;background:transparent;border:1px solid rgba(255,255,255,.18);color:var(--text);box-shadow:none;font-size:.72rem;letter-spacing:-.02em}
 .stockMain b{display:block;font-size:1rem}
 .stockMain span{display:block;font-size:.84rem;color:var(--muted);margin-top:4px}
 .stockRight{text-align:right}
@@ -381,7 +384,7 @@ canvas{width:100%;height:100%}
 @media (prefers-reduced-motion: no-preference){
   body.mm-motion .shopCard:hover{box-shadow:0 12px 32px rgba(0,0,0,.35),var(--glow-accent);transform:translateY(-1px)}
 }
-.shopCard .ico{width:54px;height:54px;border-radius:12px;display:grid;place-items:center;background:var(--accent-gradient);font-size:1.35rem;color:#fff;box-shadow:var(--glow-accent)}
+.shopCard .ico{width:54px;height:54px;border-radius:12px;display:grid;place-items:center;background:transparent;border:1px solid rgba(255,255,255,.14);font-size:0;color:var(--text-secondary);box-shadow:none}
 .shopCard h4{margin:0;font-size:1rem;color:var(--text)}
 .shopCard p{margin:4px 0 0;color:var(--muted);font-size:.85rem;line-height:1.4}
 .priceCol{text-align:right}
@@ -394,6 +397,8 @@ canvas{width:100%;height:100%}
 .avatar{width:88px;height:88px;border-radius:14px;background:var(--accent-gradient);display:grid;place-items:center;font-size:2rem;color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.2),var(--glow-accent)}
 .assetList{display:grid;gap:10px;max-height:420px;overflow:auto;padding-right:4px}
 .assetRow{padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.04);border:var(--glass-border);display:flex;justify-content:space-between;gap:10px;align-items:center}
+.assetRowTitle{display:inline-flex;align-items:center;gap:8px;min-width:0}
+.assetRowTitle .mmIco{flex-shrink:0}
 .toastDock{
   position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);
   z-index:220;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:10px;
@@ -559,7 +564,7 @@ canvas{width:100%;height:100%}
 .eventModal{width:min(560px,100%);background:rgba(22,22,32,.96);border:var(--glass-border);border-radius:var(--radius);box-shadow:var(--shadow),var(--glow-accent);padding:22px;position:relative;overflow:hidden;color:var(--text)}
 .eventModal:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at top right, rgba(138,43,226,.14), transparent 38%),radial-gradient(circle at bottom left, rgba(59,91,253,.12), transparent 32%);pointer-events:none}
 .eventTop{display:flex;align-items:center;gap:14px;position:relative;z-index:1}
-.eventIcon{width:64px;height:64px;border-radius:12px;display:grid;place-items:center;font-size:2rem;background:var(--accent-gradient);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.25),var(--glow-accent)}
+.eventIcon{width:64px;height:64px;border-radius:12px;display:grid;place-items:center;font-size:0;background:transparent;color:var(--text-secondary);border:1px solid var(--line);box-shadow:none}
 .eventModal h3{margin:0;font-size:1.45rem;color:var(--text)}
 .eventModal p{margin:8px 0 0;color:var(--text-secondary);line-height:1.55}
 .eventChoices{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px;position:relative;z-index:1}
@@ -711,7 +716,7 @@ canvas{width:100%;height:100%}
   body{padding-bottom:126px;background:var(--bg-main)}
   .topbar{padding:8px 10px;gap:8px;background:rgba(12,12,18,.88)}
   .mmMark{width:34px;height:34px;border-radius:10px;font-size:.8rem}
-  .circleBtn{width:34px;height:34px;font-size:.95rem}
+  .circleBtn{width:34px;height:34px;font-size:0}
   .searchBar{padding:7px 10px;min-width:0;border-radius:10px}
   .searchBar input{font-size:.82rem}
   .searchResults{top:calc(100% + 6px);border-radius:11px;padding:6px}
@@ -764,7 +769,7 @@ canvas{width:100%;height:100%}
   .shopTab{padding:7px 10px;font-size:.72rem}
   .shopGrid{gap:8px}
   .shopCard{padding:10px;border-radius:11px;gap:8px}
-  .shopCard .ico{width:38px;height:38px;border-radius:11px;font-size:1rem}
+  .shopCard .ico{width:38px;height:38px;border-radius:11px;font-size:0}
   .shopCard h4{font-size:.82rem}
   .shopCard p{font-size:.68rem;line-height:1.28}
   .priceCol .cost{font-size:.78rem}
@@ -888,7 +893,7 @@ body{
 /* in-game social layer */
 .socialChip{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:var(--glass-border);max-width:240px;cursor:pointer}
 .socialChip:focus-visible{outline:2px solid rgba(91,140,255,.65);outline-offset:2px}
-.socialChip .avatarMini{width:28px;height:28px;border-radius:999px;display:grid;place-items:center;background:var(--accent-gradient);color:#fff;font-size:1rem;flex:0 0 auto;box-shadow:0 0 12px rgba(138,43,226,.25)}
+.socialChip .avatarMini{width:28px;height:28px;border-radius:999px;display:grid;place-items:center;background:transparent;border:1px solid rgba(255,255,255,.16);color:var(--text-secondary);font-size:0;flex:0 0 auto;box-shadow:none;overflow:hidden}
 .socialChip .name{font-weight:800;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .socialChip .sub{font-size:.68rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .socialBanner{height:88px;border-radius:14px;background:var(--accent-gradient);margin-bottom:12px;position:relative;overflow:hidden;border:var(--glass-border);box-shadow:var(--glow-accent)}
@@ -897,7 +902,7 @@ body{
 .socialBanner.theme-midnight{background:linear-gradient(135deg,#0f172a,#1e3a8a)}
 .socialBanner.theme-default{background:var(--accent-gradient)}
 .socialProfileHead{display:flex;gap:14px;align-items:center;margin-top:-34px;position:relative;z-index:1;padding:0 6px}
-.socialAvatarXL{width:76px;height:76px;border-radius:12px;display:grid;place-items:center;background:var(--accent-gradient);color:#fff;font-size:2rem;box-shadow:0 8px 28px rgba(0,0,0,.35),var(--glow-accent);border:4px solid rgba(18,18,26,.95)}
+.socialAvatarXL{width:76px;height:76px;border-radius:12px;display:grid;place-items:center;background:rgba(255,255,255,.06);color:var(--text-secondary);font-size:0;box-shadow:0 8px 28px rgba(0,0,0,.35);border:2px solid rgba(255,255,255,.14);overflow:hidden}
 .socialMeta h3{margin:0;font-size:1.22rem}
 .socialMeta p{margin:4px 0 0;color:var(--muted);font-size:.9rem}
 .socialBio{margin:12px 6px 0;color:var(--text-secondary);line-height:1.45;font-size:.92rem}
@@ -925,7 +930,7 @@ body{
 .socialModal .field{display:grid;gap:6px;margin-top:10px}
 .socialModal .field label{font-size:.78rem;color:var(--muted);font-weight:700}
 .socialModal .avatarGrid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:10px}
-.socialModal .avatarOpt{padding:10px;border-radius:10px;background:rgba(255,255,255,.06);border:var(--glass-border);font-size:1.25rem;text-align:center;cursor:pointer}
+.socialModal .avatarOpt{padding:10px;border-radius:10px;background:rgba(255,255,255,.06);border:var(--glass-border);font-size:0;display:grid;place-items:center;text-align:center;cursor:pointer;color:var(--text-secondary)}
 .socialModal .avatarOpt.active{background:rgba(138,43,226,.2);border-color:rgba(209,0,209,.4)}
 .socialModal .themeRow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
 .socialModal .themeOpt{height:52px;border-radius:11px;border:2px solid transparent;cursor:pointer}
@@ -1158,18 +1163,21 @@ body.theme-cosmic .socialBanner.theme-default{background:linear-gradient(135deg,
 .crestBadge{
   display:inline-flex;align-items:center;justify-content:center;
   min-width:36px;height:36px;border-radius:10px;
-  background:linear-gradient(145deg,#1877f2,#42b72a);color:#fff;font-weight:900;
-  box-shadow:0 10px 22px rgba(24,119,242,.18);
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);
+  color:var(--text-secondary);font-weight:900;font-size:0;
+  box-shadow:none;
 }
-.crestBadge.luxe{background:linear-gradient(145deg,#2e2a20,#cba24e)}
-.crestBadge.elite{background:linear-gradient(145deg,#462774,#8b5cf6)}
-.crestBadge.island{background:linear-gradient(145deg,#0f766e,#2dd4bf)}
-.crestBadge.cosmic{background:linear-gradient(145deg,#111827,#4f46e5)}
+.crestBadge.luxe,.crestBadge.elite,.crestBadge.island,.crestBadge.cosmic{
+  background:rgba(255,255,255,.06);
+  border-color:rgba(255,255,255,.16);
+}
 .badgeGrid{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .badgePill{
   padding:7px 10px;border-radius:999px;border:var(--glass-border);
   background:rgba(255,255,255,.06);font-size:.78rem;font-weight:800;display:inline-flex;align-items:center;gap:6px;color:var(--text);
 }
+.badgePill .mmIco{flex-shrink:0}
+.badgePill > span:last-child{font-size:.78rem}
 .empireHero{
   display:grid;grid-template-columns:1.1fr .9fr;gap:16px;align-items:stretch;
 }
@@ -1216,8 +1224,9 @@ body.theme-cosmic .socialBanner.theme-default{background:linear-gradient(135deg,
   animation:empireFloatHouse 5.2s ease-in-out infinite;
 }
 .empireHouseBackdrop .empBigEmoji{
-  font-size:clamp(2.4rem,9vw,4.1rem);line-height:1;filter:drop-shadow(0 18px 26px rgba(0,0,0,.14));
+  display:grid;place-items:center;font-size:0;line-height:1;color:var(--text-secondary);filter:drop-shadow(0 18px 26px rgba(0,0,0,.14));
 }
+.empireHouseBackdrop .empBigEmoji .mmIco{width:clamp(2.4rem,9vw,4.1rem)!important;height:clamp(2.4rem,9vw,4.1rem)!important}
 .empireHouseBackdrop .empTag{
   display:inline-block;margin-top:6px;padding:4px 10px;border-radius:999px;
   font-size:.72rem;font-weight:850;color:var(--text);background:rgba(12,14,22,.82);
@@ -1237,8 +1246,9 @@ body.theme-cosmic .socialBanner.theme-default{background:linear-gradient(135deg,
   animation:empireFloatCar 4.3s ease-in-out infinite .35s;
 }
 .empireCarBackdrop .empBigEmoji{
-  font-size:clamp(2.1rem,5.5vw,3.1rem);line-height:1;filter:drop-shadow(0 12px 20px rgba(0,0,0,.16));
+  display:grid;place-items:center;font-size:0;line-height:1;color:var(--text-secondary);filter:drop-shadow(0 12px 20px rgba(0,0,0,.16));
 }
+.empireCarBackdrop .empBigEmoji .mmIco{width:clamp(2.1rem,5.5vw,3.1rem)!important;height:clamp(2.1rem,5.5vw,3.1rem)!important}
 .empireCarBackdrop .empTag{
   display:block;margin-top:4px;padding:3px 8px;border-radius:999px;font-size:.68rem;font-weight:800;
   background:rgba(12,14,22,.82);border:var(--glass-border);max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
@@ -1301,6 +1311,8 @@ body.theme-cosmic .socialBanner.theme-default{background:linear-gradient(135deg,
 }
 .empireLifeItemHead{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; flex-wrap:wrap; font-weight:850; font-size:.9rem; }
 .empireLifeItemHead .muted{ font-size:.78rem; font-weight:700; color:var(--muted); }
+.empireLifeItemTitle{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.empireLifeItemTitle .mmIco{flex-shrink:0}
 .empireLifeBtns{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
 .empireLifeBtns .shopTab{ font-size:.78rem; padding:7px 11px; }
 .empireShowcase{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
@@ -1311,7 +1323,7 @@ body.theme-cosmic .socialBanner.theme-default{background:linear-gradient(135deg,
   display:flex;align-items:center;gap:10px;font-size:1.4rem;font-weight:950;margin:0
 }
 .profileAccentBar{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
-.socialChip .crestMini{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;background:var(--accent-gradient);color:#fff;font-size:.8rem;flex:0 0 auto}
+.socialChip .crestMini{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;background:transparent;border:1px solid rgba(255,255,255,.16);color:var(--text-secondary);font-size:0;flex:0 0 auto}
 .leaderMiniRow .miniBadges{display:flex;gap:4px;justify-content:flex-end}
 .rightRail .empireMiniBox{padding:12px;border-radius:12px;background:rgba(255,255,255,.04);border:var(--glass-border)}
 @media (max-width:760px){
@@ -1703,6 +1715,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   height:54px !important;
   flex:0 0 54px !important;
 }
+.cosmeticIcon{display:grid !important;place-items:center !important;font-size:0 !important;color:var(--text-secondary) !important}
 .cosmeticMeta{
   min-width:0 !important;
   width:100% !important;
@@ -2345,7 +2358,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   transition:transform .15s ease,background .15s ease,border-color .15s ease
 }
 .mmGameMenuTile:active{transform:scale(.985)}
-.mmGameMenuIcon{font-size:1.65rem;line-height:1;width:2.2rem;text-align:center}
+.mmGameMenuIcon{display:grid;place-items:center;font-size:0;line-height:1;width:2.2rem;height:2.2rem;text-align:center;color:var(--text-secondary)}
 .mmGameMenuText{display:flex;flex-direction:column;gap:3px;min-width:0}
 .mmGameMenuText b{font-size:1.02rem;font-weight:900}
 .mmGameMenuText small{font-size:.78rem;color:var(--muted);font-weight:650}
@@ -3317,6 +3330,144 @@ function fmtStat(n){
   const e = Math.floor(Math.log10(a));
   const m = a / Math.pow(10, e);
   return neg + m.toFixed(3) + '×10^' + e;
+}
+/** Stroke icons (no fills / no colored icon wells) — Lucide-style paths in 24×24 viewBox. */
+const MM_ICON_INNER = {
+  menu: '<line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/>',
+  close: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  home: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+  chart: '<path d="M3 3v18h18"/><path d="m7 16 4-7 3 3 5-7"/>',
+  trendDown: '<path d="M3 3v18h18"/><path d="M7 8l4 7 3-3 5 6"/>',
+  news: '<path d="M4 4h16v16H4z"/><path d="M8 8h8M8 12h6M8 16h7"/>',
+  building: '<path d="M6 22V10l6-4 6 4v12"/><path d="M6 12h12"/><path d="M10 22v-6h4v6"/>',
+  user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  crown: '<path d="M2 16l2-8 4 4 4-8 4 8 4-4 2 8"/><path d="M4 20h16"/>',
+  landmark: '<path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-4h6v4"/>',
+  dice: '<rect x="4" y="4" width="16" height="16" rx="2"/><circle cx="9" cy="9" r="1.25"/><circle cx="15" cy="15" r="1.25"/><circle cx="15" cy="9" r="1.25"/><circle cx="9" cy="15" r="1.25"/>',
+  hammer: '<path d="m15 12-1 1 3 3 1-1-3-3"/><path d="M10.5 6.5 3 14l4 4L14.5 10.5"/><path d="M9.5 7.5 12 10"/>',
+  sparkles: '<path d="m12 3-1.9 4.5L6 9.5l4.6.8L12 15l1.4-4.7L18 9.5l-4.1-2L12 3z"/><path d="M5 3v2"/><path d="M19 17v2"/><path d="M3 19h2"/>',
+  globe: '<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+  zap: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+  link: '<path d="M10 13a5 5 0 0 1 0-7l1-1a5 5 0 0 1 7 7l-1 1"/><path d="M14 11a5 5 0 0 1 0 7l-1 1a5 5 0 0 1-7-7l1-1"/>',
+  trophy: '<path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 4H5a2 2 0 0 0-2 2v1a3 3 0 0 0 3 3"/><path d="M17 4h2a2 2 0 0 1 2 2v1a3 3 0 0 1-3 3"/>',
+  shopping: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+  briefcase: '<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>',
+  package: '<path d="m7.5 4.27 9 5.15"/><path d="M21 8V5a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0L4 3.27A2 2 0 0 0 3 5v14a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 18V11"/><path d="M3.27 6.96 12 12.01l8.73-5.05"/><path d="M12 22.08V12"/>',
+  laptop: '<rect x="2" y="4" width="20" height="12" rx="2"/><path d="M6 20h12"/>',
+  receipt: '<path d="M4 2v20l2-2 2 2 2-2 2 2 2-2 2 2 2-2 2 2V2Z"/><path d="M8 6h8"/><path d="M8 10h8"/><path d="M8 14h5"/>',
+  wheel: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>',
+  alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  brain: '<path d="M12 18V5"/><path d="M8 18a4 4 0 0 1-4-4a4 4 0 0 1 4-4"/><path d="M16 18a4 4 0 0 0 4-4a4 4 0 0 0-4-4"/><path d="M8 10a4 4 0 0 1 4-4a4 4 0 0 1 4 4"/>',
+  rocket: '<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13 0-3-1-1-2-1-3 0a2.42 2.42 0 0 1-3 0z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>',
+  gem: '<path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/>',
+  diamond: '<path d="M12 2 2 7l10 15L22 7Z"/>',
+  search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  skull:
+    '<circle cx="12" cy="12" r="9"/><path d="M9 10h.01M15 10h.01M9 14h6M10 18h4"/>',
+  car:
+    '<path d="M5 11 6 6h12l1 5"/><path d="M4 11h16v3H4z"/><circle cx="8.5" cy="16.5" r="1.5"/><circle cx="15.5" cy="16.5" r="1.5"/>'
+};
+(function mmInitEmojiIconMap(){
+  const pairs =
+    '💹:chart,📈:chart,📊:chart,🔍:chart,💼:briefcase,🛍️:shopping,📰:news,🏢:building,👤:user,🏦:landmark,👑:crown,🎰:dice,🏗️:hammer,✨:sparkles,🌐:globe,🏠:home,🔗:link,🏆:trophy,📡:chart,💻:laptop,🧾:receipt,🎉:sparkles,🛞:wheel,🏝️:globe,🛩️:package,💎:gem,💸:chart,🏛️:landmark,💰:landmark,🪙:package,🧿:package,🦈:package,🦁:package,⚠️:alert,📉:trendDown,🧠:brain,🚀:rocket,💎:gem,🔧:hammer,⚙️:hammer,🛠️:hammer,💳:laptop,🖥️:laptop,📱:laptop,👑:crown,🔥:zap,💀:skull,😂:sparkles,👀:sparkles,◈:diamond,◆:diamond,▲:chart,♛:crown,✧:sparkles,✺:sparkles,⬢:package,🏚️:home,🚗:car,🪪:user,⚡:zap,🐂:chart,🐻:trendDown,🐺:package,🦊:package,🦅:rocket,🐉:sparkles,🦉:brain,🐯:zap,🤖:laptop,👽:globe,👻:sparkles,🔮:gem,🪐:globe,🎨:sparkles';
+  window.MM_EMOJI_ICON = new Map();
+  pairs.split(',').forEach(chunk=>{
+    const idx = chunk.lastIndexOf(':');
+    if(idx < 1) return;
+    const em = chunk.slice(0, idx).trim();
+    const id = chunk.slice(idx + 1).trim();
+    if(em && id) window.MM_EMOJI_ICON.set(em, id);
+  });
+})();
+function mmIcon(id, size){
+  const inner = MM_ICON_INNER[id] || MM_ICON_INNER.package;
+  const s = size == null ? 20 : size;
+  return (
+    '<svg class="mmIco" width="' +
+    s +
+    '" height="' +
+    s +
+    '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    inner +
+    '</svg>'
+  );
+}
+function mmIconFromEmoji(ch, size){
+  if(ch == null) return mmIcon('package', size);
+  const s = String(ch).trim();
+  if(!s) return mmIcon('package', size);
+  if(s.startsWith('http://') || s.startsWith('https://')) return '';
+  const id = (window.MM_EMOJI_ICON && window.MM_EMOJI_ICON.get(s)) || 'package';
+  return mmIcon(id, size);
+}
+function mmSetEventIconEl(el, emoji, size){
+  if(!el) return;
+  el.innerHTML = mmIconFromEmoji(emoji || '⚠️', size || 34);
+}
+function mmSetAvatarNode(el, avatar, size){
+  if(!el) return;
+  const a = avatar == null ? '' : String(avatar);
+  if(a.startsWith('http://') || a.startsWith('https://')){
+    el.innerHTML =
+      '<img class="mmAvatarImg" src="' +
+      escapeHtml(a) +
+      '" alt="" loading="lazy" decoding="async"/>';
+  }else{
+    el.innerHTML = mmIconFromEmoji(a || '💹', size || 26);
+  }
+}
+function mmPaintStaticNavIcons(){
+  const set = (id, key, sz)=>{
+    const el = document.getElementById(id);
+    if(el) el.innerHTML = mmIcon(key, sz);
+  };
+  set('menuToggle', 'menu', 18);
+  set('hubBtn', 'home', 18);
+  set('topStocks', 'chart', 18);
+  set('topNews', 'news', 17);
+  set('shareEmpireBtn', 'link', 18);
+  set('leaderboardBtn', 'trophy', 18);
+  set('topUser', 'user', 18);
+  set('mmMobileGameMenuClose', 'close', 18);
+  const logo = document.querySelector('.logoBadge');
+  if(logo) logo.innerHTML = mmIcon('chart', 26);
+  const evt = document.getElementById('eventIcon');
+  if(evt) mmSetEventIconEl(evt, '⚠️', 36);
+  const bnk = document.querySelector('#bankruptcyOverlay .eventIcon');
+  if(bnk){
+    bnk.removeAttribute('style');
+    bnk.innerHTML = mmIcon('trendDown', 34);
+  }
+  const sb = document.querySelector('.searchBar span');
+  if(sb) sb.innerHTML = mmIcon('search', 17);
+  const mapNav = { stocks: 'chart', shopping: 'shopping', news: 'news', business: 'building', user: 'user', finance: 'landmark', empire: 'crown', casino: 'dice' };
+  document.querySelectorAll('#menuBtns .menuIcon').forEach(cell=>{
+    const btn = cell.closest('.menuBtn');
+    const v = btn && btn.dataset && btn.dataset.view;
+    if(v && mapNav[v]) cell.innerHTML = mmIcon(mapNav[v], 22);
+  });
+  const mapMob = { home: 'home', stocks: 'chart', portfolio: 'briefcase', social: 'globe', arena: 'zap', profile: 'user' };
+  document.querySelectorAll('#mobileNav .mobileNavBtn > span:first-child').forEach(cell=>{
+    const btn = cell.parentElement;
+    const t = btn && btn.getAttribute('data-mm-tab');
+    if(t && mapMob[t]) cell.innerHTML = mmIcon(mapMob[t], 22);
+  });
+  const mapSheet = { stocks: 'chart', shopping: 'shopping', news: 'news', business: 'building', finance: 'landmark', user: 'user', empire: 'crown', casino: 'dice' };
+  document.querySelectorAll('.mmGameMenuTile .mmGameMenuIcon').forEach(cell=>{
+    const btn = cell.closest('.mmGameMenuTile');
+    const v = btn && btn.getAttribute('data-mm-game-view');
+    if(v && mapSheet[v]) cell.innerHTML = mmIcon(mapSheet[v], 24);
+  });
+  const mapRail = { stocks: 'chart', business: 'hammer', shopping: 'shopping', empire: 'crown', casino: 'dice' };
+  document.querySelectorAll('aside.rightRail .menuBtn .menuIcon').forEach(cell=>{
+    const btn = cell.closest('.menuBtn');
+    const v = btn && btn.dataset && btn.dataset.view;
+    if(v && mapRail[v]) cell.innerHTML = mmIcon(mapRail[v], 22);
+  });
+  const chipAv = document.getElementById('socialChipAvatar');
+  if(chipAv) mmSetAvatarNode(chipAv, '💹', 22);
+  const socAv = document.getElementById('socialAvatar');
+  if(socAv) mmSetAvatarNode(socAv, '💹', 40);
 }
 try{
   window.mmFormatMoney = fmt;
@@ -4512,7 +4663,7 @@ function processLifeEvent(){
 function showEventModal(event){
   if(__bankruptcyActive) return;
   game.activeEvent = event;
-  $('#eventIcon').textContent = event.icon || '⚠️';
+  mmSetEventIconEl($('#eventIcon'), event.icon || '⚠️', 36);
   $('#eventTitle').textContent = event.title;
   $('#eventText').textContent = event.text;
   $('#eventOverlay').classList.add('show');
@@ -7550,7 +7701,8 @@ function renderItems(kind){
     if(item.effects.trade) effectText.push(`+${Math.round(item.effects.trade*100)}% trade edge`);
     if(item.effects.style) effectText.push(`+${item.effects.style} style`);
     if(item.effects.network) effectText.push(`+${Math.round(item.effects.network*100)}% network`);
-    card.innerHTML=`<div class="ico">${item.icon}</div><div><h4>${item.name}</h4><p>${item.desc}</p></div><div class="priceCol"><div class="cost">${owned?'Owned':fmt(item.cost)}</div><div class="effect">${effectText.join(' · ') || 'Status boost'}</div><button class="buySmall ${owned?'owned':''}">${owned?'Owned':'Buy'}</button></div>`;
+    card.innerHTML=
+      `<div class="ico">${mmIconFromEmoji(item.icon, 28)}</div><div><h4>${escapeHtml(item.name)}</h4><p>${escapeHtml(item.desc)}</p></div><div class="priceCol"><div class="cost">${owned?'Owned':fmt(item.cost)}</div><div class="effect">${escapeHtml(effectText.join(' · ') || 'Status boost')}</div><button class="buySmall ${owned?'owned':''}">${owned?'Owned':'Buy'}</button></div>`;
     if(!owned) card.querySelector('button').onclick=()=>buyItem(item.id);
     grid.appendChild(card);
   });
@@ -7726,7 +7878,12 @@ function buildEmpireLifestylePanel(){
     }
     const rows = owned.map(it => {
       const idAttr = String(it.id).replace(/"/g, '');
-      const nm = escapeHtml(it.icon + ' ' + it.name);
+      const nm =
+        '<span class="empireLifeItemTitle">' +
+        mmIconFromEmoji(it.icon, 18) +
+        '<span>' +
+        escapeHtml(it.name) +
+        '</span></span>';
       const val = escapeHtml(fmt(it.cost));
       let btns = '';
       if(cat === 'cars'){
@@ -7982,16 +8139,27 @@ function applyOwnershipTheme(){
   body.classList.add('theme-' + theme);
   const crest = getCrestInfo();
   ['#userCrest','#empireCrest','#railCrest'].forEach(sel=>{
-    const n=$(sel); if(n){ n.textContent = crest.icon; n.className = 'crestBadge ' + crest.cls; n.title = crest.title; }
+    const n=$(sel);
+    if(n){
+      n.className = 'crestBadge ' + crest.cls;
+      n.title = crest.title;
+      n.innerHTML = mmIconFromEmoji(crest.icon, 20);
+    }
   });
-  const chipCrest = $('#socialChipCrest'); if(chipCrest){ chipCrest.textContent = crest.icon; chipCrest.title = crest.title; }
+  const chipCrest = $('#socialChipCrest');
+  if(chipCrest){
+    chipCrest.title = crest.title;
+    chipCrest.innerHTML = mmIconFromEmoji(crest.icon, 16);
+  }
   const pill = $('#empireThemePill'); if(pill) pill.textContent = 'Theme · ' + theme[0].toUpperCase()+theme.slice(1);
   const railTheme = $('#railThemeText'); if(railTheme) railTheme.textContent = 'Theme: ' + theme[0].toUpperCase()+theme.slice(1);
 }
 function renderBadges(targetSel){
   const wrap = $(targetSel); if(!wrap) return;
   const badges = computeBadges();
-  wrap.innerHTML = badges.length ? badges.map(b=>`<div class="badgePill"><span>${b.icon}</span><span>${b.name}</span></div>`).join('') : '<div class="layoutHint">No badges yet. Hit milestones to build your legend.</div>';
+  wrap.innerHTML = badges.length
+    ? badges.map(b=>`<div class="badgePill">${mmIconFromEmoji(b.icon, 17)}<span>${escapeHtml(b.name)}</span></div>`).join('')
+    : '<div class="layoutHint">No badges yet. Hit milestones to build your legend.</div>';
 }
 let refreshEmpireAvatarStudio = null;
 function ensureEmpireAvatarStudio(){
@@ -8036,9 +8204,15 @@ function renderEmpire(){
   const stage = $('#empireAvatarStage');
   const hint = $('#empireSpotlightHint');
 
-  if(he) he.textContent = homePick && homePick.icon ? homePick.icon : '🏚️';
+  if(he){
+    const ic = homePick && homePick.icon ? homePick.icon : '🏚️';
+    he.innerHTML = mmIconFromEmoji(ic, 72);
+  }
   if(hc) hc.textContent = homePick && homePick.name ? homePick.name : 'Dream residence';
-  if(ce) ce.textContent = carPick && carPick.icon ? carPick.icon : '🚗';
+  if(ce){
+    const ic = carPick && carPick.icon ? carPick.icon : '🚗';
+    ce.innerHTML = mmIconFromEmoji(ic, 56);
+  }
   if(cc) cc.textContent = carPick && carPick.name ? carPick.name : 'Daily driver';
   if(stage) stage.dataset.tier = empireSpotlightTier(homePick);
 
@@ -8105,7 +8279,8 @@ function renderUser(){
   if(!ids.length){ wrap.innerHTML='<div class="panelSub">No purchased assets yet.</div>'; return; }
   ids.map(getItemById).sort((a,b)=>b.cost-a.cost).forEach(item=>{
     const row=document.createElement('div'); row.className='assetRow';
-    row.innerHTML=`<div><b>${item.icon} ${item.name}</b><div class="panelSub" style="margin-top:4px">${item.kind==='business'?'Business':'Lifestyle'} · ${item.category}</div></div><div>${fmt(item.cost)}</div>`;
+    row.innerHTML=
+      `<div><b class="assetRowTitle">${mmIconFromEmoji(item.icon, 20)}<span>${escapeHtml(item.name)}</span></b><div class="panelSub" style="margin-top:4px">${item.kind==='business'?'Business':'Lifestyle'} · ${escapeHtml(item.category)}</div></div><div>${fmt(item.cost)}</div>`;
     wrap.appendChild(row);
   });
   try{
@@ -8303,7 +8478,7 @@ function renderSearchResults(query){
     const section = r.section !== currentSection ? `<div class="searchSectionLabel">${escapeHtml(r.section)}</div>` : '';
     currentSection = r.section;
     return `${section}<button type="button" class="searchItem${i===activeSearchIndex?' active':''}" data-search-index="${i}">
-      <div class="searchItemIcon">${escapeHtml(r.icon)}</div>
+      <div class="searchItemIcon">${mmIconFromEmoji(r.icon, 22)}</div>
       <div class="searchItemMain"><b>${escapeHtml(r.title)}</b><span>${escapeHtml(r.subtitle)}</span></div>
       <div class="searchItemMeta">${escapeHtml(r.meta)}</div>
     </button>`;
@@ -8659,6 +8834,9 @@ $('#eventSecondary').addEventListener('click', ()=>{ playClickSound(); if(!game.
   }
   window.addEventListener('resize', go, { passive: true });
 })();
+try{
+  mmPaintStaticNavIcons();
+}catch(e){}
 load();
 refresh();
 try{
@@ -9151,7 +9329,7 @@ function renderBannerGrid(){
 
     grid.innerHTML = list.map(item=>{
       const owned = mmSocial.cosmeticTab==='avatars' ? mmSocial.ownedAvatarKeys.includes(item.key) : mmSocial.ownedBannerKeys.includes(item.key);
-      const preview = mmSocial.cosmeticTab==='avatars' ? `<div class="cosmeticIcon">${item.icon}</div>` : `<div class="bannerPreview" style="background:${item.gradient}"></div>`;
+      const preview = mmSocial.cosmeticTab==='avatars' ? `<div class="cosmeticIcon">${typeof mmIconFromEmoji==='function'?mmIconFromEmoji(item.icon,30):escapeHtml(item.icon)}</div>` : `<div class="bannerPreview" style="background:${item.gradient}"></div>`;
       return `<div class="cosmeticCard">${preview}<div class="cosmeticMeta"><b>${item.name}</b><span>${owned?'Owned · Click to select':'Unlock for '+formatMoney(item.cost)}</span></div><button class="buySmall${owned?' owned':''}" data-cosmetic="${item.key}" data-type="${mmSocial.cosmeticTab==='avatars'?'avatar':'banner'}">${owned?'Select':'Buy'}</button></div>`;
     }).join('');
     qsa('#cosmeticStoreGrid [data-cosmetic]').forEach(btn=>btn.onclick=()=>purchaseCosmetic(btn.dataset.type, btn.dataset.cosmetic));
@@ -9159,7 +9337,10 @@ function renderBannerGrid(){
 function renderAvatarGrid(){
   const grid = qs('#avatarGrid'); if(!grid) return;
   const owned = [getAvatarDef('default_avatar'), ...avatarShop.filter(a=>mmSocial.ownedAvatarKeys.includes(a.key))];
-  grid.innerHTML = owned.map(a=>`<button type="button" class="avatarOpt${a.icon===mmSocial.selectedAvatar?' active':''}" data-avatar="${a.icon}" title="${a.name}">${a.icon}</button>`).join('');
+  grid.innerHTML = owned.map(a=>{
+    const ic = typeof mmIconFromEmoji==='function' ? mmIconFromEmoji(a.icon, 24) : escapeHtml(a.icon);
+    return `<button type="button" class="avatarOpt${a.icon===mmSocial.selectedAvatar?' active':''}" data-avatar="${escapeHtml(a.icon)}" title="${escapeHtml(a.name)}">${ic}</button>`;
+  }).join('');
   qsa('.avatarOpt').forEach(btn=>btn.addEventListener('click', ()=>{
     mmSocial.selectedAvatar = btn.dataset.avatar;
     renderAvatarGrid();
@@ -9191,7 +9372,10 @@ function renderThemeSelection(){
     mmSocial.selectedBanner = bannerKey;
 
     const banner = qs('#socialBanner'); if(banner){ const bd=getBannerDef(bannerKey); banner.className = 'socialBanner'; banner.style.background = bd.gradient; }
-    const avatarEls = ['#socialAvatar','#socialChipAvatar']; avatarEls.forEach(sel=>{ const n=qs(sel); if(n) n.textContent = avatar; });
+    const avMain = qs('#socialAvatar');
+    if(avMain) mmSetAvatarNode(avMain, avatar, 40);
+    const avChip = qs('#socialChipAvatar');
+    if(avChip) mmSetAvatarNode(avChip, avatar, 22);
 
     const dn = qs('#socialDisplayName'); if(dn) dn.textContent = displayName;
     const un = qs('#socialUsername'); if(un) un.textContent = '@' + username;
