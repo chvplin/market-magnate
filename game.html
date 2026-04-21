@@ -3633,6 +3633,52 @@ function mmSharedSignedIn(){
     return !!(window.mmSupabase && window.mmSupabase.auth && typeof window.mmSupabase.auth.getUser === 'function');
   }catch(e){ return false; }
 }
+/** Avoid `auth.getUser()` on every sim tick / shared write — it can hit the network and cause frame spikes. */
+let __mmAuthUidCache = '';
+let __mmAuthUidExpiry = 0;
+const MM_AUTH_UID_CACHE_MS = 60000;
+function mmInvalidateAuthUidCache(){
+  __mmAuthUidExpiry = 0;
+  __mmAuthUidCache = '';
+}
+function mmWarmAuthUidFromSocial(){
+  try{
+    const id = window.mmSocial && window.mmSocial.user && window.mmSocial.user.id;
+    if(id){
+      __mmAuthUidCache = String(id);
+      __mmAuthUidExpiry = Date.now() + MM_AUTH_UID_CACHE_MS;
+    }
+  }catch(e){}
+}
+function mmAuthUserIdFast(){
+  const t = Date.now();
+  if(t < __mmAuthUidExpiry && __mmAuthUidCache) return __mmAuthUidCache;
+  try{
+    const su = window.mmSocial && window.mmSocial.user && window.mmSocial.user.id;
+    if(su){
+      __mmAuthUidCache = String(su);
+      __mmAuthUidExpiry = t + MM_AUTH_UID_CACHE_MS;
+      return __mmAuthUidCache;
+    }
+  }catch(e){}
+  return '';
+}
+async function mmAuthUserIdResolved(){
+  const f = mmAuthUserIdFast();
+  if(f) return f;
+  if(!window.mmSupabase) return '';
+  try{
+    const u = await window.mmSupabase.auth.getUser();
+    const id = u && u.data && u.data.user && u.data.user.id ? String(u.data.user.id) : '';
+    if(id){
+      __mmAuthUidCache = id;
+      __mmAuthUidExpiry = Date.now() + MM_AUTH_UID_CACHE_MS;
+    }
+    return id;
+  }catch(e){
+    return '';
+  }
+}
 function mmGetDisplayPrice(s){
   if(!s) return 0;
   if(!mmSharedMarketConfigured()) return Number(s.price) || 0;
@@ -3917,11 +3963,17 @@ async function mmDoSharedMarketWrite(opts){
   const bumpGen = !!(opts && opts.bumpGen);
   if(!mmSharedMarketConfigured()) return;
   if(!Array.isArray(game.stocks) || !game.stocks.length) return;
-  let uid = null;
-  try{
-    const u = await window.mmSupabase.auth.getUser();
-    uid = u && u.data && u.data.user && u.data.user.id;
-  }catch(e){}
+  let uid = mmAuthUserIdFast();
+  if(!uid){
+    try{
+      const u = await window.mmSupabase.auth.getUser();
+      uid = u && u.data && u.data.user && u.data.user.id ? String(u.data.user.id) : '';
+      if(uid){
+        __mmAuthUidCache = uid;
+        __mmAuthUidExpiry = Date.now() + MM_AUTH_UID_CACHE_MS;
+      }
+    }catch(e){}
+  }
   if(!uid) return;
   if(bumpGen && mmSharedBrowserSimSkips()) return;
   const prevGen = Number.isFinite(Number(game._sharedSimGen)) ? Number(game._sharedSimGen) : 0;
@@ -4221,14 +4273,11 @@ try{
 }catch(e){}
 
 let __mmPeriodicSharedPullMs = 0;
-async function marketTick(){
+async function marketTick(opts){
   const sharedOn = mmSharedMarketConfigured();
   let uid = null;
   if(sharedOn){
-    try{
-      const u = await window.mmSupabase.auth.getUser();
-      uid = u && u.data && u.data.user && u.data.user.id;
-    }catch(e){}
+    uid = (await mmAuthUserIdResolved()) || null;
   }
   try{
     if(sharedOn){
@@ -4239,8 +4288,8 @@ async function marketTick(){
       await mmPullSharedMarketBeforeTick({ force: periodicForce });
     }
   }catch(e){}
-  if(sharedOn && !uid) return;
-  if(sharedOn && mmSharedBrowserSimSkips()) return;
+  if(sharedOn && !uid) return false;
+  if(sharedOn && mmSharedBrowserSimSkips()) return false;
   if(sharedOn && uid && mmClientMarketSimAllowed()) game._mmTickDayAdvanced = false;
   const rng = sharedOn ? mmCreateSharedRng(Number(game._sharedSimGen) || 0) : null;
   const rRand = rng ? (a, b)=>rng.rand(a, b) : rand;
@@ -4546,7 +4595,10 @@ async function marketTick(){
       game.ticksUntilNextNews = mmRngIrand(newsRng, 18, 48);
     }
   }
-  try{ await mmPushSharedMarketAfterTick(); }catch(e){}
+  if(!(opts && opts.deferSharedPush)){
+    try{ await mmPushSharedMarketAfterTick(); }catch(e){}
+  }
+  return true;
 }
 
 function passiveTick(){
@@ -7162,11 +7214,12 @@ function refreshLive(){
   mmStepSharedPriceTween();
   bindCasinoOnce();
   try{ checkBankruptcy(); }catch(e){}
-  updateHud();
-  renderMenu();
-  bindStockQtyDelegationOnce();
   const v = game.view;
   __mmLiveTick++;
+  const stocksHudSkip = v === 'stocks' && !game.paused && (__mmLiveTick % 2 === 1);
+  if(!stocksHudSkip) updateHud();
+  if(v !== 'stocks' || __mmLiveTick % 2 === 0) renderMenu();
+  bindStockQtyDelegationOnce();
   if(v === 'stocks'){
     if(!patchStockListDOM()) renderStocks({force:true});
     else{
@@ -7196,7 +7249,7 @@ function refreshLive(){
   const input = $('#globalSearch');
   if(input && document.activeElement === input && input.value.trim()) renderSearchResults(input.value);
   try{
-    tickArenaUi(false);
+    if(__mmLiveTick % 2 === 0) tickArenaUi(false);
   }catch(e){}
 }
 try{ window.mmRefreshLive = refreshLive; }catch(e){}
@@ -7380,9 +7433,10 @@ async function mmGameLoop(){
 
     const maxTicks = sharedOn ? MM_MAX_MARKET_TICKS_PER_FRAME_SHARED : MM_MAX_MARKET_TICKS_PER_FRAME_SOLO;
     let ticksThisFrame = 0;
+    let anySimTick = false;
     while(__marketAccum >= MARKET_TICK_MS && ticksThisFrame < maxTicks){
       try{
-        await marketTick();
+        if(await marketTick({ deferSharedPush: true })) anySimTick = true;
       }catch(err){
         console.warn('marketTick', err);
       }
@@ -7436,7 +7490,19 @@ async function mmGameLoop(){
       }
     }
     refreshLive();
-    if(Date.now() - game.lastSaved > 25000) save(false);
+    if(anySimTick){
+      try{ await mmPushSharedMarketAfterTick(); }catch(e){}
+    }
+    const ls = Date.now() - game.lastSaved;
+    if(ls > 25000){
+      const runSave = ()=>{
+        try{
+          save(false);
+        }catch(e){}
+      };
+      if(typeof requestIdleCallback === 'function') requestIdleCallback(runSave, { timeout: 4000 });
+      else setTimeout(runSave, 0);
+    }
   }catch(e){
     console.warn('mmGameLoop', e);
   }finally{
@@ -7871,13 +7937,14 @@ function renderThemeSelection(){
     }
 
     mmSocial.user = await getUser();
-
     if(!mmSocial.user){
+      try{ mmInvalidateAuthUidCache(); }catch(e){}
       await loadOwnedCosmetics();
       applySocialProfileToUI({});
       renderCosmeticStore();
       return;
     }
+    try{ mmWarmAuthUidFromSocial(); }catch(e){}
 
     let {data, error} = await window.mmSupabase.from('profiles').select('*').eq('id', mmSocial.user.id).maybeSingle();
     if(error){
