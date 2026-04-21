@@ -3016,6 +3016,24 @@ function mmClampOrderShares(q){
   if(f < 1) return 0;
   return Math.min(f, MM_MAX_SHARES_PER_ORDER);
 }
+/** Max whole-share buy count so margin (lev) or full cost (1x) never exceeds cash — avoids floor(cash/px)*px > cash float bugs. */
+function mmMaxBuySharesForCash(cash, pricePerShare, leverage){
+  const c = Number(cash);
+  const p = Number(pricePerShare);
+  const lev = Math.max(1, Number(leverage) || 1);
+  if(!Number.isFinite(c) || c <= 0) return 0;
+  if(!Number.isFinite(p) || p <= 0) return 0;
+  let q = lev <= 1 ? mmFloorShares(c / p) : mmFloorShares((c * lev) / p);
+  q = mmClampOrderShares(q);
+  let guard = 0;
+  while(q > 0 && guard < 4096){
+    const need = lev <= 1 ? q * p : (q * p) / lev;
+    if(need <= c + 1e-7) break;
+    q--;
+    guard++;
+  }
+  return q < 1 ? 0 : q;
+}
 function mmLeverageUnlocked(){
   try{
     if(game.marginTradingUnlocked) return true;
@@ -5088,9 +5106,9 @@ function buyStock(){
   const lev = game.leverage || 1;
   const px = Number(s && s.price);
   if(!Number.isFinite(px) || px <= 0) return toast('Invalid stock price', 'warning');
-  const rawMax = lev > 1 ? (game.cash * lev) / px : game.cash / px;
+  const cash = Number(game.cash) || 0;
   const qty = game.tradeQty === 'max'
-    ? mmClampOrderShares(rawMax)
+    ? mmMaxBuySharesForCash(cash, px, lev)
     : mmClampOrderShares(game.tradeQty);
 
   if(qty < 1) return toast('Not enough cash','warning');
@@ -5108,7 +5126,7 @@ function buyStock(){
     if(!mmLeverageUnlocked()) return toast(`Margin unlocks at ${fmt(MM_LEVERAGE_UNLOCK_NET)} net worth`, 'warning');
     if(s.levOwned > 0 && s.levMult !== lev) return toast('Close current leveraged position before switching leverage','warning');
     const marginCost = (qty * s.price) / lev;
-    if(marginCost > game.cash) return toast('Not enough margin cash','warning');
+    if(marginCost > cash + 1e-7) return toast('Not enough margin cash','warning');
     game.cash -= marginCost;
     s.levAvg = s.levOwned > 0 ? ((s.levAvg * s.levOwned) + (s.price * qty)) / (s.levOwned + qty) : s.price;
     s.levOwned += qty;
@@ -5126,7 +5144,7 @@ function buyStock(){
   }
 
   const cost = qty * s.price;
-  if(cost > game.cash) return toast('Not enough cash','warning');
+  if(cost > cash + 1e-7) return toast('Not enough cash','warning');
   game.cash -= cost;
   s.avg = s.owned>0 ? ((s.avg*s.owned)+(cost))/ (s.owned+qty) : s.price;
   s.owned += qty;
