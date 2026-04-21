@@ -61,9 +61,9 @@ linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.42));pointer-events:n
 }
 button,input,select{font:inherit}
 button{cursor:pointer;border:none;color:var(--text)}
-.topbar{position:sticky;top:0;z-index:130;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 16px;background:rgba(12,12,18,.78);backdrop-filter:blur(18px) saturate(1.2);border-bottom:var(--glass-border);box-shadow:0 8px 32px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.05);width:100%;max-width:100%;box-sizing:border-box;overflow-x:clip;overflow-y:visible}
-.topLeft{display:flex;align-items:center;gap:10px;flex:1 1 auto;min-width:0;max-width:100%;overflow:visible}
-.topRight{display:flex;align-items:center;gap:10px;flex:0 0 auto;min-width:0}
+.topbar{position:sticky;top:0;z-index:130;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 16px;background:rgba(12,12,18,.78);backdrop-filter:blur(18px) saturate(1.2);border-bottom:var(--glass-border);box-shadow:0 8px 32px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.05);width:100%;max-width:100%;box-sizing:border-box;overflow-x:visible;overflow-y:visible}
+.topLeft{display:flex;align-items:center;gap:10px;flex:1 1 auto;min-width:0;max-width:100%;overflow:visible;position:relative;z-index:400}
+.topRight{display:flex;align-items:center;gap:10px;flex:0 0 auto;min-width:0;position:relative;z-index:1}
 .mmMark{width:40px;height:40px;border-radius:12px;background:var(--accent-gradient);color:#fff;display:grid;place-items:center;font-weight:900;font-size:1rem;box-shadow:var(--glow-accent),0 8px 22px rgba(0,0,0,.35);position:relative;overflow:hidden}
 @media (prefers-reduced-motion: no-preference){
   body.mm-motion .mmMark{animation:mmMarkShine 4.5s ease-in-out infinite}
@@ -76,7 +76,7 @@ button{cursor:pointer;border:none;color:var(--text)}
 linear-gradient(90deg,transparent 0 6%, rgba(255,255,255,.14) 6% 8%, transparent 8% 26%, rgba(255,255,255,.14) 26% 28%, transparent 28% 46%, rgba(255,255,255,.14) 46% 48%, transparent 48% 100%);
 border-radius:8px}
 .mmMark span{position:relative;z-index:1;letter-spacing:.02em;text-shadow:0 1px 2px rgba(0,0,0,.12)}
-.searchWrap{position:relative;z-index:2147483200;flex:1 1 auto;min-width:0;max-width:min(560px,min(52vw,calc(100vw - 220px)))}
+.searchWrap{position:relative;z-index:500;flex:1 1 auto;min-width:0;max-width:min(560px,min(52vw,calc(100vw - 220px)))}
 .searchBar{
   display:flex;
   align-items:center;
@@ -102,7 +102,7 @@ border-radius:8px}
 }
 .searchBar input{border:none;outline:none;background:transparent;flex:1 1 auto;min-width:0;width:0;font-size:.96rem;color:var(--text);font-weight:500}
 .searchBar input::placeholder{color:var(--muted);opacity:.85}
-.searchResults{position:absolute;top:calc(100% + 10px);left:0;right:0;background:rgba(18,18,26,.96);border:var(--glass-border);border-radius:14px;box-shadow:var(--shadow),var(--glow-accent);padding:10px;display:none;max-height:min(70vh,520px);overflow:auto;z-index:2147483201}
+.searchResults{position:absolute;top:calc(100% + 10px);left:0;right:0;background:rgba(18,18,26,.96);border:var(--glass-border);border-radius:14px;box-shadow:var(--shadow),var(--glow-accent);padding:10px;display:none;max-height:min(70vh,520px);overflow:auto;z-index:501}
 .searchResults.open{display:block}
 .searchHint{padding:12px 14px;color:var(--muted);font-size:.92rem}
 .searchSectionLabel{padding:10px 12px 4px;color:var(--muted);font-size:.78rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
@@ -852,7 +852,7 @@ header, .topbar{
 }
 
 
-/* v23 fixed header */
+/* v23 fixed header — overflow visible so global search dropdown is not clipped */
 .topbar{
   position:fixed !important;
   top:0 !important;
@@ -860,7 +860,8 @@ header, .topbar{
   right:0 !important;
   width:100% !important;
   max-width:100% !important;
-  overflow-x:hidden !important;
+  overflow-x:visible !important;
+  overflow-y:visible !important;
   z-index:2147483000 !important;
   box-sizing:border-box !important;
 }
@@ -3016,10 +3017,14 @@ function mmClampOrderShares(q){
   if(f < 1) return 0;
   return Math.min(f, MM_MAX_SHARES_PER_ORDER);
 }
+/** Tiny markup on price for MAX-size math so server snapshot margin checks (numeric) never lose to JS float / tick drift. */
+const MM_MAX_BUY_PRICE_GUARD = 1.00006;
 /** Max whole-share buy count so margin (lev) or full cost (1x) never exceeds cash — avoids floor(cash/px)*px > cash float bugs. */
-function mmMaxBuySharesForCash(cash, pricePerShare, leverage){
+function mmMaxBuySharesForCash(cash, pricePerShare, leverage, opts){
   const c = Number(cash);
-  const p = Number(pricePerShare);
+  const guard = opts && opts.priceGuard ? Number(opts.priceGuard) : 1;
+  const g = Number.isFinite(guard) && guard >= 1 ? guard : 1;
+  const p = Number(pricePerShare) * g;
   const lev = Math.max(1, Number(leverage) || 1);
   if(!Number.isFinite(c) || c <= 0) return 0;
   if(!Number.isFinite(p) || p <= 0) return 0;
@@ -4393,7 +4398,21 @@ async function mmBuySellStockViaRpc(side, qty, lev){
     refresh();
   }catch(e){
     console.warn('mmBuySellStockViaRpc', e);
-    const code = e && e.message ? String(e.message) : String(e || '');
+    let code = e && e.message ? String(e.message) : String(e || '');
+    if(code && code.charAt(0) === '{'){
+      try{
+        const j = JSON.parse(code);
+        if(j && j.error) code = String(j.error);
+      }catch(_){}
+    }
+    const low = code.toLowerCase();
+    if(low.includes('insufficient_cash')) code = 'insufficient_cash';
+    else if(low.includes('insufficient_shares')) code = 'insufficient_shares';
+    else if(low.includes('insufficient_lev')) code = 'insufficient_lev';
+    else if(low.includes('lev_mismatch')) code = 'lev_mismatch';
+    else if(low.includes('snapshot_concurrent')) code = 'snapshot_concurrent_update';
+    else if(low.includes('symbol_not_found') || low.includes('symbol not')) code = 'symbol_not_found';
+    else if(low.includes('bad_qty')) code = 'bad_qty';
     const map = {
       insufficient_cash: 'Not enough cash',
       insufficient_shares: 'No shares to sell',
@@ -5104,25 +5123,32 @@ function passiveTick(){
   }
 }
 
-function buyStock(){
+async function buyStock(){
 
   const s = game.stocks[game.selectedStock];
   const lev = game.leverage || 1;
   const px = Number(s && s.price);
   if(!Number.isFinite(px) || px <= 0) return toast('Invalid stock price', 'warning');
+  const rpc = mmServerTradeRpcEnabled() && mmSharedSignedIn();
+  if(rpc){
+    try{
+      await mmPullServerExchangeState();
+    }catch(_e){}
+  }
   const cash = Number(game.cash) || 0;
+  const maxOpts = rpc ? { priceGuard: MM_MAX_BUY_PRICE_GUARD } : undefined;
   const qty = game.tradeQty === 'max'
-    ? mmMaxBuySharesForCash(cash, px, lev)
+    ? mmMaxBuySharesForCash(cash, px, lev, maxOpts)
     : mmClampOrderShares(game.tradeQty);
 
   if(qty < 1) return toast('Not enough cash','warning');
 
-  if(mmServerTradeRpcEnabled() && mmSharedSignedIn()){
+  if(rpc){
     if(lev > 1 && !mmLeverageUnlocked()) return toast(`Margin unlocks at ${fmt(MM_LEVERAGE_UNLOCK_NET)} net worth`, 'warning');
     if(lev > 1 && s.levOwned > 0 && s.levMult !== lev){
       return toast('Close current leveraged position before switching leverage', 'warning');
     }
-    void mmBuySellStockViaRpc('BUY', qty, lev);
+    await mmBuySellStockViaRpc('BUY', qty, lev);
     return;
   }
 
@@ -5163,7 +5189,7 @@ function buyStock(){
   toast(`Bought ${fmtNum(qty)} ${s.symbol}`, 'success');
   refresh();
 }
-function sellStock(){
+async function sellStock(){
   const s = game.stocks[game.selectedStock];
   const lev = game.leverage || 1;
 
@@ -5173,7 +5199,7 @@ function sellStock(){
     const qty = game.tradeQty === 'max' ? mmClampOrderShares(levOwned) : mmClampOrderShares(Math.min(game.tradeQty, levOwned));
     if(qty < 1) return toast('No leveraged contracts to sell','warning');
     if(mmServerTradeRpcEnabled() && mmSharedSignedIn()){
-      void mmBuySellStockViaRpc('SELL', qty, lev);
+      await mmBuySellStockViaRpc('SELL', qty, lev);
       return;
     }
     const marginReturn = (qty * s.levAvg) / lev;
@@ -5194,7 +5220,7 @@ function sellStock(){
   const qty = game.tradeQty === 'max' ? mmClampOrderShares(spotOwned) : mmClampOrderShares(Math.min(game.tradeQty, spotOwned));
   if(qty < 1) return toast('No shares to sell','warning');
   if(mmServerTradeRpcEnabled() && mmSharedSignedIn()){
-    void mmBuySellStockViaRpc('SELL', qty, 1);
+    await mmBuySellStockViaRpc('SELL', qty, 1);
     return;
   }
   const value = qty*s.price;
@@ -5222,11 +5248,15 @@ function bindPortfolioTableInteractionsOnce(){
     if(btn){
       ev.preventDefault();
       ev.stopPropagation();
+      if(wrap._mmPortQuickSellBusy) return;
       const h = btn.closest('.holding');
       if(!h) return;
       const idx = Number(h.dataset.stockIndex);
       const hk = h.dataset.holdingKind || 'spot';
-      mmQuickSellFromHolding(idx, String(btn.dataset.quickSell || ''), hk);
+      wrap._mmPortQuickSellBusy = true;
+      void mmQuickSellFromHolding(idx, String(btn.dataset.quickSell || ''), hk).finally(()=>{
+        wrap._mmPortQuickSellBusy = false;
+      });
       return;
     }
     if(row){
@@ -5249,7 +5279,7 @@ function bindPortfolioTableInteractionsOnce(){
   });
 }
 
-function mmQuickSellFromHolding(stockIndex, mode, holdingKind){
+async function mmQuickSellFromHolding(stockIndex, mode, holdingKind){
   const i = Math.floor(Number(stockIndex));
   if(!Number.isFinite(i) || i < 0 || i >= game.stocks.length) return;
   const s = game.stocks[i];
@@ -5269,10 +5299,13 @@ function mmQuickSellFromHolding(stockIndex, mode, holdingKind){
     else if(mode === '0.25') game.tradeQty = Math.max(1, Math.floor(levOwned * 0.25));
     else if(mode === '0.5') game.tradeQty = Math.max(1, Math.floor(levOwned * 0.5));
     else game.tradeQty = 1;
-    sellStock();
-    game.tradeQty = prevQty;
-    game.leverage = prevLev;
-    game.selectedStock = prevSel;
+    try{
+      await sellStock();
+    }finally{
+      game.tradeQty = prevQty;
+      game.leverage = prevLev;
+      game.selectedStock = prevSel;
+    }
     try{ refreshLive(); }catch(e){}
     return;
   }
@@ -5290,9 +5323,12 @@ function mmQuickSellFromHolding(stockIndex, mode, holdingKind){
   else if(mode === '0.25') game.tradeQty = Math.max(1, Math.floor(s.owned * 0.25));
   else if(mode === '0.5') game.tradeQty = Math.max(1, Math.floor(s.owned * 0.5));
   else game.tradeQty = 1;
-  sellStock();
-  game.tradeQty = prevQty;
-  game.selectedStock = prevSel;
+  try{
+    await sellStock();
+  }finally{
+    game.tradeQty = prevQty;
+    game.selectedStock = prevSel;
+  }
   try{ refreshLive(); }catch(e){}
 }
 
@@ -5725,8 +5761,10 @@ function patchQtyRowDOM(){
   });
   const s = game.stocks[game.selectedStock];
   const lev = game.leverage || 1;
+  const rpc = mmServerTradeRpcEnabled() && mmSharedSignedIn();
+  const maxOpts = rpc ? { priceGuard: MM_MAX_BUY_PRICE_GUARD } : undefined;
   const buyQty = game.tradeQty === 'max'
-    ? (lev > 1 ? Math.floor((game.cash * lev) / s.price) : Math.floor(game.cash / s.price))
+    ? mmMaxBuySharesForCash(Number(game.cash) || 0, Number(s.price) || 0, lev, maxOpts)
     : game.tradeQty;
   const sellQty = game.tradeQty === 'max'
     ? (lev > 1 ? (s.levMult === lev ? s.levOwned : 0) : s.owned)
@@ -7844,8 +7882,8 @@ function refreshLive(){
 }
 try{ window.mmRefreshLive = refreshLive; }catch(e){}
 
-$('#buyBtn').addEventListener('click', ()=>{ playClickSound(); buyStock(); });
-$('#sellBtn').addEventListener('click', ()=>{ playClickSound(); sellStock(); });
+$('#buyBtn').addEventListener('click', ()=>{ playClickSound(); void buyStock(); });
+$('#sellBtn').addEventListener('click', ()=>{ playClickSound(); void sellStock(); });
 $('#saveBtn').addEventListener('click', async ()=>{ playClickSound(); try{ window.game = game; }catch(e){}
   save(true); try{ if(window.MMForceCloudSync) await window.MMForceCloudSync(); }catch(e){ console.warn('Cloud sync on save failed', e); } });
 $('#resetBtn').addEventListener('click', ()=>{ playClickSound(); reset(); });
@@ -7906,8 +7944,8 @@ if(globalSearchInput){
     clearTimeout(__mmResizeLayoutTimer);
     __mmResizeLayoutTimer = setTimeout(mmOnResizeLayout, 140);
   }, { passive: true });
-  const mobileBuy = $('#mobileBuyBtn'); if(mobileBuy) mobileBuy.addEventListener('click', ()=>{ playClickSound(); buyStock(); });
-  const mobileSell = $('#mobileSellBtn'); if(mobileSell) mobileSell.addEventListener('click', ()=>{ playClickSound(); sellStock(); });
+  const mobileBuy = $('#mobileBuyBtn'); if(mobileBuy) mobileBuy.addEventListener('click', ()=>{ playClickSound(); void buyStock(); });
+  const mobileSell = $('#mobileSellBtn'); if(mobileSell) mobileSell.addEventListener('click', ()=>{ playClickSound(); void sellStock(); });
   const mobileQty = $('#mobileQtyBtn'); if(mobileQty) mobileQty.addEventListener('click', ()=>{
     playClickSound();
     const options = [1,5,10,25,100,'max'];
