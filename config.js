@@ -8,7 +8,7 @@ window.MM_CONFIG = {
    * When true, hourly market ticks (sim_gen++) are performed ONLY by the Edge Function
    * `supabase/functions/shared-market-tick` using the service role. Browsers become read-only
    * for bumpGen (they still push tape-only trade nudges when signed in).
-   * Deploy function + set secrets, then enable a 3s cron in Supabase Dashboard.
+   * Deploy function + set secrets, then enable a cron matching MARKET_TICK_MS (2000ms) in Supabase Dashboard.
    */
   USE_EDGE_MARKET_AUTHORITY: false,
   /**
