@@ -956,7 +956,22 @@ body{
 .rivalBarYou{height:100%;border-radius:99px;background:linear-gradient(90deg,#22c55e,#16a34a);transition:width .35s ease}
 .rivalBarThem{height:100%;border-radius:99px;background:linear-gradient(90deg,#3b82f6,#6366f1);transition:width .35s ease}
 .rivalTip{font-size:.78rem;color:var(--muted);line-height:1.35}
-.liveFeedList{max-height:180px;overflow:auto;display:grid;gap:6px;padding-right:2px}
+.liveFeedList{max-height:220px;min-height:72px;overflow:auto;display:grid;gap:6px;padding-right:2px}
+.holding.holding--margin{
+  border-left:3px solid rgba(209,0,209,.55);
+  background:linear-gradient(90deg,rgba(138,43,226,.06),transparent);
+}
+.arenaLiveBadge{
+  display:inline-flex;align-items:center;gap:6px;font-size:.68rem;font-weight:950;letter-spacing:.14em;text-transform:uppercase;
+  color:#fecdd3;background:rgba(220,38,38,.22);border:1px solid rgba(248,113,113,.45);border-radius:999px;padding:4px 10px;margin-bottom:8px
+}
+.arenaLiveBadge .dot{width:7px;height:7px;border-radius:50%;background:#f87171;box-shadow:0 0 10px #f87171;animation:mmArenaPulse 1.4s ease-in-out infinite}
+@keyframes mmArenaPulse{0%,100%{opacity:.45;transform:scale(.9)}50%{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){
+  .arenaLiveBadge .dot{animation:none;opacity:1}
+}
+.arenaIntro{font-size:.84rem;color:var(--text-secondary);line-height:1.45;margin:0 0 10px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.arenaSlidePanelInner .railTitle{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .liveFeedLine{font-size:.78rem;line-height:1.35;padding:6px 8px;border-radius:8px;background:var(--panel2);border:1px solid var(--line)}
 .liveFeedLine b{font-weight:850}
 .arenaReactionRow{display:flex;flex-wrap:wrap;gap:6px}
@@ -2155,7 +2170,8 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 <div class="arenaSlideDock" id="arenaSlideDock">
   <button type="button" class="arenaSlideTab" id="arenaSlideTab" aria-expanded="false" aria-controls="arenaSlidePanelInner" title="Live arena — hover the left edge, or tap to pin">Arena</button>
   <div class="arenaSlidePanelInner railCard arenaRailCard" id="arenaSlidePanelInner" role="region" aria-label="Live arena">
-    <div class="railTitle">Live arena</div>
+    <div class="railTitle"><span>Live arena</span><span class="arenaLiveBadge" title="Shared multiplayer rail"><span class="dot" aria-hidden="true"></span>LIVE</span></div>
+    <p class="arenaIntro">Same shared clock, tape, and chat as everyone else — hover the left edge or tap <b>Arena</b> to pin this panel open.</p>
     <div class="layoutHint" id="seasonPill" style="margin-bottom:6px"></div>
     <div id="worldPulseRail" class="worldPulseRail" aria-live="polite">Syncing world pulse…</div>
     <div class="arenaSubTitle">You vs them</div>
@@ -2747,10 +2763,19 @@ const MM_MONEY_SUFFIX_STEPS = [
 const MM_LEVERAGE_UNLOCK_NET = 1_000_000;
 function mmLeverageUnlocked(){
   try{
-    return netWorth() >= MM_LEVERAGE_UNLOCK_NET;
+    if(game.marginTradingUnlocked) return true;
+    if(netWorth() >= MM_LEVERAGE_UNLOCK_NET){
+      game.marginTradingUnlocked = true;
+      return true;
+    }
+    return false;
   }catch(e){
     return false;
   }
+}
+/** Sum of mark-to-market value for spot + leveraged share contracts (not double-counted in netWorth vs leveragedEquity). */
+function spotAndLeveragedPositionValue(){
+  return portfolioValue() + leveragedExposure();
 }
 /** Compact money for HUD, lists, toasts (stable width via CSS .mmFig where needed). */
 function fmt(n){
@@ -2993,7 +3018,8 @@ const game = {
   loanCycleStartDay:1,
   loanDueDay:8,
   loanDueAmount:0,
-  loanPaidThisCycle:0
+  loanPaidThisCycle:0,
+  marginTradingUnlocked:false
 };
 try{ window.game = game; }catch(e){}
 
@@ -3093,6 +3119,7 @@ function checkBankruptcy(){
 }
 function performBankruptcyReset(){
   try{ mmStashMarketForResetBeforeReload(); }catch(e){}
+  try{ mmStashAccountFieldsForResetReload(); }catch(e){}
   try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
   location.reload();
 }
@@ -3541,6 +3568,7 @@ function mmCreateSharedRng(baseGen){
   };
 }
 const MM_RESET_MARKET_KEY = 'MM_RESET_KEEP_MARKET_V1';
+const MM_RESET_PRESERVE_ACCOUNT_KEY = 'MM_RESET_PRESERVE_ACCOUNT_V1';
 function mmBuildResetMarketStash(){
   if(!Array.isArray(game.stocks) || !game.stocks.length) return null;
   const slimStocks = JSON.parse(JSON.stringify(game.stocks)).map(s=>{
@@ -3876,6 +3904,46 @@ function mmMergeResetPreservedMarket(){
   }catch(e){
     console.warn(e);
     try{ sessionStorage.removeItem(MM_RESET_MARKET_KEY); }catch(_e){}
+  }
+}
+function mmStashAccountFieldsForResetReload(){
+  try{
+    const soc = typeof window !== 'undefined' ? window.mmSocial : null;
+    const snap = {
+      ownedProfileAvatars: Array.isArray(game.ownedProfileAvatars) ? [...game.ownedProfileAvatars] : null,
+      ownedProfileBanners: Array.isArray(game.ownedProfileBanners) ? [...game.ownedProfileBanners] : null,
+      avatarDNA: game.avatarDNA ? JSON.parse(JSON.stringify(normalizeAvatarDNA(game.avatarDNA))) : null,
+      marginTradingUnlocked: !!game.marginTradingUnlocked,
+      selectedAvatar: soc ? soc.selectedAvatar : null,
+      selectedBanner: soc ? soc.selectedBanner : null,
+      selectedTheme: soc ? soc.selectedTheme : null
+    };
+    sessionStorage.setItem(MM_RESET_PRESERVE_ACCOUNT_KEY, JSON.stringify(snap));
+  }catch(e){
+    console.warn(e);
+  }
+}
+function mmMergeResetPreservedAccount(){
+  try{
+    const raw = sessionStorage.getItem(MM_RESET_PRESERVE_ACCOUNT_KEY);
+    if(!raw) return;
+    sessionStorage.removeItem(MM_RESET_PRESERVE_ACCOUNT_KEY);
+    const p = JSON.parse(raw);
+    if(Array.isArray(p.ownedProfileAvatars) && p.ownedProfileAvatars.length) game.ownedProfileAvatars = p.ownedProfileAvatars;
+    if(Array.isArray(p.ownedProfileBanners) && p.ownedProfileBanners.length) game.ownedProfileBanners = p.ownedProfileBanners;
+    if(p.avatarDNA && typeof p.avatarDNA === 'object') game.avatarDNA = normalizeAvatarDNA(p.avatarDNA);
+    if(p.marginTradingUnlocked) game.marginTradingUnlocked = true;
+    const soc = typeof window !== 'undefined' ? window.mmSocial : null;
+    if(soc){
+      if(Array.isArray(game.ownedProfileAvatars)) soc.ownedAvatarKeys = [...new Set(game.ownedProfileAvatars)];
+      if(Array.isArray(game.ownedProfileBanners)) soc.ownedBannerKeys = [...new Set(game.ownedProfileBanners)];
+      if(typeof p.selectedAvatar === 'string') soc.selectedAvatar = p.selectedAvatar;
+      if(typeof p.selectedBanner === 'string') soc.selectedBanner = p.selectedBanner;
+      if(typeof p.selectedTheme === 'string') soc.selectedTheme = p.selectedTheme;
+    }
+  }catch(e){
+    console.warn(e);
+    try{ sessionStorage.removeItem(MM_RESET_PRESERVE_ACCOUNT_KEY); }catch(_e){}
   }
 }
 function mmEnsureHeroOpenMarkers(){
@@ -4477,13 +4545,19 @@ function bindPortfolioTableInteractionsOnce(){
       const h = btn.closest('.holding');
       if(!h) return;
       const idx = Number(h.dataset.stockIndex);
-      mmQuickSellFromHolding(idx, String(btn.dataset.quickSell || ''));
+      const hk = h.dataset.holdingKind || 'spot';
+      mmQuickSellFromHolding(idx, String(btn.dataset.quickSell || ''), hk);
       return;
     }
     if(row){
       const idx = Number(row.dataset.stockIndex);
       if(!Number.isFinite(idx) || idx < 0 || idx >= game.stocks.length) return;
       game.selectedStock = idx;
+      if(row.dataset.holdingKind === 'margin'){
+        const st = game.stocks[idx];
+        const lm = Math.max(2, Math.floor(Number(st?.levMult) || 2));
+        game.leverage = lm;
+      }
       try{ playClickSound(); }catch(_){}
       if(!patchStockListDOM()) renderStocks({ force: true });
       else{
@@ -4495,14 +4569,37 @@ function bindPortfolioTableInteractionsOnce(){
   });
 }
 
-function mmQuickSellFromHolding(stockIndex, mode){
+function mmQuickSellFromHolding(stockIndex, mode, holdingKind){
   const i = Math.floor(Number(stockIndex));
   if(!Number.isFinite(i) || i < 0 || i >= game.stocks.length) return;
   const s = game.stocks[i];
-  if(!s || Math.floor(Number(s.owned) || 0) < 1) return;
+  if(!s) return;
+  const kind = holdingKind === 'margin' ? 'margin' : 'spot';
+  if(kind === 'margin'){
+    const levOwned = Math.floor(Number(s.levOwned) || 0);
+    if(levOwned < 1) return;
+    const levMult = Math.max(2, Math.floor(Number(s.levMult) || 2));
+    const prevSel = game.selectedStock;
+    const prevLev = game.leverage;
+    const prevQty = game.tradeQty;
+    game.selectedStock = i;
+    game.leverage = levMult;
+    if(mode === 'all') game.tradeQty = 'max';
+    else if(mode === '1') game.tradeQty = 1;
+    else if(mode === '0.25') game.tradeQty = Math.max(1, Math.floor(levOwned * 0.25));
+    else if(mode === '0.5') game.tradeQty = Math.max(1, Math.floor(levOwned * 0.5));
+    else game.tradeQty = 1;
+    sellStock();
+    game.tradeQty = prevQty;
+    game.leverage = prevLev;
+    game.selectedStock = prevSel;
+    try{ refreshLive(); }catch(e){}
+    return;
+  }
+  if(Math.floor(Number(s.owned) || 0) < 1) return;
   const lev = game.leverage || 1;
   if(lev > 1 && (s.levOwned || 0) > 0){
-    toast('Close leveraged positions from the trade panel', 'warning');
+    toast('Close leveraged positions with the margin row quick actions or the trade panel', 'warning');
     return;
   }
   const prevSel = game.selectedStock;
@@ -4642,6 +4739,7 @@ function load(){
     makeNews(true);
     makeNews(true);
     mmMergeResetPreservedMarket();
+    mmMergeResetPreservedAccount();
     void mmHydrateSharedTapeFromCloud();
     try{ document.body.classList.add('mm-motion'); }catch(e){}
     return;
@@ -4669,6 +4767,11 @@ function load(){
       return merged;
     });
     mmNormalizeStockHoldings();
+    try{
+      if(!game.marginTradingUnlocked && Array.isArray(game.stocks) && game.stocks.some(s=>Math.floor(Number(s?.levOwned)||0) > 0)){
+        game.marginTradingUnlocked = true;
+      }
+    }catch(e){}
     game.speedIndex = Number.isInteger(parsed.speedIndex) ? parsed.speedIndex : 1;
     game.speedIndex = Math.max(0, Math.min(SPEEDS.length-1, game.speedIndex));
     game.speedLabel = SPEEDS[game.speedIndex].label;
@@ -4689,6 +4792,8 @@ function load(){
     game.debt ??= 0;
     game.debtInterestRate ??= 0.00045;
     game.leverage ??= 1;
+    game.marginTradingUnlocked ??= false;
+    if(netWorth() >= MM_LEVERAGE_UNLOCK_NET) game.marginTradingUnlocked = true;
     game.globalEvent ??= null;
     game.nextGlobalAt ??= Date.now()+irand(45000,120000);
     game.activeEvent = null;
@@ -4724,6 +4829,7 @@ function load(){
     if(!game.nextBonusAt) game.nextBonusAt = game.simNow + irand(15000,60000);
     if(!game.nextLifeAt) game.nextLifeAt = game.simNow + irand(60000,300000);
     mmMergeResetPreservedMarket();
+    mmMergeResetPreservedAccount();
     mmEnsureHeroOpenMarkers();
     void mmHydrateSharedTapeFromCloud();
     recalc();
@@ -4731,8 +4837,9 @@ function load(){
   }catch(e){ console.warn(e); recalc(); try{ document.body.classList.add('mm-motion'); }catch(_e){} }
 }
 function reset(){
-  if(!confirm('Reset everything?')) return;
+  if(!confirm('Reset all gameplay progress? Your profile cosmetics (banners, avatars) and permanently unlocked margin trading stay on this account.')) return;
   mmStashMarketForResetBeforeReload();
+  mmStashAccountFieldsForResetReload();
   localStorage.removeItem(SAVE_KEY);
   location.reload();
 }
@@ -5517,8 +5624,10 @@ function renderFinance(){
   const levHint = document.getElementById('levLockHint');
   if(levHint){
     if(mmLeverageUnlocked()){
-      levHint.style.display = 'none';
-      levHint.textContent = '';
+      levHint.style.display = game.marginTradingUnlocked && netWorth() < MM_LEVERAGE_UNLOCK_NET ? 'block' : 'none';
+      levHint.textContent = game.marginTradingUnlocked && netWorth() < MM_LEVERAGE_UNLOCK_NET
+        ? 'Margin stays unlocked. Net dipped below the original milestone — you keep full access.'
+        : '';
     }else{
       levHint.style.display = 'block';
       levHint.textContent = `Margin (2×–10×) unlocks at ${fmt(MM_LEVERAGE_UNLOCK_NET)} net worth. You are at ${fmt(netWorth())}.`;
@@ -5998,18 +6107,34 @@ function renderPortfolio(){
   mmNormalizeStockHoldings();
   bindPortfolioTableInteractionsOnce();
   wrap.innerHTML = '';
-  const holdings = game.stocks.filter(s=>Math.floor(Number(s.owned)||0) > 0).sort((a,b)=>(b.owned*b.price)-(a.owned*a.price));
-  if(!holdings.length){
+  const rows = [];
+  for(const s of game.stocks){
+    const owned = Math.floor(Number(s.owned) || 0);
+    const lev = Math.floor(Number(s.levOwned) || 0);
+    if(owned > 0) rows.push({ kind:'spot', s, sort: owned * s.price });
+    if(lev > 0) rows.push({ kind:'margin', s, sort: lev * s.price });
+  }
+  rows.sort((a,b)=>b.sort-a.sort);
+  if(!rows.length){
     wrap.innerHTML = '<div class="panelSub">No positions yet. Buy your first stock.</div>';
     return;
   }
-  holdings.forEach(s=>{
+  rows.forEach(({ kind, s })=>{
     const idx = game.stocks.indexOf(s);
-    const pl = s.owned * (s.price - s.avg);
     const row = document.createElement('div');
-    row.className = 'holding';
+    row.className = 'holding' + (kind === 'margin' ? ' holding--margin' : '');
     row.dataset.stockIndex = String(idx);
-    row.innerHTML = `<div><b>${s.symbol}</b><div class="panelSub" style="margin-top:4px">${s.name}</div><div class="holdingQuick"><button type="button" class="mmQuickSell" data-quick-sell="1">1</button><button type="button" class="mmQuickSell" data-quick-sell="0.25">25%</button><button type="button" class="mmQuickSell" data-quick-sell="0.5">50%</button><button type="button" class="mmQuickSell mmQuickSell--all" data-quick-sell="all">All</button></div></div><div><b>${fmtNum(s.owned)} shares</b><div class="panelSub" style="margin-top:4px">Avg ${fmt(s.avg)}</div></div><div><b>${fmt(s.owned*s.price)}</b><div class="panelSub" style="margin-top:4px">Value</div></div><div class="${pl>0?'up':pl<0?'down':'neutral'}"><b>${fmt(pl)}</b><div class="panelSub" style="margin-top:4px">P/L</div></div>`;
+    row.dataset.holdingKind = kind;
+    if(kind === 'spot'){
+      const pl = s.owned * (s.price - s.avg);
+      row.innerHTML = `<div><b>${s.symbol}</b><div class="panelSub" style="margin-top:4px">${s.name} · <span class="layoutHint">Spot</span></div><div class="holdingQuick"><button type="button" class="mmQuickSell" data-quick-sell="1">1</button><button type="button" class="mmQuickSell" data-quick-sell="0.25">25%</button><button type="button" class="mmQuickSell" data-quick-sell="0.5">50%</button><button type="button" class="mmQuickSell mmQuickSell--all" data-quick-sell="all">All</button></div></div><div><b>${fmtNum(s.owned)} shares</b><div class="panelSub" style="margin-top:4px">Avg ${fmt(s.avg)}</div></div><div><b>${fmt(s.owned*s.price)}</b><div class="panelSub" style="margin-top:4px">Value</div></div><div class="${pl>0?'up':pl<0?'down':'neutral'}"><b>${fmt(pl)}</b><div class="panelSub" style="margin-top:4px">P/L</div></div>`;
+    }else{
+      const lm = Math.max(2, Math.floor(Number(s.levMult) || 2));
+      const notional = s.levOwned * s.price;
+      const pl = (s.price - s.levAvg) * s.levOwned * lm;
+      const marginLocked = (s.levOwned * s.levAvg) / lm;
+      row.innerHTML = `<div><b>${s.symbol}</b><div class="panelSub" style="margin-top:4px">${s.name} · <span class="layoutHint">Margin ${lm}×</span></div><div class="holdingQuick"><button type="button" class="mmQuickSell" data-quick-sell="1">1</button><button type="button" class="mmQuickSell" data-quick-sell="0.25">25%</button><button type="button" class="mmQuickSell" data-quick-sell="0.5">50%</button><button type="button" class="mmQuickSell mmQuickSell--all" data-quick-sell="all">All</button></div></div><div><b>${fmtNum(s.levOwned)} sh</b><div class="panelSub" style="margin-top:4px">Avg ${fmt(s.levAvg)} · Locked ${fmt(marginLocked)}</div></div><div><b>${fmt(notional)}</b><div class="panelSub" style="margin-top:4px">Exposure</div></div><div class="${pl>0?'up':pl<0?'down':'neutral'}"><b>${fmt(pl)}</b><div class="panelSub" style="margin-top:4px">P/L</div></div>`;
+    }
     wrap.appendChild(row);
   });
 }
@@ -6595,7 +6720,7 @@ function renderUser(){
   $('#userSubtitle').textContent = currentStatus();
   $('#userNetWorth').textContent = fmtMoneyFull(netWorth());
   $('#userCash').textContent = fmtMoneyFull(game.cash);
-  $('#userPortfolio').textContent = fmtMoneyFull(portfolioValue());
+  $('#userPortfolio').textContent = fmtMoneyFull(spotAndLeveragedPositionValue());
   $('#userPassive').textContent = fmtMoneyFull(game.passivePerSec * game.incomeMult) + '/s';
   $('#userBizCount').textContent = game.businessOwned.length;
   $('#userLifeCount').textContent = game.shoppingOwned.length;
@@ -6618,74 +6743,173 @@ function renderUser(){
 let searchResultsCache = [];
 let activeSearchIndex = -1;
 
-function buildSearchResults(query){
-  const q = query.trim().toLowerCase();
-  if(!q) return [];
-  const results = [];
-  const addResult = (r) => results.push(r);
+function mmRunSearchPlayerAction(username){
+  const u = String(username || '').trim();
+  if(!u) return;
+  if(typeof window.handlePlayerQuickView === 'function') window.handlePlayerQuickView(u, null);
+}
 
-  game.stocks.forEach((s, i) => {
-    const hay = `${s.symbol} ${s.name} ${s.sector} ${fmt(s.price)}`.toLowerCase();
-    if(hay.includes(q)){
-      addResult({section:'Stocks', icon:'📈', title:`${s.symbol} · ${s.name}`, subtitle:`${s.sector} · ${fmt(s.price)} · Own ${fmtNum(s.owned)} shares`, meta:'Open stock', action(){ game.selectedStock = i; switchView('stocks'); }});
-    }
-  });
-
-  businessItems.forEach(item => {
-    const hay = `${item.name} ${item.category} ${item.desc}`.toLowerCase();
-    if(hay.includes(q)){
-      addResult({section:'Business Upgrades', icon:item.icon, title:item.name, subtitle:`${niceCategory(item.category)} · ${item.desc}`, meta:game.businessOwned.includes(item.id)?'Owned':fmt(item.cost), action(){ activeBusinessCategory = item.category; switchView('business'); setTimeout(()=>highlightCard(item.id), 20); }});
-    }
-  });
-
-  shoppingItems.forEach(item => {
-    const hay = `${item.name} ${item.category} ${item.desc}`.toLowerCase();
-    if(hay.includes(q)){
-      addResult({section:'Shopping', icon:item.icon, title:item.name, subtitle:`${niceCategory(item.category)} · ${item.desc}`, meta:game.shoppingOwned.includes(item.id)?'Owned':fmt(item.cost), action(){ activeShoppingCategory = item.category; switchView('shopping'); setTimeout(()=>highlightCard(item.id), 20); }});
-    }
-  });
-
-  game.news.forEach(n => {
-    const hay = `${n.ticker} ${n.tone} ${n.text}`.toLowerCase();
-    if(hay.includes(q)){
-      addResult({section:'News', icon:'📰', title:`${n.ticker} · ${n.tone}`, subtitle:n.text, meta:'View news', action(){ switchView('news'); }});
-    }
-  });
-
-  [
-    {view:'stocks', icon:'📊', title:'Stocks page', subtitle:'Browse the full market and trade positions.'},
-    {view:'shopping', icon:'🛍️', title:'Shopping page', subtitle:'Homes, cars, jewelry, watches, and luxury.'},
-    {view:'business', icon:'🏢', title:'Business upgrades page', subtitle:'Scale your empire with offices, staff, and software.'},
-    {view:'news', icon:'📰', title:'Stock news page', subtitle:'See fake news events driving the market.'},
-    {view:'user', icon:'👤', title:'User page', subtitle:'Portfolio, assets, XP, and progress summary.'},
-    {view:'finance', icon:'🏦', title:'Finance page', subtitle:'Loans, leverage, credit ladder, and rival gaps.'},
-    {view:'empire', icon:'👑', title:'Empire spotlight', subtitle:'Full-body flex scene with your homes, cars, jewelry, and watches.'},
-    {view:'casino', icon:'🎰', title:'Casino', subtitle:'Blackjack, slots, coin flip, and multiplier wheel with in-game cash.'}
-  ].forEach(page => {
-    const hay = `${page.title} ${page.subtitle} ${page.view}`.toLowerCase();
-    if(hay.includes(q)){
-      addResult({section:'Pages', icon:page.icon, title:page.title, subtitle:page.subtitle, meta:'Open', action(){ switchView(page.view); }});
-    }
-  });
-
-  const score = (r) => {
-    const t = r.title.toLowerCase();
-    const s = r.subtitle.toLowerCase();
-    if(t.startsWith(q)) return 0;
-    if(t.includes(q)) return 1;
-    if(s.includes(q)) return 2;
-    return 3;
+function mmSearchNewsPool(){
+  const seen = new Set();
+  const out = [];
+  const push = n => {
+    if(!n) return;
+    const id = n.id != null ? String(n.id) : `${n.ticker || ''}:${(n.text || '').slice(0, 40)}`;
+    if(seen.has(id)) return;
+    seen.add(id);
+    out.push(n);
   };
+  try{
+    (game.news || []).forEach(push);
+    (game.newsArchive || []).slice(0, 120).forEach(push);
+  }catch(e){}
+  return out;
+}
 
-  return results
-    .sort((a,b)=> score(a)-score(b) || a.section.localeCompare(b.section) || a.title.localeCompare(b.title))
-    .slice(0, 24);
+function mmCollectSearchPlayersForQuery(){
+  const out = [];
+  const seen = new Set();
+  const add = r => {
+    if(!r) return;
+    const u = String(r.username || '').trim().toLowerCase();
+    if(!u || seen.has(u)) return;
+    seen.add(u);
+    out.push(r);
+  };
+  try{
+    const soc = typeof window !== 'undefined' ? window.mmSocial : null;
+    (soc && Array.isArray(soc.presenceRowsForSearch) ? soc.presenceRowsForSearch : []).forEach(add);
+    (soc && Array.isArray(soc.leaderRows) ? soc.leaderRows : []).forEach(add);
+  }catch(e){}
+  return out;
+}
+
+function buildSearchResults(query){
+  try{
+    const q = query.trim().toLowerCase();
+    if(!q) return [];
+    const results = [];
+    const addResult = (r) => results.push(r);
+
+    game.stocks.forEach((s, i) => {
+      const hay = `${s.symbol} ${s.name} ${s.sector} ${fmt(s.price)}`.toLowerCase();
+      if(hay.includes(q)){
+        const levN = Math.floor(Number(s.levOwned) || 0);
+        const levHint = levN > 0 ? ` · ${fmtNum(levN)} on margin` : '';
+        addResult({section:'Stocks', icon:'📈', title:`${s.symbol} · ${s.name}`, subtitle:`${s.sector} · ${fmt(s.price)} · ${fmtNum(s.owned)} spot${levHint}`, meta:'Open stock', action(){ game.selectedStock = i; switchView('stocks'); }});
+      }
+    });
+
+    businessItems.forEach(item => {
+      const hay = `${item.name} ${item.category} ${item.desc}`.toLowerCase();
+      if(hay.includes(q)){
+        addResult({section:'Business Upgrades', icon:item.icon, title:item.name, subtitle:`${niceCategory(item.category)} · ${item.desc}`, meta:game.businessOwned.includes(item.id)?'Owned':fmt(item.cost), action(){ activeBusinessCategory = item.category; switchView('business'); setTimeout(()=>highlightCard(item.id), 20); }});
+      }
+    });
+
+    shoppingItems.forEach(item => {
+      const hay = `${item.name} ${item.category} ${item.desc}`.toLowerCase();
+      if(hay.includes(q)){
+        addResult({section:'Shopping', icon:item.icon, title:item.name, subtitle:`${niceCategory(item.category)} · ${item.desc}`, meta:game.shoppingOwned.includes(item.id)?'Owned':fmt(item.cost), action(){ activeShoppingCategory = item.category; switchView('shopping'); setTimeout(()=>highlightCard(item.id), 20); }});
+      }
+    });
+
+    const avShop = typeof window !== 'undefined' && Array.isArray(window.mmAvatarShop) ? window.mmAvatarShop : [];
+    avShop.forEach(item => {
+      const hay = `${item.name} ${item.key} avatar cosmetic profile`.toLowerCase();
+      if(hay.includes(q)){
+        addResult({section:'Cosmetics', icon:item.icon, title:item.name, subtitle:'Profile avatar · User page store', meta:fmt(item.cost), action(){ switchView('user'); setTimeout(()=> document.getElementById('cosmeticStoreWrap')?.scrollIntoView({ behavior:'smooth', block:'center' }), 40); }});
+      }
+    });
+    const bnShop = typeof window !== 'undefined' && Array.isArray(window.mmBannerShop) ? window.mmBannerShop : [];
+    bnShop.forEach(item => {
+      const hay = `${item.name} ${item.key} banner cosmetic profile`.toLowerCase();
+      if(hay.includes(q)){
+        addResult({section:'Cosmetics', icon:'🎨', title:item.name + ' banner', subtitle:'Profile banner · User page store', meta:fmt(item.cost), action(){ switchView('user'); setTimeout(()=> document.getElementById('cosmeticStoreWrap')?.scrollIntoView({ behavior:'smooth', block:'center' }), 40); }});
+      }
+    });
+
+    mmSearchNewsPool().forEach(n => {
+      const hay = `${n.ticker} ${n.tone} ${n.text}`.toLowerCase();
+      if(hay.includes(q)){
+        addResult({section:'News', icon:'📰', title:`${n.ticker} · ${n.tone}`, subtitle:String(n.text || '').slice(0, 140), meta:'View news', action(){ switchView('news'); }});
+      }
+    });
+
+    [
+      {view:'stocks', icon:'📊', title:'Stocks page', subtitle:'Browse the full market and trade positions.'},
+      {view:'shopping', icon:'🛍️', title:'Shopping page', subtitle:'Homes, cars, jewelry, watches, and luxury.'},
+      {view:'business', icon:'🏢', title:'Business upgrades page', subtitle:'Scale your empire with offices, staff, and software.'},
+      {view:'news', icon:'📰', title:'Stock news page', subtitle:'See fake news events driving the market.'},
+      {view:'user', icon:'👤', title:'User page', subtitle:'Portfolio, assets, XP, and progress summary.'},
+      {view:'finance', icon:'🏦', title:'Finance page', subtitle:'Loans, leverage, credit ladder, and rival gaps.'},
+      {view:'empire', icon:'👑', title:'Empire spotlight', subtitle:'Full-body flex scene with your homes, cars, jewelry, and watches.'},
+      {view:'casino', icon:'🎰', title:'Casino', subtitle:'Blackjack, slots, coin flip, and multiplier wheel with in-game cash.'},
+      {view:'user', icon:'🪪', title:'Profile & cosmetics', subtitle:'Banners, avatars, DNA studio, and the account cosmetic store.'},
+      {view:'stocks', icon:'🏆', title:'Leaderboard', subtitle:'Open the leaderboard modal from the top bar (trophy button).' }
+    ].forEach(page => {
+      const hay = `${page.title} ${page.subtitle} ${page.view}`.toLowerCase();
+      if(hay.includes(q)){
+        if(page.title === 'Leaderboard'){
+          addResult({section:'Pages', icon:page.icon, title:page.title, subtitle:page.subtitle, meta:'Open', action(){ const b = document.getElementById('leaderboardBtn'); if(b) b.click(); }});
+        }else{
+          addResult({section:'Pages', icon:page.icon, title:page.title, subtitle:page.subtitle, meta:'Open', action(){ switchView(page.view); }});
+        }
+      }
+    });
+
+    {
+      if(
+        q.includes('hub') ||
+        (q.length >= 5 && (q.includes('social') || q.includes('multiplayer') || q.includes('community') || q.includes('signin')))
+      ){
+        addResult({section:'Pages', icon:'🏠', title:'Social hub', subtitle:'Accounts, hub home, and shared leaderboard.', meta:'Open', action(){ location.href = './index.html'; }});
+      }
+    }
+
+    mmCollectSearchPlayersForQuery().forEach(row => {
+      let hay = `${row.display_name || ''} ${row.username || ''} ${row.empire_tier || ''}`.toLowerCase();
+      if(q.includes('online') || q.includes('active') || q.includes('live')) hay += ' online active live player';
+      if(!hay.includes(q)) return;
+      addResult({
+        section:'Players',
+        icon:'🌐',
+        title:String(row.display_name || row.username || 'Player'),
+        subtitle:`@${String(row.username || 'unknown')} · ${String(row.empire_tier || 'Online')} · ${fmt(Number(row.net_worth) || 0)}`,
+        meta:'Profile',
+        action(){ mmRunSearchPlayerAction(row.username); }
+      });
+    });
+
+    const score = (r) => {
+      const t = r.title.toLowerCase();
+      const s = r.subtitle.toLowerCase();
+      if(t.startsWith(q)) return 0;
+      if(t.includes(q)) return 1;
+      if(s.includes(q)) return 2;
+      return 3;
+    };
+
+    return results
+      .sort((a,b)=> score(a)-score(b) || a.section.localeCompare(b.section) || a.title.localeCompare(b.title))
+      .slice(0, 48);
+  }catch(e){
+    console.warn('buildSearchResults', e);
+    return [];
+  }
 }
 
 function renderSearchResults(query){
   const wrap = $('#searchResults');
   if(!wrap) return;
-  searchResultsCache = buildSearchResults(query);
+  let built = [];
+  try{
+    built = buildSearchResults(query);
+  }catch(e){
+    console.warn('renderSearchResults', e);
+    built = [];
+  }
+  searchResultsCache = built;
   activeSearchIndex = searchResultsCache.length ? 0 : -1;
 
   if(!query.trim()){
@@ -6704,14 +6928,14 @@ function renderSearchResults(query){
   wrap.innerHTML = searchResultsCache.map((r, i) => {
     const section = r.section !== currentSection ? `<div class="searchSectionLabel">${escapeHtml(r.section)}</div>` : '';
     currentSection = r.section;
-    return `${section}<button class="searchItem${i===activeSearchIndex?' active':''}" data-search-index="${i}">
+    return `${section}<button type="button" class="searchItem${i===activeSearchIndex?' active':''}" data-search-index="${i}">
       <div class="searchItemIcon">${escapeHtml(r.icon)}</div>
       <div class="searchItemMain"><b>${escapeHtml(r.title)}</b><span>${escapeHtml(r.subtitle)}</span></div>
       <div class="searchItemMeta">${escapeHtml(r.meta)}</div>
     </button>`;
   }).join('');
   wrap.classList.add('open');
-  $$('.searchItem', wrap).forEach(btn => btn.addEventListener('click', () => activateSearchResult(Number(btn.dataset.searchIndex))));
+  wrap.querySelectorAll('.searchItem').forEach(btn => btn.addEventListener('click', () => activateSearchResult(Number(btn.dataset.searchIndex))));
 }
 
 function highlightCard(itemId){
@@ -6736,8 +6960,12 @@ function moveSearchSelection(dir){
   if(!searchResultsCache.length) return;
   activeSearchIndex = (activeSearchIndex + dir + searchResultsCache.length) % searchResultsCache.length;
   const wrap = $('#searchResults');
+  if(!wrap) return;
   if(!wrap.classList.contains('open')) wrap.classList.add('open');
-  $$('.searchItem', wrap).forEach((btn, idx) => btn.classList.toggle('active', idx===activeSearchIndex));
+  wrap.querySelectorAll('.searchItem').forEach(btn => {
+    const idx = Number(btn.dataset.searchIndex);
+    btn.classList.toggle('active', idx === activeSearchIndex);
+  });
   const active = wrap.querySelector(`.searchItem[data-search-index="${activeSearchIndex}"]`);
   if(active) active.scrollIntoView({block:'nearest'});
 }
@@ -6755,7 +6983,7 @@ function updateHud(){
   $('#cashPill').textContent = fmt(game.cash);
   $('#stagePill').textContent = currentStage();
   $('#statusPill').textContent = currentStatus();
-  $('#portfolioPill').textContent = fmt(portfolioValue());
+  $('#portfolioPill').textContent = fmt(spotAndLeveragedPositionValue());
   const dp = document.getElementById('datePill');
   if(dp) dp.textContent = formatGameDate();
   const tcp = document.getElementById('topbarCashPill');
@@ -7201,7 +7429,8 @@ const bannerShop = [
   ['profile_banner_emerald','Emerald','linear-gradient(135deg,#56ab2f,#a8e063)'],['profile_banner_orchid','Orchid','linear-gradient(135deg,#DA22FF,#9733EE)'],['profile_banner_lagoon','Lagoon','linear-gradient(135deg,#43e97b,#38f9d7)'],['profile_banner_chrome','Chrome','linear-gradient(135deg,#bdc3c7,#2c3e50)'],['profile_banner_inferno','Inferno','linear-gradient(135deg,#f12711,#f5af19)'],['profile_banner_tropics','Tropics','linear-gradient(135deg,#30cfd0,#330867)'],['profile_banner_starlight','Starlight','linear-gradient(135deg,#654ea3,#eaafc8)'],['profile_banner_oasis','Oasis','linear-gradient(135deg,#00b09b,#96c93d)'],
   ['profile_banner_frost','Frost','linear-gradient(135deg,#a1c4fd,#c2e9fb)'],['profile_banner_royal','Royal Crest','linear-gradient(135deg,#1a2a6c,#b21f1f,#fdbb2d)']
 ].map((a,i)=>({key:a[0], name:a[1], gradient:a[2], cost:cosmeticPriceLadder[i+20]}));
-let mmSocial = { user:null, profile:null, selectedAvatar:'💹', selectedTheme:'default', selectedBanner:'default_banner', ownedAvatarKeys:['default_avatar'], ownedBannerKeys:['default_banner'], cosmeticTab:'avatars' };
+try{ window.mmAvatarShop = avatarShop; window.mmBannerShop = bannerShop; }catch(e){}
+let mmSocial = { user:null, profile:null, selectedAvatar:'💹', selectedTheme:'default', selectedBanner:'default_banner', ownedAvatarKeys:['default_avatar'], ownedBannerKeys:['default_banner'], cosmeticTab:'avatars', presenceRowsForSearch:[] };
 try{ window.mmSocial = mmSocial; }catch(e){}
   const qs = (s)=>document.querySelector(s);
   const qsa = (s)=>[...document.querySelectorAll(s)];
@@ -7690,12 +7919,16 @@ async function loadLeaderboardSocial(){
   try{
     rows = await fetchLeaderboardRowsUnified();
     activityRows = await fetchPlayerStatsRecentActivity(160);
+    try{
+      mmSocial.presenceRowsForSearch = Array.isArray(activityRows) ? activityRows.slice() : [];
+    }catch(e){}
   }catch(err){
     console.warn('[MM] loadLeaderboardSocial fetch failed', err && (err.message || err));
     if(mini) mini.innerHTML = '<div class="layoutHint">Could not load rankings.</div>';
     if(modal) modal.innerHTML = '<tr><td colspan="4">Could not load rankings.</td></tr>';
     if(onlineWrap) onlineWrap.innerHTML = '<div class="layoutHint">Could not load online players.</div>';
     if(onlineCount) onlineCount.textContent = '(—)';
+    try{ mmSocial.presenceRowsForSearch = []; }catch(e){}
     return;
   }
 
@@ -8495,11 +8728,20 @@ document.addEventListener('DOMContentLoaded', function(){
     openPlayerQuickView(anchorRow);
     let leaderRow = null;
     try{
-      const rows = window.mmSocial && window.mmSocial.leaderRows;
-      if(Array.isArray(rows)){
-        leaderRow = rows.find(function(r){
-          return String(r.username || '').trim().toLowerCase() === u.toLowerCase();
-        }) || null;
+      const soc = window.mmSocial;
+      const merged = []
+        .concat(Array.isArray(soc && soc.presenceRowsForSearch) ? soc.presenceRowsForSearch : [])
+        .concat(Array.isArray(soc && soc.leaderRows) ? soc.leaderRows : []);
+      const seen = new Set();
+      for(let i = 0; i < merged.length; i++){
+        const r = merged[i];
+        const key = String(r && r.username || '').trim().toLowerCase();
+        if(!key || seen.has(key)) continue;
+        seen.add(key);
+        if(key === u.toLowerCase()){
+          leaderRow = r;
+          break;
+        }
       }
     }catch(e){}
     const payload = await fetchPlayerQuickView(u, { leaderRow: leaderRow });
