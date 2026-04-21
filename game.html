@@ -2319,6 +2319,32 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 .mmMobFeedCard{padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.05);border:var(--glass-border)}
 .mmMobFeedTag{font-size:.68rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .mmMobFeedCard p{margin:6px 0 0;font-size:.9rem;line-height:1.45;font-weight:750;color:var(--text)}
+/* —— Mobile game menu sheet (☰) — desktop never shows —— */
+.mmMobileGameMenu{display:none}
+.mmMobileGameMenuHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+.mmMobileGameMenuHead h2{margin:0;font-size:1.25rem;font-weight:950;letter-spacing:-.02em}
+.mmMobileGameMenuHint{margin:0 0 14px;font-size:.86rem;color:var(--muted);line-height:1.4}
+.mmGameMenuGrid{display:grid;grid-template-columns:1fr;gap:10px}
+.mmGameMenuTile{
+  display:flex;align-items:center;gap:14px;width:100%;text-align:left;
+  padding:16px 16px;border-radius:16px;border:var(--glass-border);
+  background:rgba(255,255,255,.06);color:var(--text);font:inherit;
+  min-height:64px;box-shadow:0 4px 16px rgba(0,0,0,.2);
+  transition:transform .15s ease,background .15s ease,border-color .15s ease
+}
+.mmGameMenuTile:active{transform:scale(.985)}
+.mmGameMenuIcon{font-size:1.65rem;line-height:1;width:2.2rem;text-align:center}
+.mmGameMenuText{display:flex;flex-direction:column;gap:3px;min-width:0}
+.mmGameMenuText b{font-size:1.02rem;font-weight:900}
+.mmGameMenuText small{font-size:.78rem;color:var(--muted);font-weight:650}
+.mmGameMenuDivider{height:1px;background:rgba(255,255,255,.1);margin:16px 0}
+.mmGameMenuActions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mmGameMenuAct{
+  padding:14px 12px;border-radius:14px;font:inherit;font-weight:850;font-size:.92rem;
+  border:1px solid rgba(209,0,209,.32);background:rgba(138,43,226,.14);color:var(--text);min-height:52px
+}
+.mmGameMenuAct--danger{border-color:rgba(248,113,113,.45);background:rgba(220,38,38,.12);color:#fecaca}
+
 @media (min-width:768px){
   #mmMobileSummaryBar,#mmMobileHomeFeed{display:none!important}
 }
@@ -2388,29 +2414,8 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
     gap:12px!important;
     min-height:0;
   }
-  /* Slide-in game menu (Shopping, News, …) — was display:none, so the hamburger did nothing. */
-  body.mm-mobile-app .sidebar{
-    display:flex!important;
-    flex-direction:column!important;
-    position:fixed!important;
-    left:0!important;
-    top:calc(var(--mm-topbar-measured, 68px) + var(--mm-news-flash-h, 0px) + var(--mm-world-live-h, 0px) + 4px)!important;
-    bottom:calc(88px + env(safe-area-inset-bottom, 0px))!important;
-    width:min(360px, 90vw)!important;
-    max-width:90vw!important;
-    z-index:215!important;
-    transform:translateX(-108%)!important;
-    transition:transform .26s ease,box-shadow .26s ease!important;
-    border-radius:0 18px 18px 0!important;
-    margin:0!important;
-    overflow-y:auto!important;
-    -webkit-overflow-scrolling:touch!important;
-    box-shadow:none!important;
-  }
-  body.mm-mobile-app .sidebar.open{
-    transform:translateX(0)!important;
-    box-shadow:16px 0 48px rgba(0,0,0,.5)!important;
-  }
+  /* Desktop sidebar hidden on phone — navigation is bottom nav + ☰ sheet. */
+  body.mm-mobile-app .sidebar{display:none!important}
   body.mm-mobile-app .content{width:100%!important;min-width:0!important;order:1}
   body.mm-mobile-app aside.rightRail{
     position:static!important;
@@ -2430,6 +2435,46 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   body.mm-mobile-app .hero{display:none!important}
   body.mm-mobile-app.mm-tab-home .hero{display:grid!important}
   body.mm-mobile-app.mm-tab-home section.panel{display:none!important}
+  /* Full-screen single panel for Shopping / News / Business / Empire / Casino (not the home hero). */
+  body.mm-mobile-app.mm-tab-more .hero{display:none!important}
+  body.mm-mobile-app.mm-tab-more #mmMobileHomeFeed{display:none!important}
+  body.mm-mobile-app.mm-tab-more main.content > section.panel.hidden{display:none!important}
+  body.mm-mobile-app.mm-tab-more main.content > section.panel:not(.hidden){
+    display:block!important;
+    margin-top:0!important;
+  }
+  body.mm-mobile-app.mm-tab-more #stocksView.panel,
+  body.mm-mobile-app.mm-tab-more #userView.panel{margin-top:0}
+  body.mm-mobile-app .mmMobileGameMenu.open{
+    display:flex!important;
+    position:fixed;
+    inset:0;
+    z-index:218;
+    flex-direction:column;
+    justify-content:flex-end;
+    padding:0;
+  }
+  .mmMobileGameMenuScrim{
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,.5);
+    backdrop-filter:blur(5px);
+  }
+  .mmMobileGameMenuSheet{
+    position:relative;
+    z-index:1;
+    width:100%;
+    max-height:min(88dvh,720px);
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    border-radius:22px 22px 0 0;
+    background:linear-gradient(185deg,rgba(30,30,42,.98),rgba(12,12,18,.99));
+    border:1px solid rgba(255,255,255,.12);
+    border-bottom:none;
+    padding:18px 16px calc(22px + env(safe-area-inset-bottom,0px));
+    box-shadow:0 -20px 50px rgba(0,0,0,.55);
+  }
   body.mm-mobile-app .mobileNav{
     display:grid!important;
     grid-template-columns:repeat(6,minmax(0,1fr))!important;
@@ -2503,6 +2548,35 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
     <span class="mmWorldLiveBadge" title="Live player moments (not arena chat)">Live</span>
     <div class="mmWorldLiveViewport">
       <div class="mmWorldLiveTrack" id="mmWorldLiveTrack"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile-only full destinations menu (replaces desktop sidebar on narrow screens). -->
+<div id="mmMobileGameMenu" class="mmMobileGameMenu" aria-hidden="true">
+  <div class="mmMobileGameMenuScrim" data-mm-game-menu-close tabindex="-1"></div>
+  <div class="mmMobileGameMenuSheet" role="dialog" aria-modal="true" aria-labelledby="mmMobileGameMenuTitle">
+    <div class="mmMobileGameMenuHead">
+      <h2 id="mmMobileGameMenuTitle">Game menu</h2>
+      <button type="button" class="circleBtn" id="mmMobileGameMenuClose" aria-label="Close menu">✕</button>
+    </div>
+    <p class="mmMobileGameMenuHint">Pick a screen — same data as desktop, one full view at a time.</p>
+    <div class="mmGameMenuGrid">
+      <button type="button" class="mmGameMenuTile" data-mm-game-view="stocks"><span class="mmGameMenuIcon">📈</span><span class="mmGameMenuText"><b>Market</b><small>Trade stocks &amp; chart</small></span></button>
+      <button type="button" class="mmGameMenuTile" data-mm-game-view="shopping"><span class="mmGameMenuIcon">🛍️</span><span class="mmGameMenuText"><b>Shopping</b><small>Homes, cars, lifestyle</small></span></button>
+      <button type="button" class="mmGameMenuTile" data-mm-game-view="news"><span class="mmGameMenuIcon">📰</span><span class="mmGameMenuText"><b>Stock news</b><small>Headlines &amp; archive</small></span></button>
+      <button type="button" class="mmGameMenuTile" data-mm-game-view="business"><span class="mmGameMenuIcon">🏢</span><span class="mmGameMenuText"><b>Business</b><small>Income upgrades</small></span></button>
+      <button type="button" class="mmGameMenuTile" data-mm-game-view="finance"><span class="mmGameMenuIcon">🏦</span><span class="mmGameMenuText"><b>Finance</b><small>Loans &amp; leverage</small></span></button>
+      <button type="button" class="mmGameMenuTile" data-mm-game-view="user"><span class="mmGameMenuIcon">👤</span><span class="mmGameMenuText"><b>Profile</b><small>XP, assets, cosmetics</small></span></button>
+      <button type="button" class="mmGameMenuTile" data-mm-game-view="empire"><span class="mmGameMenuIcon">👑</span><span class="mmGameMenuText"><b>Empire</b><small>Visual showcase</small></span></button>
+      <button type="button" class="mmGameMenuTile" data-mm-game-view="casino"><span class="mmGameMenuIcon">🎰</span><span class="mmGameMenuText"><b>Casino</b><small>Games &amp; risk</small></span></button>
+    </div>
+    <div class="mmGameMenuDivider" role="separator"></div>
+    <div class="mmGameMenuActions">
+      <button type="button" class="mmGameMenuAct" data-mm-synth-click="saveBtn">Save</button>
+      <button type="button" class="mmGameMenuAct" data-mm-synth-click="prestigeBtn">Prestige</button>
+      <button type="button" class="mmGameMenuAct mmGameMenuAct--danger" data-mm-synth-click="resetBtn">Reset</button>
+      <button type="button" class="mmGameMenuAct" data-mm-synth-click="collectBtn">Collect news bonus</button>
     </div>
   </div>
 </div>
@@ -3425,7 +3499,7 @@ const game = {
   loanDueAmount:0,
   loanPaidThisCycle:0,
   marginTradingUnlocked:false,
-  /** Mobile shell tab (Home | Stocks | Portfolio | Social | Profile) — UI only; desktop ignores. */
+  /** Mobile shell tab (Home | Market | Portfolio | Social | Arena | Profile | More) — UI only; desktop ignores. */
   mmMobileTab:'home'
 };
 try{ window.game = game; }catch(e){}
@@ -3433,9 +3507,63 @@ try{ window.game = game; }catch(e){}
 
 const topViewButtons = { topStocks:'stocks', topNews:'news', topUser:'user' };
 Object.entries(topViewButtons).forEach(([id,view])=>{ const el=document.getElementById(id); if(el) el.addEventListener('click',()=>switchView(view)); });
+function mmCloseMobileGameMenu(){
+  const m = document.getElementById('mmMobileGameMenu');
+  if(m){
+    m.classList.remove('open');
+    m.setAttribute('aria-hidden', 'true');
+  }
+}
 const menuToggleBtn = document.getElementById('menuToggle');
-if(menuToggleBtn) menuToggleBtn.addEventListener('click',()=> document.querySelector('.sidebar').classList.toggle('open'));
-function closeSidebarOnMobile(){ if(window.innerWidth<=1150) document.querySelector('.sidebar').classList.remove('open'); }
+if(menuToggleBtn) menuToggleBtn.addEventListener('click',()=>{
+  if(mmIsMobileLayout()){
+    const m = document.getElementById('mmMobileGameMenu');
+    if(m){
+      const on = m.classList.toggle('open');
+      m.setAttribute('aria-hidden', on ? 'false' : 'true');
+    }
+    try{ playClickSound(); }catch(e){}
+    return;
+  }
+  document.querySelector('.sidebar')?.classList.toggle('open');
+});
+function closeSidebarOnMobile(){
+  try{ mmCloseMobileGameMenu(); }catch(e){}
+  if(window.innerWidth<=1150) document.querySelector('.sidebar')?.classList.remove('open');
+}
+(function mmInitMobileGameMenu(){
+  const root = document.getElementById('mmMobileGameMenu');
+  if(!root) return;
+  root.addEventListener('click', ev=>{
+    if(ev.target.closest('[data-mm-game-menu-close]') || ev.target.closest('#mmMobileGameMenuClose')){
+      mmCloseMobileGameMenu();
+      try{ ev.preventDefault(); }catch(e){}
+      return;
+    }
+    const tile = ev.target.closest('[data-mm-game-view]');
+    if(tile){
+      const v = tile.getAttribute('data-mm-game-view');
+      if(v){
+        try{ playClickSound(); }catch(e){}
+        mmCloseMobileGameMenu();
+        switchView(v);
+      }
+      return;
+    }
+    const act = ev.target.closest('[data-mm-synth-click]');
+    if(act){
+      const id = act.getAttribute('data-mm-synth-click');
+      try{ playClickSound(); }catch(e){}
+      mmCloseMobileGameMenu();
+      document.getElementById(id)?.click();
+    }
+  });
+  document.addEventListener('keydown', ev=>{
+    if(ev.key !== 'Escape') return;
+    if(!root.classList.contains('open')) return;
+    mmCloseMobileGameMenu();
+  });
+})();
 
 function mmIsMobileLayout(){
   try{ return window.matchMedia('(max-width: 767px)').matches; }catch(e){ return window.innerWidth <= 767; }
@@ -3444,13 +3572,14 @@ function mmSyncMobileBodyClass(){
   const on = mmIsMobileLayout();
   document.body.classList.toggle('mm-mobile-app', on);
   if(!on){
-    ['home','stocks','portfolio','social','arena','profile'].forEach(t=>{
+    ['home','stocks','portfolio','social','arena','profile','more'].forEach(t=>{
       try{ document.body.classList.remove('mm-tab-' + t); }catch(e){}
     });
+    try{ mmCloseMobileGameMenu(); }catch(e){}
   }
 }
 function mmSetBodyTabClass(tab){
-  const tabs = ['home','stocks','portfolio','social','arena','profile'];
+  const tabs = ['home','stocks','portfolio','social','arena','profile','more'];
   tabs.forEach(t=>{ try{ document.body.classList.remove('mm-tab-' + t); }catch(e){} });
   if(tab && tabs.includes(tab)) document.body.classList.add('mm-tab-' + tab);
 }
@@ -5698,7 +5827,7 @@ function load(){
   try{
     const parsed = JSON.parse(raw);
     Object.assign(game, parsed);
-    if(typeof game.mmMobileTab !== 'string' || !['home','stocks','portfolio','social','arena','profile'].includes(game.mmMobileTab)){
+    if(typeof game.mmMobileTab !== 'string' || !['home','stocks','portfolio','social','arena','profile','more'].includes(game.mmMobileTab)){
       game.mmMobileTab = 'home';
     }
     if(!mmIsMobileLayout() && game.view === 'home') game.view = 'stocks';
@@ -5818,7 +5947,8 @@ function renderMobileNav(){
     if(quick) quick.classList.add('hidden');
     return;
   }
-  const aux = ['shopping','news','business','casino','empire','finance'].includes(game.view);
+  const moreFullScreens = ['shopping','news','business','casino','empire'];
+  const aux = moreFullScreens.includes(game.view);
   const tab = game.mmMobileTab || 'home';
   $$('#mobileNav .mobileNavBtn').forEach(btn=>{
     const t = btn.getAttribute('data-mm-tab');
@@ -5844,12 +5974,12 @@ function switchView(view){
   closeSidebarOnMobile();
   game.view = view;
   if(mmIsMobileLayout()){
-    const aux = ['shopping','news','business','casino','empire','finance'];
-    if(aux.includes(view)) game.mmMobileTab = 'home';
+    const moreFullScreens = ['shopping','news','business','casino','empire'];
+    if(view === 'home') game.mmMobileTab = 'home';
     else if(view === 'stocks') game.mmMobileTab = 'stocks';
     else if(view === 'user') game.mmMobileTab = 'profile';
     else if(view === 'finance') game.mmMobileTab = 'portfolio';
-    else if(view === 'news') game.mmMobileTab = 'social';
+    else if(moreFullScreens.includes(view)) game.mmMobileTab = 'more';
     mmSetBodyTabClass(game.mmMobileTab || 'home');
   }
   refresh();
@@ -5864,8 +5994,8 @@ function renderMenu(){
       all.forEach(v=>{ const el = $('#'+v+'View'); if(el) el.classList.add('hidden'); });
       return;
     }
-    const aux = ['shopping','news','business','casino','empire','finance'];
-    if(aux.includes(game.view)){
+    const moreFullScreens = ['shopping','news','business','casino','empire'];
+    if(moreFullScreens.includes(game.view)){
       all.forEach(v=>{
         const el = $('#'+v+'View');
         if(el) el.classList.toggle('hidden', game.view !== v);
