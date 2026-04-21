@@ -2836,6 +2836,15 @@ function fmtMoneyFull(n){
 const fmtNum = n => new Intl.NumberFormat('en-US',{maximumFractionDigits:n>=100?0:2}).format(n);
 const SIM_HOURS_PER_CAL_DAY = 24;
 const MARKET_TICK_MS = 3000;
+/** Max discrete `marketTick` calls per animation frame — prevents long main-thread freezes after tab sleep or lag (shared stays at 1 for deterministic + network safety). */
+const MM_MAX_MARKET_TICKS_PER_FRAME_SOLO = 4;
+const MM_MAX_MARKET_TICKS_PER_FRAME_SHARED = 1;
+/** Max cheap news-expiry steps per frame when catching up wall time. */
+const MM_MAX_NEWS_DECAY_STEPS_PER_FRAME = 8;
+/** Min ms between shared snapshot HTTP reads when not forcing; postgres_changes still applies hot updates. */
+const MM_SHARED_SNAPSHOT_PULL_MIN_MS = 900;
+/** Periodic full snapshot pull so clients recover if Realtime was missed. */
+const MM_SHARED_SNAPSHOT_FORCE_FULL_MS = 18000;
 /** Shared-market clients derive `game.simNow` from this epoch + `sim_gen` so every player sees the same clock. */
 const MM_SHARED_SIM_T0 = 1704067200000;
 function mmWallSimNowFromGen(gen){
@@ -4182,10 +4191,17 @@ function mmApplySharedMarketDbRow(row, opts){
   }
   mmApplySharedMarketPayload(p);
 }
+let __mmLastSharedSnapshotHttpMs = 0;
 async function mmPullSharedMarketBeforeTick(opts){
   if(!mmSharedMarketConfigured()) return;
   if(!Array.isArray(game.stocks) || !game.stocks.length) return;
-  if(opts && opts.force) game._lastSharedSnapSeen = 0;
+  const force = !!(opts && opts.force);
+  if(force){
+    game._lastSharedSnapSeen = 0;
+  }else{
+    const t = Date.now();
+    if(t - __mmLastSharedSnapshotHttpMs < MM_SHARED_SNAPSHOT_PULL_MIN_MS) return;
+  }
   try{
     const res = await window.mmSupabase
       .from('shared_market_snapshot')
@@ -4194,6 +4210,7 @@ async function mmPullSharedMarketBeforeTick(opts){
       .maybeSingle();
     if(res.error || !res.data) return;
     mmApplySharedMarketDbRow(res.data, opts);
+    __mmLastSharedSnapshotHttpMs = Date.now();
   }catch(e){}
 }
 async function mmPushSharedMarketAfterTick(){
@@ -4203,6 +4220,7 @@ try{
   window.mmApplySharedMarketDbRow = mmApplySharedMarketDbRow;
 }catch(e){}
 
+let __mmPeriodicSharedPullMs = 0;
 async function marketTick(){
   const sharedOn = mmSharedMarketConfigured();
   let uid = null;
@@ -4213,7 +4231,13 @@ async function marketTick(){
     }catch(e){}
   }
   try{
-    await mmPullSharedMarketBeforeTick(sharedOn ? { force: true } : {});
+    if(sharedOn){
+      const wall = Date.now();
+      const periodicForce =
+        !__mmPeriodicSharedPullMs || wall - __mmPeriodicSharedPullMs >= MM_SHARED_SNAPSHOT_FORCE_FULL_MS;
+      if(periodicForce) __mmPeriodicSharedPullMs = wall;
+      await mmPullSharedMarketBeforeTick({ force: periodicForce });
+    }
   }catch(e){}
   if(sharedOn && !uid) return;
   if(sharedOn && mmSharedBrowserSimSkips()) return;
@@ -7320,92 +7344,131 @@ refresh();
 try{
   tickArenaUi(true);
 }catch(e){}
+let __realLast = Date.now();
+let __marketAccum = 0;
+let __newsDecayAccum = 0;
+let __mmGameRaf = 0;
+let __mmGameLoopStopped = false;
+
+function mmCancelGameLoop(){
+  try{
+    if(__mmGameRaf) cancelAnimationFrame(__mmGameRaf);
+  }catch(e){}
+  __mmGameRaf = 0;
+}
+
+async function mmGameLoop(){
+  if(__mmGameLoopStopped) return;
+  __mmGameRaf = 0;
+  try{
+    const realNow = Date.now();
+    let realDt = realNow - __realLast;
+    __realLast = realNow;
+    if(realDt < 0) realDt = 16;
+    if(realDt > 3000) realDt = 3000;
+
+    const sharedOn = mmSharedMarketConfigured();
+    const speed = getSpeed().mult;
+    const simDt = realDt * speed;
+    if(!sharedOn){
+      game.simNow = (typeof game.simNow === 'number' ? game.simNow : realNow) + simDt;
+    }
+
+    const accumAdd = sharedOn ? realDt : simDt;
+    __marketAccum += accumAdd;
+    __newsDecayAccum += accumAdd;
+
+    const maxTicks = sharedOn ? MM_MAX_MARKET_TICKS_PER_FRAME_SHARED : MM_MAX_MARKET_TICKS_PER_FRAME_SOLO;
+    let ticksThisFrame = 0;
+    while(__marketAccum >= MARKET_TICK_MS && ticksThisFrame < maxTicks){
+      try{
+        await marketTick();
+      }catch(err){
+        console.warn('marketTick', err);
+      }
+      passiveTick();
+      __marketAccum -= MARKET_TICK_MS;
+      ticksThisFrame++;
+      if(!sharedOn){
+        game.ticksUntilNextNews = (Number.isFinite(game.ticksUntilNextNews) ? game.ticksUntilNextNews : irand(18, 48)) - 1;
+        if(game.ticksUntilNextNews <= 0){
+          makeNews();
+          game.ticksUntilNextNews = irand(18, 48);
+        }
+      }
+    }
+
+    let decaySteps = 0;
+    while(__newsDecayAccum >= 1000 && decaySteps < MM_MAX_NEWS_DECAY_STEPS_PER_FRAME){
+      if(!sharedOn){
+        game.news.forEach(n=> (n.expires = Math.max(0, n.expires - 1)));
+        game.news = game.news.filter(n=> n.expires > 0);
+      }
+      __newsDecayAccum -= 1000;
+      decaySteps++;
+    }
+
+    if(!sharedOn){
+      if(game.simNow >= game.nextBonusAt){
+        triggerOpportunity();
+        game.nextBonusAt = game.simNow + irand(15000, 60000);
+      }
+      if(game.simNow >= game.nextLifeAt){
+        processLifeEvent();
+        game.nextLifeAt = game.simNow + irand(60000, 300000);
+      }
+      if(game.simNow >= game.nextGlobalAt){
+        maybeTriggerGlobalEvent();
+        game.nextGlobalAt = game.simNow + irand(45000, 120000);
+      }
+    }else{
+      if(!game._mmWallNextLifeAt) game._mmWallNextLifeAt = Date.now() + irand(90000, 360000);
+      if(Date.now() >= game._mmWallNextLifeAt){
+        mmProcessLifeEventWall();
+        game._mmWallNextLifeAt = Date.now() + irand(120000, 480000);
+      }
+      if(mmEdgeAuthorityActive() || !mmClientMarketSimAllowed()){
+        if(!game._mmLocalNextOppAt) game._mmLocalNextOppAt = Date.now() + irand(15000, 60000);
+        if(Date.now() >= game._mmLocalNextOppAt){
+          triggerOpportunity();
+          game._mmLocalNextOppAt = Date.now() + irand(15000, 60000);
+        }
+      }
+    }
+    refreshLive();
+    if(Date.now() - game.lastSaved > 25000) save(false);
+  }catch(e){
+    console.warn('mmGameLoop', e);
+  }finally{
+    if(!__mmGameLoopStopped) __mmGameRaf = requestAnimationFrame(()=>{ void mmGameLoop(); });
+  }
+}
+
 document.addEventListener('visibilitychange', ()=>{
-  if(document.visibilityState !== 'visible') return;
+  if(document.visibilityState !== 'visible'){
+    __mmGameLoopStopped = true;
+    mmCancelGameLoop();
+    __realLast = Date.now();
+    return;
+  }
+  __mmGameLoopStopped = false;
+  __realLast = Date.now();
   try{
     if(mmSharedMarketConfigured()) void mmHydrateSharedTapeFromCloud();
   }catch(e){}
+  if(!__mmGameRaf) __mmGameRaf = requestAnimationFrame(()=>{ void mmGameLoop(); });
 }, { passive: true });
 window.addEventListener('pagehide', function(){
+  __mmGameLoopStopped = true;
+  try{
+    mmCancelGameLoop();
+  }catch(e){}
   try{
     if(typeof window.mmSyncStatsToCloud === 'function') void window.mmSyncStatsToCloud();
   }catch(e){}
 }, { capture: true });
 
-
-let __realLast = Date.now();
-let __marketAccum = 0;
-let __newsDecayAccum = 0;
-
-setInterval(async ()=>{
-  const realNow = Date.now();
-  let realDt = realNow - __realLast;
-  __realLast = realNow;
-  if(realDt < 0) realDt = 250;
-  if(realDt > 3000) realDt = 3000;
-
-  const sharedOn = mmSharedMarketConfigured();
-  const speed = getSpeed().mult;
-  const simDt = realDt * speed;
-  if(!sharedOn){
-    game.simNow = (typeof game.simNow === 'number' ? game.simNow : realNow) + simDt;
-  }
-
-  const accumAdd = sharedOn ? realDt : simDt;
-  __marketAccum += accumAdd;
-  __newsDecayAccum += accumAdd;
-
-  while(__marketAccum >= MARKET_TICK_MS){
-    try{ await marketTick(); }catch(err){ console.warn('marketTick', err); }
-    passiveTick();
-    __marketAccum -= MARKET_TICK_MS;
-    if(!sharedOn){
-      game.ticksUntilNextNews = (Number.isFinite(game.ticksUntilNextNews) ? game.ticksUntilNextNews : irand(18, 48)) - 1;
-      if(game.ticksUntilNextNews <= 0){
-        makeNews();
-        game.ticksUntilNextNews = irand(18, 48);
-      }
-    }
-  }
-
-  while(__newsDecayAccum >= 1000){
-    if(!sharedOn){
-      game.news.forEach(n=> (n.expires = Math.max(0, n.expires - 1)));
-      game.news = game.news.filter(n=> n.expires > 0);
-    }
-    __newsDecayAccum -= 1000;
-  }
-
-  if(!sharedOn){
-    if(game.simNow >= game.nextBonusAt){
-      triggerOpportunity();
-      game.nextBonusAt = game.simNow + irand(15000, 60000);
-    }
-    if(game.simNow >= game.nextLifeAt){
-      processLifeEvent();
-      game.nextLifeAt = game.simNow + irand(60000, 300000);
-    }
-    if(game.simNow >= game.nextGlobalAt){
-      maybeTriggerGlobalEvent();
-      game.nextGlobalAt = game.simNow + irand(45000, 120000);
-    }
-  }else{
-    if(!game._mmWallNextLifeAt) game._mmWallNextLifeAt = Date.now() + irand(90000, 360000);
-    if(Date.now() >= game._mmWallNextLifeAt){
-      mmProcessLifeEventWall();
-      game._mmWallNextLifeAt = Date.now() + irand(120000, 480000);
-    }
-    if(mmEdgeAuthorityActive() || !mmClientMarketSimAllowed()){
-      if(!game._mmLocalNextOppAt) game._mmLocalNextOppAt = Date.now() + irand(15000, 60000);
-      if(Date.now() >= game._mmLocalNextOppAt){
-        triggerOpportunity();
-        game._mmLocalNextOppAt = Date.now() + irand(15000, 60000);
-      }
-    }
-  }
-  refreshLive();
-  if(Date.now() - game.lastSaved > 25000) save(false);
-}, 250);
+__mmGameRaf = requestAnimationFrame(()=>{ void mmGameLoop(); });
 
 (function mmInitSharedMarketChannel(){
   function bind(){
