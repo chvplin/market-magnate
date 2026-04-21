@@ -61,9 +61,9 @@ linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.42));pointer-events:n
 }
 button,input,select{font:inherit}
 button{cursor:pointer;border:none;color:var(--text)}
-.topbar{position:sticky;top:0;z-index:130;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 16px;background:rgba(12,12,18,.78);backdrop-filter:blur(18px) saturate(1.2);border-bottom:var(--glass-border);box-shadow:0 8px 32px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.05);width:100%;max-width:100%;box-sizing:border-box;overflow-x:visible;overflow-y:visible}
-.topLeft{display:flex;align-items:center;gap:10px;flex:1 1 auto;min-width:0;max-width:100%;overflow:visible;position:relative;z-index:400}
-.topRight{display:flex;align-items:center;gap:10px;flex:0 0 auto;min-width:0;position:relative;z-index:1}
+.topbar{position:sticky;top:0;z-index:130;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 16px;background:rgba(12,12,18,.78);backdrop-filter:blur(18px) saturate(1.2);border-bottom:var(--glass-border);box-shadow:0 8px 32px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.05);width:100%;max-width:100%;box-sizing:border-box;overflow-x:clip;overflow-y:visible}
+.topLeft{display:flex;align-items:center;gap:10px;flex:1 1 auto;min-width:0;max-width:100%;overflow:visible}
+.topRight{display:flex;align-items:center;gap:10px;flex:0 0 auto;min-width:0}
 .mmMark{width:40px;height:40px;border-radius:12px;background:var(--accent-gradient);color:#fff;display:grid;place-items:center;font-weight:900;font-size:1rem;box-shadow:var(--glow-accent),0 8px 22px rgba(0,0,0,.35);position:relative;overflow:hidden}
 @media (prefers-reduced-motion: no-preference){
   body.mm-motion .mmMark{animation:mmMarkShine 4.5s ease-in-out infinite}
@@ -76,7 +76,7 @@ button{cursor:pointer;border:none;color:var(--text)}
 linear-gradient(90deg,transparent 0 6%, rgba(255,255,255,.14) 6% 8%, transparent 8% 26%, rgba(255,255,255,.14) 26% 28%, transparent 28% 46%, rgba(255,255,255,.14) 46% 48%, transparent 48% 100%);
 border-radius:8px}
 .mmMark span{position:relative;z-index:1;letter-spacing:.02em;text-shadow:0 1px 2px rgba(0,0,0,.12)}
-.searchWrap{position:relative;z-index:500;flex:1 1 auto;min-width:0;max-width:min(560px,min(52vw,calc(100vw - 220px)))}
+.searchWrap{position:relative;z-index:2147483200;flex:1 1 auto;min-width:0;max-width:min(560px,min(52vw,calc(100vw - 220px)))}
 .searchBar{
   display:flex;
   align-items:center;
@@ -102,7 +102,7 @@ border-radius:8px}
 }
 .searchBar input{border:none;outline:none;background:transparent;flex:1 1 auto;min-width:0;width:0;font-size:.96rem;color:var(--text);font-weight:500}
 .searchBar input::placeholder{color:var(--muted);opacity:.85}
-.searchResults{position:absolute;top:calc(100% + 10px);left:0;right:0;background:rgba(18,18,26,.96);border:var(--glass-border);border-radius:14px;box-shadow:var(--shadow),var(--glow-accent);padding:10px;display:none;max-height:min(70vh,520px);overflow:auto;z-index:501}
+.searchResults{position:absolute;top:calc(100% + 10px);left:0;right:0;background:rgba(18,18,26,.96);border:var(--glass-border);border-radius:14px;box-shadow:var(--shadow),var(--glow-accent);padding:10px;display:none;max-height:min(70vh,520px);overflow:auto;z-index:2147483201}
 .searchResults.open{display:block}
 .searchHint{padding:12px 14px;color:var(--muted);font-size:.92rem}
 .searchSectionLabel{padding:10px 12px 4px;color:var(--muted);font-size:.78rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
@@ -3017,25 +3017,25 @@ function mmClampOrderShares(q){
   if(f < 1) return 0;
   return Math.min(f, MM_MAX_SHARES_PER_ORDER);
 }
-/** Tiny markup on price for MAX-size math so server snapshot margin checks (numeric) never lose to JS float / tick drift. */
+/** Optional price multiplier for MAX buys vs server `mm_execute_trade` (only passed when RPC trading; loop uses `iter`, never reuse this name for locals). */
 const MM_MAX_BUY_PRICE_GUARD = 1.00006;
 /** Max whole-share buy count so margin (lev) or full cost (1x) never exceeds cash — avoids floor(cash/px)*px > cash float bugs. */
 function mmMaxBuySharesForCash(cash, pricePerShare, leverage, opts){
   const c = Number(cash);
-  const guard = opts && opts.priceGuard ? Number(opts.priceGuard) : 1;
-  const g = Number.isFinite(guard) && guard >= 1 ? guard : 1;
-  const p = Number(pricePerShare) * g;
+  const pg = opts && opts.priceGuard != null ? Number(opts.priceGuard) : 1;
+  const priceMul = Number.isFinite(pg) && pg >= 1 ? pg : 1;
+  const p = Number(pricePerShare) * priceMul;
   const lev = Math.max(1, Number(leverage) || 1);
   if(!Number.isFinite(c) || c <= 0) return 0;
   if(!Number.isFinite(p) || p <= 0) return 0;
   let q = lev <= 1 ? mmFloorShares(c / p) : mmFloorShares((c * lev) / p);
   q = mmClampOrderShares(q);
-  let guard = 0;
-  while(q > 0 && guard < 4096){
+  let iter = 0;
+  while(q > 0 && iter < 4096){
     const need = lev <= 1 ? q * p : (q * p) / lev;
     if(need <= c + 1e-7) break;
     q--;
-    guard++;
+    iter++;
   }
   return q < 1 ? 0 : q;
 }
@@ -3112,12 +3112,9 @@ function fmtMoneyFull(n){
 }
 const fmtNum = n => new Intl.NumberFormat('en-US',{maximumFractionDigits:n>=100?0:2}).format(n);
 const SIM_HOURS_PER_CAL_DAY = 24;
-/** Sim clock ms per discrete market hour (solo accum + shared `sim_gen` wall clock). Keep in sync with Edge cron and `tickEngine.ts` MARKET_TICK_MS. */
-const MARKET_TICK_MS = 2000;
-/** Applied to the composed hourly stock return before clamp — more frequent ticks stay calmer (keep in sync with tickEngine.ts). */
-const MM_STOCK_TICK_RETURN_SCALE = 0.58;
+const MARKET_TICK_MS = 3000;
 /** Max discrete `marketTick` calls per animation frame — prevents long main-thread freezes after tab sleep or lag (shared stays at 1 for deterministic + network safety). */
-const MM_MAX_MARKET_TICKS_PER_FRAME_SOLO = 6;
+const MM_MAX_MARKET_TICKS_PER_FRAME_SOLO = 4;
 const MM_MAX_MARKET_TICKS_PER_FRAME_SHARED = 1;
 /** Max cheap news-expiry steps per frame when catching up wall time. */
 const MM_MAX_NEWS_DECAY_STEPS_PER_FRAME = 8;
@@ -4398,21 +4395,7 @@ async function mmBuySellStockViaRpc(side, qty, lev){
     refresh();
   }catch(e){
     console.warn('mmBuySellStockViaRpc', e);
-    let code = e && e.message ? String(e.message) : String(e || '');
-    if(code && code.charAt(0) === '{'){
-      try{
-        const j = JSON.parse(code);
-        if(j && j.error) code = String(j.error);
-      }catch(_){}
-    }
-    const low = code.toLowerCase();
-    if(low.includes('insufficient_cash')) code = 'insufficient_cash';
-    else if(low.includes('insufficient_shares')) code = 'insufficient_shares';
-    else if(low.includes('insufficient_lev')) code = 'insufficient_lev';
-    else if(low.includes('lev_mismatch')) code = 'lev_mismatch';
-    else if(low.includes('snapshot_concurrent')) code = 'snapshot_concurrent_update';
-    else if(low.includes('symbol_not_found') || low.includes('symbol not')) code = 'symbol_not_found';
-    else if(low.includes('bad_qty')) code = 'bad_qty';
+    const code = e && e.message ? String(e.message) : String(e || '');
     const map = {
       insufficient_cash: 'Not enough cash',
       insufficient_shares: 'No shares to sell',
@@ -5018,7 +5001,7 @@ async function marketTick(opts){
     const pulseTerm = mmSyncedPulseAffectsStock(s, wPulse) ? wPulse.drift / SIM_HOURS_PER_CAL_DAY : 0;
 
     const delta = clamp(
-      (s.drift * 0.14 +
+      s.drift * 0.14 +
         eventDrift +
         cyc +
         (s.newsEffect || 0) * 0.024 +
@@ -5030,8 +5013,7 @@ async function marketTick(opts){
         idioJump +
         shock +
         mktBlock +
-        pulseTerm) *
-        MM_STOCK_TICK_RETURN_SCALE,
+        pulseTerm,
       -0.2,
       0.2
     );
@@ -5123,20 +5105,15 @@ function passiveTick(){
   }
 }
 
-async function buyStock(){
+function buyStock(){
 
   const s = game.stocks[game.selectedStock];
   const lev = game.leverage || 1;
   const px = Number(s && s.price);
   if(!Number.isFinite(px) || px <= 0) return toast('Invalid stock price', 'warning');
   const rpc = mmServerTradeRpcEnabled() && mmSharedSignedIn();
-  if(rpc){
-    try{
-      await mmPullServerExchangeState();
-    }catch(_e){}
-  }
   const cash = Number(game.cash) || 0;
-  const maxOpts = rpc ? { priceGuard: MM_MAX_BUY_PRICE_GUARD } : undefined;
+  const maxOpts = rpc && game.tradeQty === 'max' ? { priceGuard: MM_MAX_BUY_PRICE_GUARD } : undefined;
   const qty = game.tradeQty === 'max'
     ? mmMaxBuySharesForCash(cash, px, lev, maxOpts)
     : mmClampOrderShares(game.tradeQty);
@@ -5148,7 +5125,7 @@ async function buyStock(){
     if(lev > 1 && s.levOwned > 0 && s.levMult !== lev){
       return toast('Close current leveraged position before switching leverage', 'warning');
     }
-    await mmBuySellStockViaRpc('BUY', qty, lev);
+    void mmBuySellStockViaRpc('BUY', qty, lev);
     return;
   }
 
@@ -5248,15 +5225,11 @@ function bindPortfolioTableInteractionsOnce(){
     if(btn){
       ev.preventDefault();
       ev.stopPropagation();
-      if(wrap._mmPortQuickSellBusy) return;
       const h = btn.closest('.holding');
       if(!h) return;
       const idx = Number(h.dataset.stockIndex);
       const hk = h.dataset.holdingKind || 'spot';
-      wrap._mmPortQuickSellBusy = true;
-      void mmQuickSellFromHolding(idx, String(btn.dataset.quickSell || ''), hk).finally(()=>{
-        wrap._mmPortQuickSellBusy = false;
-      });
+      void mmQuickSellFromHolding(idx, String(btn.dataset.quickSell || ''), hk);
       return;
     }
     if(row){
@@ -5284,6 +5257,7 @@ async function mmQuickSellFromHolding(stockIndex, mode, holdingKind){
   if(!Number.isFinite(i) || i < 0 || i >= game.stocks.length) return;
   const s = game.stocks[i];
   if(!s) return;
+  const rpc = mmServerTradeRpcEnabled() && mmSharedSignedIn();
   const kind = holdingKind === 'margin' ? 'margin' : 'spot';
   if(kind === 'margin'){
     const levOwned = Math.floor(Number(s.levOwned) || 0);
@@ -5300,7 +5274,8 @@ async function mmQuickSellFromHolding(stockIndex, mode, holdingKind){
     else if(mode === '0.5') game.tradeQty = Math.max(1, Math.floor(levOwned * 0.5));
     else game.tradeQty = 1;
     try{
-      await sellStock();
+      if(rpc) await sellStock();
+      else sellStock();
     }finally{
       game.tradeQty = prevQty;
       game.leverage = prevLev;
@@ -5324,7 +5299,8 @@ async function mmQuickSellFromHolding(stockIndex, mode, holdingKind){
   else if(mode === '0.5') game.tradeQty = Math.max(1, Math.floor(s.owned * 0.5));
   else game.tradeQty = 1;
   try{
-    await sellStock();
+    if(rpc) await sellStock();
+    else sellStock();
   }finally{
     game.tradeQty = prevQty;
     game.selectedStock = prevSel;
@@ -5762,7 +5738,7 @@ function patchQtyRowDOM(){
   const s = game.stocks[game.selectedStock];
   const lev = game.leverage || 1;
   const rpc = mmServerTradeRpcEnabled() && mmSharedSignedIn();
-  const maxOpts = rpc ? { priceGuard: MM_MAX_BUY_PRICE_GUARD } : undefined;
+  const maxOpts = rpc && game.tradeQty === 'max' ? { priceGuard: MM_MAX_BUY_PRICE_GUARD } : undefined;
   const buyQty = game.tradeQty === 'max'
     ? mmMaxBuySharesForCash(Number(game.cash) || 0, Number(s.price) || 0, lev, maxOpts)
     : game.tradeQty;
@@ -7882,7 +7858,7 @@ function refreshLive(){
 }
 try{ window.mmRefreshLive = refreshLive; }catch(e){}
 
-$('#buyBtn').addEventListener('click', ()=>{ playClickSound(); void buyStock(); });
+$('#buyBtn').addEventListener('click', ()=>{ playClickSound(); buyStock(); });
 $('#sellBtn').addEventListener('click', ()=>{ playClickSound(); void sellStock(); });
 $('#saveBtn').addEventListener('click', async ()=>{ playClickSound(); try{ window.game = game; }catch(e){}
   save(true); try{ if(window.MMForceCloudSync) await window.MMForceCloudSync(); }catch(e){ console.warn('Cloud sync on save failed', e); } });
@@ -7944,7 +7920,7 @@ if(globalSearchInput){
     clearTimeout(__mmResizeLayoutTimer);
     __mmResizeLayoutTimer = setTimeout(mmOnResizeLayout, 140);
   }, { passive: true });
-  const mobileBuy = $('#mobileBuyBtn'); if(mobileBuy) mobileBuy.addEventListener('click', ()=>{ playClickSound(); void buyStock(); });
+  const mobileBuy = $('#mobileBuyBtn'); if(mobileBuy) mobileBuy.addEventListener('click', ()=>{ playClickSound(); buyStock(); });
   const mobileSell = $('#mobileSellBtn'); if(mobileSell) mobileSell.addEventListener('click', ()=>{ playClickSound(); void sellStock(); });
   const mobileQty = $('#mobileQtyBtn'); if(mobileQty) mobileQty.addEventListener('click', ()=>{
     playClickSound();
@@ -9182,7 +9158,7 @@ function bindSocialUI(){
     }
 
     setInterval(function(){ syncStatsToCloud().catch(function(){}); }, 12000);
-    setInterval(function(){ loadLeaderboardSocial().catch(function(){}); }, 5000);
+    setInterval(function(){ loadLeaderboardSocial().catch(function(){}); }, 8000);
     setInterval(()=>{ if (typeof renderCosmeticStore === 'function') renderCosmeticStore(); }, 5000);
     setInterval(function(){
       (async function(){
