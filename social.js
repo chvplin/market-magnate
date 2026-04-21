@@ -660,7 +660,8 @@ async function getUser() {
 
   /** Must match `interval '30 minutes'` in public.mm_public_online_players (leaderboard_public_rpc.sql). */
   const MM_ONLINE_PRESENCE_WINDOW_MS = 30 * 60 * 1000;
-  const MM_ONLINE_UI_MAX_AGE_MS = 90 * 1000;
+  /** When skipWindow is false, use same horizon as SQL (30m). Prefer skipWindow:true in onlineOpts. */
+  const MM_ONLINE_UI_MAX_AGE_MS = 30 * 60 * 1000;
 
   function mmDebugSocial(label, payload) {
     try {
@@ -791,7 +792,7 @@ async function getUser() {
 async function loadLeaderboard() {
     const data = await fetchLeaderboardRowsIndex();
     const onlineSourceRows = await fetchOnlinePlayersHub(160);
-    const onlineOpts = { skipWindow: false, windowMs: MM_ONLINE_UI_MAX_AGE_MS, maxSlots: 12 };
+    const onlineOpts = { skipWindow: true, windowMs: MM_ONLINE_UI_MAX_AGE_MS, maxSlots: 24 };
 
     if (!data.length) {
       leaderboardTargets().forEach(t => {

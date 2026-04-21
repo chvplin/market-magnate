@@ -7884,8 +7884,8 @@ async function saveSocialProfile(){
 
 /** Must match `interval '30 minutes'` in public.mm_public_online_players (leaderboard_public_rpc.sql). */
 var MM_ONLINE_PRESENCE_WINDOW_MS = 30 * 60 * 1000;
-/** UI-only: hide players whose last_seen/updated_at is older than this (faster than SQL window so closed tabs drop off). */
-var MM_ONLINE_UI_MAX_AGE_MS = 90 * 1000;
+/** Optional client-side age filter when `skipWindow` is false. Prefer trusting `mm_public_online_players` (30m server filter) — see onlineOpts below. */
+var MM_ONLINE_UI_MAX_AGE_MS = 30 * 60 * 1000;
 
 function mmDebugSocialGame(label, payload){
   try{ if(window.MM_DEBUG_SOCIAL) console.debug('[MM]' + label, payload); }catch(e){}
@@ -8042,7 +8042,7 @@ async function loadLeaderboardSocial(){
     return;
   }
 
-  var onlineOpts = { skipWindow: false, windowMs: MM_ONLINE_UI_MAX_AGE_MS, maxSlots: 12 };
+  var onlineOpts = { skipWindow: true, windowMs: MM_ONLINE_UI_MAX_AGE_MS, maxSlots: 24 };
 
   try{
     console.info('[MM][rail] render prep lb=', rows.length, 'onlineRaw=', activityRows.length, '#leaderMini=', !!mini, '#onlinePlayersGame=', !!onlineWrap);
@@ -8195,13 +8195,52 @@ async function loadLeaderboardSocial(){
   }
   try{ window.mmForceCloudGameplaySnapshot = mmForceCloudGameplaySnapshot; }catch(e){}
 
+  async function mmUpsertOnlinePresenceHeartbeat(user){
+    if(!window.mmSupabase || !user || !user.id) return;
+    const nowIso = new Date().toISOString();
+    let un = (mmSocial.profile && mmSocial.profile.username) ? String(mmSocial.profile.username).trim() : '';
+    let dn = (mmSocial.profile && mmSocial.profile.display_name) ? String(mmSocial.profile.display_name).trim() : '';
+    if(!un && user.email){
+      const em = String(user.email);
+      const at = em.indexOf('@');
+      un = (at > 0 ? em.slice(0, at) : em).replace(/[^a-zA-Z0-9_]/g, '').slice(0, 24) || 'player';
+    }
+    if(!dn) dn = un || 'Trader';
+    await window.mmSupabase.from('online_presence').upsert(
+      { user_id: user.id, username: un, display_name: dn, last_seen: nowIso, updated_at: nowIso },
+      { onConflict: 'user_id' }
+    );
+  }
+  try{ window.mmUpsertOnlinePresenceHeartbeat = mmUpsertOnlinePresenceHeartbeat; }catch(e){}
+
   async function syncStatsToCloud(){
     try{
       if(!window.mmSupabase) return;
       const user = await getUser();
       if(!user) return;
 
-      const stats = getCurrentStats();
+      try{
+        await mmUpsertOnlinePresenceHeartbeat(user);
+      }catch(e){
+        console.warn('[MM] online_presence heartbeat failed', e && (e.message || e));
+      }
+
+      let stats;
+      try{
+        stats = getCurrentStats();
+      }catch(e){
+        console.warn('[MM] getCurrentStats failed', e && (e.message || e));
+        stats = {
+          net_worth: typeof currentNetWorth === 'function' ? Number(currentNetWorth()) : 0,
+          cash: Number(window.game?.cash || 0),
+          total_profit: Number(window.game?.totalEarned || 0),
+          lifetime_trades: Math.round(Number(window.game?.trades || 0)),
+          highest_net_worth: typeof currentNetWorth === 'function' ? Number(currentNetWorth()) : 0,
+          prestige: Math.round(Number(window.game?.legacy || 0)),
+          xp: Math.round(Number(window.game?.xp || 0)),
+          empire_tier: String(currentStageSafe())
+        };
+      }
       const nowIso = new Date().toISOString();
 
       let statsPayload = Object.assign({ user_id: user.id, updated_at: nowIso }, stats);
@@ -8214,15 +8253,6 @@ async function loadLeaderboardSocial(){
       if(statsRes?.error){
         console.warn('player_stats sync failed:', statsRes.error.message || statsRes.error);
       }
-
-      try{
-        const un = (mmSocial.profile && mmSocial.profile.username) ? String(mmSocial.profile.username) : '';
-        const dn = (mmSocial.profile && mmSocial.profile.display_name) ? String(mmSocial.profile.display_name) : un;
-        await window.mmSupabase.from('online_presence').upsert(
-          { user_id: user.id, username: un, display_name: dn, last_seen: nowIso, updated_at: nowIso },
-          { onConflict: 'user_id' }
-        );
-      }catch(e){}
 
       try{
         var nowSlot = Date.now();
@@ -8320,6 +8350,28 @@ function bindSocialUI(){
     setInterval(function(){ syncStatsToCloud().catch(function(){}); }, 12000);
     setInterval(function(){ loadLeaderboardSocial().catch(function(){}); }, 8000);
     setInterval(()=>{ if (typeof renderCosmeticStore === 'function') renderCosmeticStore(); }, 5000);
+    setInterval(function(){
+      (async function(){
+        try{
+          if(!window.mmSupabase) return;
+          const u = await getUser();
+          if(!u) return;
+          await mmUpsertOnlinePresenceHeartbeat(u);
+        }catch(e){}
+      })();
+    }, 30000);
+    document.addEventListener('visibilitychange', function(){
+      if(document.visibilityState !== 'visible') return;
+      (async function(){
+        try{
+          if(!window.mmSupabase) return;
+          const u = await getUser();
+          if(!u) return;
+          await mmUpsertOnlinePresenceHeartbeat(u);
+          if(typeof window.loadLeaderboardSocial === 'function') await window.loadLeaderboardSocial();
+        }catch(e){}
+      })();
+    });
   }
 
   try{ window.loadLeaderboardSocial = loadLeaderboardSocial; }catch(e){}
