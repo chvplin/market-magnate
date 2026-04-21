@@ -3107,9 +3107,12 @@ function fmtMoneyFull(n){
 }
 const fmtNum = n => new Intl.NumberFormat('en-US',{maximumFractionDigits:n>=100?0:2}).format(n);
 const SIM_HOURS_PER_CAL_DAY = 24;
-const MARKET_TICK_MS = 3000;
+/** Sim clock ms per discrete market hour (solo accum + shared `sim_gen` wall clock). Keep in sync with Edge cron and `tickEngine.ts` MARKET_TICK_MS. */
+const MARKET_TICK_MS = 2000;
+/** Applied to the composed hourly stock return before clamp — more frequent ticks stay calmer (keep in sync with tickEngine.ts). */
+const MM_STOCK_TICK_RETURN_SCALE = 0.58;
 /** Max discrete `marketTick` calls per animation frame — prevents long main-thread freezes after tab sleep or lag (shared stays at 1 for deterministic + network safety). */
-const MM_MAX_MARKET_TICKS_PER_FRAME_SOLO = 4;
+const MM_MAX_MARKET_TICKS_PER_FRAME_SOLO = 6;
 const MM_MAX_MARKET_TICKS_PER_FRAME_SHARED = 1;
 /** Max cheap news-expiry steps per frame when catching up wall time. */
 const MM_MAX_NEWS_DECAY_STEPS_PER_FRAME = 8;
@@ -4996,7 +4999,7 @@ async function marketTick(opts){
     const pulseTerm = mmSyncedPulseAffectsStock(s, wPulse) ? wPulse.drift / SIM_HOURS_PER_CAL_DAY : 0;
 
     const delta = clamp(
-      s.drift * 0.14 +
+      (s.drift * 0.14 +
         eventDrift +
         cyc +
         (s.newsEffect || 0) * 0.024 +
@@ -5008,7 +5011,8 @@ async function marketTick(opts){
         idioJump +
         shock +
         mktBlock +
-        pulseTerm,
+        pulseTerm) *
+        MM_STOCK_TICK_RETURN_SCALE,
       -0.2,
       0.2
     );
@@ -9140,7 +9144,7 @@ function bindSocialUI(){
     }
 
     setInterval(function(){ syncStatsToCloud().catch(function(){}); }, 12000);
-    setInterval(function(){ loadLeaderboardSocial().catch(function(){}); }, 8000);
+    setInterval(function(){ loadLeaderboardSocial().catch(function(){}); }, 5000);
     setInterval(()=>{ if (typeof renderCosmeticStore === 'function') renderCosmeticStore(); }, 5000);
     setInterval(function(){
       (async function(){
