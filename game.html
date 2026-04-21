@@ -9625,22 +9625,28 @@ function renderThemeSelection(){
   }
   async function getUser(){
   if(!window.mmSupabase) return null;
-  try{
-    const userRes = await window.mmSupabase.auth.getUser();
-    const directUser = userRes?.data?.user || null;
-    if(directUser) return directUser;
-  }catch(e){}
+  /** Prefer local session first — after sign-in redirect, getSession() hydrates before getUser() may. */
+  let sessionUser = null;
   try{
     const sessRes = await window.mmSupabase.auth.getSession();
-    return sessRes?.data?.session?.user || null;
+    sessionUser = sessRes?.data?.session?.user || null;
   }catch(e){}
-  return null;
+  try{
+    const userRes = await window.mmSupabase.auth.getUser();
+    const serverUser = userRes?.data?.user || null;
+    if(serverUser) return serverUser;
+    if(userRes?.error && sessionUser) return sessionUser;
+  }catch(e){
+    if(sessionUser) return sessionUser;
+  }
+  return sessionUser;
 }
   async function loadSocialProfile(){
     if(!window.mmSupabase){
       applySocialProfileToUI({});
       return;
     }
+    try{ await window.mmSupabase.auth.getSession(); }catch(e){}
 
     mmSocial.user = await getUser();
     if(!mmSocial.user){
@@ -9684,7 +9690,7 @@ function renderThemeSelection(){
     mmSocial.selectedBanner = mmSocial.profile.banner_url || 'default_banner';
 
     await loadOwnedCosmetics();
-    applySocialProfileToUI(mmSocial.profile);
+    try{ applySocialProfileToUI(mmSocial.profile); }catch(e){ try{ console.warn('[MM] applySocialProfileToUI', e); }catch(x){} }
     renderCosmeticStore();
     setupCosmeticDelegation();
 
