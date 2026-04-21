@@ -3475,9 +3475,19 @@ function mmPaintStaticNavIcons(){
     if(v && mapRail[v]) cell.innerHTML = mmIcon(mapRail[v], 22);
   });
   const chipAv = document.getElementById('socialChipAvatar');
-  if(chipAv) mmSetAvatarNode(chipAv, '💹', 22);
+  if(chipAv){
+    const av =
+      (typeof window !== 'undefined' && window.mmSocial && (window.mmSocial.selectedAvatar || (window.mmSocial.profile && window.mmSocial.profile.avatar_url))) ||
+      '💹';
+    try{ mmSetAvatarNode(chipAv, av, 22); }catch(e){ try{ mmSetAvatarNode(chipAv, '💹', 22); }catch(e2){} }
+  }
   const socAv = document.getElementById('socialAvatar');
-  if(socAv) mmSetAvatarNode(socAv, '💹', 40);
+  if(socAv){
+    const av2 =
+      (typeof window !== 'undefined' && window.mmSocial && (window.mmSocial.selectedAvatar || (window.mmSocial.profile && window.mmSocial.profile.avatar_url))) ||
+      '💹';
+    try{ mmSetAvatarNode(socAv, av2, 40); }catch(e){ try{ mmSetAvatarNode(socAv, '💹', 40); }catch(e2){} }
+  }
 }
 try{
   window.mmFormatMoney = fmt;
@@ -9609,20 +9619,37 @@ function renderThemeSelection(){
     mmSocial.selectedTheme = theme;
     mmSocial.selectedBanner = bannerKey;
 
-    const banner = qs('#socialBanner'); if(banner){ const bd=getBannerDef(bannerKey); banner.className = 'socialBanner'; banner.style.background = bd.gradient; }
+    /** Topbar chip first — if avatar/banner/grid helpers throw, online RPCs still work but this used to stay "Guest / Offline". */
+    const chipName = qs('#socialChipName');
+    if(chipName) chipName.textContent = displayName;
+    const chipSub = qs('#socialChipSub');
+    if(chipSub) chipSub.textContent = profile.email || emailBase || 'Offline';
+
+    const banner = qs('#socialBanner');
+    if(banner){
+      try{
+        const bd = getBannerDef(bannerKey);
+        banner.className = 'socialBanner';
+        banner.style.background = bd.gradient;
+      }catch(e){}
+    }
     const avMain = qs('#socialAvatar');
-    if(avMain) mmSetAvatarNode(avMain, avatar, 40);
+    if(avMain){
+      try{ mmSetAvatarNode(avMain, avatar, 40); }catch(e){ try{ mmSetAvatarNode(avMain, '💹', 40); }catch(e2){} }
+    }
     const avChip = qs('#socialChipAvatar');
-    if(avChip) mmSetAvatarNode(avChip, avatar, 22);
+    if(avChip){
+      try{ mmSetAvatarNode(avChip, avatar, 22); }catch(e){ try{ mmSetAvatarNode(avChip, '💹', 22); }catch(e2){} }
+    }
 
     const dn = qs('#socialDisplayName'); if(dn) dn.textContent = displayName;
     const un = qs('#socialUsername'); if(un) un.textContent = '@' + username;
     const bioEl = qs('#socialBio'); if(bioEl) bioEl.textContent = bio + (favorite && favorite!=='—' ? ` • Favorite: ${favorite}` : '');
-    const chipName = qs('#socialChipName'); if(chipName) chipName.textContent = displayName;
-    const chipSub = qs('#socialChipSub'); if(chipSub) chipSub.textContent = profile.email || emailBase || 'Offline';
     const favPill = qs('#statusPill'); if(favPill && favorite && favorite !== '—') favPill.textContent = favorite;
 
-    renderAvatarGrid(); renderThemeSelection(); renderBannerGrid();
+    try{ renderAvatarGrid(); }catch(e){ try{ console.warn('[MM] renderAvatarGrid', e && (e.message || e)); }catch(x){} }
+    try{ renderThemeSelection(); }catch(e){}
+    try{ renderBannerGrid(); }catch(e){}
     try{
       if(typeof window.mmRefreshToolbarNotifyBadge === 'function') void window.mmRefreshToolbarNotifyBadge();
     }catch(e){}
