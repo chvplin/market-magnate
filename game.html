@@ -779,7 +779,8 @@ body{
 
 
 /* in-game social layer */
-.socialChip{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:var(--glass-border);max-width:240px}
+.socialChip{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:var(--glass-border);max-width:240px;cursor:pointer}
+.socialChip:focus-visible{outline:2px solid rgba(91,140,255,.65);outline-offset:2px}
 .socialChip .avatarMini{width:28px;height:28px;border-radius:999px;display:grid;place-items:center;background:var(--accent-gradient);color:#fff;font-size:1rem;flex:0 0 auto;box-shadow:0 0 12px rgba(138,43,226,.25)}
 .socialChip .name{font-weight:800;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .socialChip .sub{font-size:.68rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -2147,6 +2148,47 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 }
 #pqvPayAmount::placeholder{color:#93a0b3;opacity:.9}
 .playerQuickViewHint{margin-top:6px;font-size:.78rem;color:#93a0b3;line-height:1.45}
+.pqvThreadWrap{margin-top:4px}
+.pqvThreadScroll{
+  max-height:min(42vh,320px);min-height:140px;overflow-y:auto;padding:10px 8px;
+  border-radius:14px;border:1px solid rgba(255,255,255,.1);
+  background:linear-gradient(180deg,rgba(8,12,20,.95),rgba(12,18,30,.88));
+  margin-bottom:10px;
+  scroll-behavior:smooth;
+}
+.pqvThreadEmpty{color:#93a0b3;font-size:.86rem;padding:18px 8px;text-align:center;line-height:1.45}
+.pqvMsg{margin-bottom:10px;display:flex;flex-direction:column;align-items:flex-start;max-width:100%}
+.pqvMsg--out{align-items:flex-end;margin-left:18%}
+.pqvMsgMeta{font-size:.68rem;color:#7b8aa0;margin:0 4px 4px;font-weight:750}
+.pqvMsgBubble{
+  max-width:100%;padding:10px 12px;border-radius:14px;line-height:1.45;font-size:.9rem;word-wrap:break-word;
+  background:#1c2840;border:1px solid rgba(255,255,255,.1);color:#eef3ff;
+  box-shadow:0 2px 10px rgba(0,0,0,.2);
+}
+.pqvMsg--out .pqvMsgBubble{
+  background:linear-gradient(135deg,rgba(59,91,253,.35),rgba(138,43,226,.28));
+  border-color:rgba(147,197,253,.22);color:#f8fbff;
+}
+.pqvMsg--pay .pqvMsgBubble{
+  background:#152a22;border-color:rgba(0,230,138,.25);color:#d8ffef;font-weight:800;
+}
+.pqvMsg--pay.pqvMsg--out .pqvMsgBubble{
+  background:linear-gradient(135deg,rgba(0,230,138,.22),rgba(59,91,253,.2));
+}
+.pqvComposerRow{display:flex;gap:8px;align-items:stretch;margin-bottom:12px}
+#pqvDmComposer{
+  flex:1;min-width:0;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);
+  background:#121a28;color:#f0f6ff;font:inherit;
+}
+#pqvDmComposer::placeholder{color:#93a0b3;opacity:.9}
+.pqvInboxList{display:flex;flex-direction:column;gap:8px;margin-top:8px;max-height:min(36vh,280px);overflow-y:auto}
+.pqvInboxRow{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;
+  text-align:left;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.1);
+  background:#151f2f;color:#eef3ff;font:inherit;font-weight:750;cursor:pointer;
+}
+.pqvInboxRow:hover{border-color:rgba(91,140,255,.35);background:#1a2538}
+.pqvInboxMeta{font-size:.72rem;color:#93a0b3;font-weight:650}
 
 </style>
 
@@ -2179,7 +2221,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
     <button class="circleBtn" id="shareEmpireBtn" title="Share Empire">🔗</button>
     <button class="circleBtn" id="leaderboardBtn" title="Leaderboard">🏆</button>
     <button class="circleBtn" id="topUser">👤</button>
-    <div class="socialChip" id="socialChip" title="Signed in player"><div class="avatarMini" id="socialChipAvatar">💹</div><div class="crestMini" id="socialChipCrest">◈</div><div style="min-width:0"><div class="name" id="socialChipName">Guest</div><div class="sub" id="socialChipSub">Offline</div></div></div>
+    <div class="socialChip" id="socialChip" title="Your profile, messages & payments" role="button" tabindex="0"><div class="avatarMini" id="socialChipAvatar">💹</div><div class="crestMini" id="socialChipCrest">◈</div><div style="min-width:0"><div class="name" id="socialChipName">Guest</div><div class="sub" id="socialChipSub">Offline</div></div></div>
   </div>
 </div>
 <div id="newsFlashBar" class="newsFlashBar" hidden aria-live="polite" aria-atomic="true">
@@ -8884,31 +8926,145 @@ document.addEventListener('DOMContentLoaded', function(){
     return '$' + Math.round(val).toLocaleString();
   }
 
-  let mmQuickAnchorRow = null;
+  let mmQuickAnchorEl = null;
   let mmQuickOutsideClose = null;
   let mmQuickResizeBound = null;
+  let mmPqvPollTimer = null;
+  let mmPqvInteractIsSelf = false;
+  let mmPqvThreadPeer = null;
+
+  function mmPqvClearPoll(){
+    if(mmPqvPollTimer){
+      try{ clearInterval(mmPqvPollTimer); }catch(e){}
+      mmPqvPollTimer = null;
+    }
+    mmPqvThreadPeer = null;
+    mmPqvInteractIsSelf = false;
+  }
+
+  function fmtThreadTime(iso){
+    if(!iso) return '';
+    try{
+      const d = new Date(iso);
+      if(!Number.isFinite(d.getTime())) return '';
+      return d.toLocaleString(undefined, { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+    }catch(e){ return ''; }
+  }
+
+  async function mmPqvFetchAndRenderThread(peerUsername, silent){
+    const scroll = document.getElementById('pqvThreadScroll');
+    if(!scroll || !window.mmSupabase || !peerUsername) return;
+    try{
+      const { data, error } = await window.mmSupabase.rpc('mm_fetch_peer_thread', {
+        p_peer_username: String(peerUsername).trim(),
+        p_limit: 160
+      });
+      if(error) throw error;
+      if(!data || data.ok === false){
+        if(!silent) toast(String((data && data.error) || 'Could not load thread'), 'warning');
+        scroll.innerHTML = '<div class="pqvThreadEmpty">No messages yet — say hi below. (Run the latest <code>player_interaction_rpc.sql</code> if this errors.)</div>';
+        return;
+      }
+      const items = Array.isArray(data.items) ? data.items : [];
+      if(!items.length){
+        scroll.innerHTML = '<div class="pqvThreadEmpty">No messages or payments yet. Send a note or a shared-wallet gift below.</div>';
+        return;
+      }
+      const rows = items.map(function(it){
+        const out = !!it.out;
+        const kind = String(it.kind || 'msg');
+        const cls = 'pqvMsg' + (out ? ' pqvMsg--out' : '') + (kind === 'pay' ? ' pqvMsg--pay' : '');
+        const who = out ? 'You' : ('@' + escapeHtml(String(peerUsername)));
+        const txt = escapeHtml(String(it.text != null ? it.text : ''));
+        const meta = escapeHtml(fmtThreadTime(it.at));
+        return '<div class="' + cls + '"><div class="pqvMsgMeta">' + who + ' · ' + meta + '</div><div class="pqvMsgBubble">' + txt + '</div></div>';
+      }).join('');
+      scroll.innerHTML = rows;
+      scroll.scrollTop = scroll.scrollHeight;
+    }catch(e){
+      if(!silent) toast('Could not load chat — run latest player_interaction_rpc.sql', 'warning');
+      scroll.innerHTML = '<div class="pqvThreadEmpty">Thread unavailable.</div>';
+    }
+  }
+
+  async function mmPqvLoadInbox(){
+    const list = document.getElementById('pqvInboxList');
+    if(!list || !window.mmSupabase) return;
+    try{
+      const { data, error } = await window.mmSupabase.rpc('mm_list_inbox_peers', { p_limit: 40 });
+      if(error) throw error;
+      if(!data || data.ok === false){
+        list.innerHTML = '<div class="pqvThreadEmpty">No conversations yet. Message someone from <b>Online players</b>.</div>';
+        return;
+      }
+      const peers = Array.isArray(data.peers) ? data.peers : [];
+      if(!peers.length){
+        list.innerHTML = '<div class="pqvThreadEmpty">No conversations yet. Open someone in Online players to start a DM or payment.</div>';
+        return;
+      }
+      list.innerHTML = peers.map(function(p){
+        const un = String(p.username || '').trim();
+        if(!un) return '';
+        const t = fmtThreadTime(p.last_at);
+        return '<button type="button" class="pqvInboxRow" data-mm-pqv-open-user="' + escAttr(un) + '">@' + escapeHtml(un)
+          + '<span class="pqvInboxMeta">' + escapeHtml(t || '—') + '</span></button>';
+      }).join('');
+    }catch(e2){
+      list.innerHTML = '<div class="pqvThreadEmpty">Inbox unavailable — run latest player_interaction_rpc.sql</div>';
+    }
+  }
+
+  function mmPqvStartInteractPoll(peerUsername, isSelf){
+    mmPqvClearPoll();
+    mmPqvInteractIsSelf = !!isSelf;
+    mmPqvThreadPeer = isSelf ? null : String(peerUsername || '').trim();
+    mmPqvPollTimer = setInterval(function(){
+      const ov = q('#playerQuickViewOverlay');
+      if(!ov || ov.hasAttribute('hidden')){
+        mmPqvClearPoll();
+        return;
+      }
+      if(mmPqvInteractIsSelf) void mmPqvLoadInbox();
+      else if(mmPqvThreadPeer) void mmPqvFetchAndRenderThread(mmPqvThreadPeer, true);
+    }, 3500);
+  }
 
   function positionPlayerQuickCard(){
     const card = q('.playerQuickViewCard');
     const overlay = q('#playerQuickViewOverlay');
-    const root = document.getElementById('onlinePlayersGame');
-    if (!card || !overlay || !overlay.classList.contains('is-open') || !root) return;
-    const box = root.getBoundingClientRect();
+    if (!card || !overlay || !overlay.classList.contains('is-open')) return;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const margin = 12;
-    const cw = Math.min(600, Math.max(380, Math.max(box.width * 1.12, 400)), vw - margin * 2);
+    let box = null;
+    try{
+      if(mmQuickAnchorEl && typeof mmQuickAnchorEl.getBoundingClientRect === 'function'){
+        box = mmQuickAnchorEl.getBoundingClientRect();
+      }
+    }catch(e){}
+    if(!box || !(box.width >= 0)){
+      const root = document.getElementById('onlinePlayersGame');
+      if(root) try{ box = root.getBoundingClientRect(); }catch(e2){}
+    }
+    if(!box){
+      const cw0 = Math.min(620, vw - margin * 2);
+      card.style.width = cw0 + 'px';
+      card.style.left = Math.max(margin, (vw - cw0) / 2) + 'px';
+      card.style.top = Math.max(margin, Math.min(96, vh * 0.08)) + 'px';
+      return;
+    }
+    const cw = Math.min(620, Math.max(360, Math.min(box.width > 40 ? box.width * 1.08 : 420, vw - margin * 2)));
     card.style.width = cw + 'px';
     let left = box.left;
     left = Math.min(Math.max(margin, left), vw - cw - margin);
     let top = box.bottom + 8;
-    if (mmQuickAnchorRow && mmQuickAnchorRow.getBoundingClientRect){
-      try{
-        const ar = mmQuickAnchorRow.getBoundingClientRect();
+    try{
+      if(mmQuickAnchorEl && mmQuickAnchorEl.getBoundingClientRect){
+        const ar = mmQuickAnchorEl.getBoundingClientRect();
         top = ar.bottom + 6;
-      }catch(e){}
-    }
-    const ch = card.offsetHeight || 320;
+      }
+    }catch(e3){}
+    const ch = card.offsetHeight || 360;
     if (top + ch > vh - margin){
       top = Math.max(margin, box.top - ch - 8);
     }
@@ -8923,6 +9079,7 @@ document.addEventListener('DOMContentLoaded', function(){
       const overlay = q('#playerQuickViewOverlay');
       if (!overlay || !overlay.classList.contains('is-open')) return;
       if (ev.target.closest('.playerQuickViewCard')) return;
+      if (ev.target.closest('#socialChip')) return;
       if (ev.target.closest('#onlinePlayersGame') && ev.target.closest('.livePlayerRow')) return;
       closePlayerQuickView();
     };
@@ -8949,10 +9106,10 @@ document.addEventListener('DOMContentLoaded', function(){
     }
   }
 
-  function openPlayerQuickView(anchorRow){
+  function openPlayerQuickView(anchorEl){
     const overlay = q('#playerQuickViewOverlay');
     if (!overlay) return;
-    mmQuickAnchorRow = anchorRow || null;
+    mmQuickAnchorEl = anchorEl || null;
     overlay.removeAttribute('hidden');
     overlay.classList.add('is-open');
     overlay.setAttribute('aria-hidden', 'false');
@@ -8963,23 +9120,19 @@ document.addEventListener('DOMContentLoaded', function(){
     });
   }
 
-  var mmQuickViewRefreshTimer = null;
   var mmQuickViewOpenUser = null;
 
   function closePlayerQuickView(){
     const overlay = q('#playerQuickViewOverlay');
     if (!overlay) return;
-    if(mmQuickViewRefreshTimer){
-      try{ clearInterval(mmQuickViewRefreshTimer); }catch(e){}
-      mmQuickViewRefreshTimer = null;
-    }
     mmQuickViewOpenUser = null;
+    mmPqvClearPoll();
     unbindOutsideClose();
     unbindQuickResize();
     overlay.classList.remove('is-open');
     overlay.setAttribute('hidden', '');
     overlay.setAttribute('aria-hidden', 'true');
-    mmQuickAnchorRow = null;
+    mmQuickAnchorEl = null;
   }
 
   function getBannerGradient(key){
@@ -9111,6 +9264,37 @@ document.addEventListener('DOMContentLoaded', function(){
       ? (dnaFromCloud ? 'Full character DNA synced from their last cloud save.' : 'Character look is generated from their username until they sync a custom look.')
       : 'Classic emoji avatar from their Hub profile.';
     const hubHref = './index.html?u=' + encodeURIComponent(handleRaw);
+    const selfUn = (window.mmSocial && window.mmSocial.profile && window.mmSocial.profile.username) || '';
+    const isSelf = !!(selfUn && handleRaw.toLowerCase() === String(selfUn).toLowerCase());
+    let interactHtml = '';
+    if(isSelf){
+      interactHtml = ''
+        + '<div class="playerQuickViewSection">'
+        +   '<div class="playerQuickViewSectionTitle">Messages & payments</div>'
+        +   '<p class="playerQuickViewHint">Chats you have with other players (same card as Online). Pick someone below or from the Online list.</p>'
+        +   '<div id="pqvInboxList" class="pqvInboxList" aria-live="polite"></div>'
+        + '</div>';
+    }else{
+      interactHtml = ''
+        + '<div class="playerQuickViewSection pqvThreadWrap" data-mm-pqv-user="' + escAttr(handleRaw) + '">'
+        +   '<div class="playerQuickViewSectionTitle">Messages & shared wallet</div>'
+        +   '<div id="pqvThreadScroll" class="pqvThreadScroll" aria-live="polite"></div>'
+        +   '<div class="pqvComposerRow">'
+        +     '<input type="text" id="pqvDmComposer" maxlength="800" placeholder="Message @' + handle + '…" autocomplete="off" />'
+        +     '<button type="button" class="shopTab" data-mm-pqv-act="dm-send">Send</button>'
+        +   '</div>'
+        +   '<div class="playerQuickViewSubtle" style="margin-top:4px">Gift shared exchange cash</div>'
+        +   '<input id="pqvPayAmount" type="number" inputmode="decimal" min="1" step="0.01" placeholder="Amount (min 1)" />'
+        +   '<textarea id="pqvPayNote" maxlength="200" rows="2" placeholder="Optional note (local only)"></textarea>'
+        +   '<div class="playerQuickViewInteractBtns" style="margin-top:8px">'
+        +     '<button type="button" class="shopTab" data-mm-pqv-act="pay-send">Send payment</button>'
+        +   '</div>'
+        +   '<div class="playerQuickViewInteractBtns" style="margin-top:10px">'
+        +     '<button type="button" class="shopTab" data-mm-pqv-act="arena-at">Arena @' + handle + '</button>'
+        +     '<button type="button" class="shopTab" data-mm-pqv-act="trade-tip">Trading tips</button>'
+        +   '</div>'
+        + '</div>';
+    }
     const avatarHtml = useFig
       ? '<div class="playerQuickViewAvatar mmQuickAvatar pvAvatarLg"><div class="mmAvatarHost mmAvatarHost--quick pvQuickAvatarHost"></div></div>'
       : '<div class="playerQuickViewAvatar pvAvatarLg">' + escapeHtml(p.avatar_url || '💹') + '</div>';
@@ -9150,25 +9334,7 @@ document.addEventListener('DOMContentLoaded', function(){
       +   '<div class="playerQuickViewSectionTitle">Character</div>'
       +   '<div class="playerQuickViewCell playerQuickViewNote">' + escapeHtml(charLine) + '</div>'
       + '</div>'
-      + '<div class="playerQuickViewSection" data-mm-pqv-user="' + escAttr(handleRaw) + '">'
-      +   '<div class="playerQuickViewSectionTitle">Interact</div>'
-      +   '<p class="playerQuickViewHint">Arena is public. Direct messages and gifts need Supabase migrations (<code>player_interaction_rpc.sql</code>) plus a signed-in session.</p>'
-      +   '<div class="playerQuickViewInteractBtns">'
-      +     '<button type="button" class="shopTab" data-mm-pqv-act="arena-at">Arena @' + handle + '</button>'
-      +     '<button type="button" class="shopTab" data-mm-pqv-act="trade-tip">Player trading tips</button>'
-      +   '</div>'
-      +   '<div class="playerQuickViewSubtle" style="margin-top:10px">Direct message</div>'
-      +   '<textarea id="pqvDmInput" maxlength="800" rows="3" placeholder="Private note to @' + handle + '…"></textarea>'
-      +   '<div class="playerQuickViewInteractBtns" style="margin-top:8px">'
-      +     '<button type="button" class="shopTab" data-mm-pqv-act="dm-send">Send DM</button>'
-      +   '</div>'
-      +   '<div class="playerQuickViewSubtle" style="margin-top:14px">Gift shared exchange cash</div>'
-      +   '<input id="pqvPayAmount" type="number" inputmode="decimal" min="1" step="0.01" placeholder="Amount (min 1)" />'
-      +   '<textarea id="pqvPayNote" maxlength="200" rows="2" placeholder="Optional personal reminder (not sent to server)"></textarea>'
-      +   '<div class="playerQuickViewInteractBtns" style="margin-top:8px">'
-      +     '<button type="button" class="shopTab" data-mm-pqv-act="pay-send">Send payment</button>'
-      +   '</div>'
-      + '</div>'
+      + interactHtml
       + '<div class="playerQuickViewFooter">'
       +   '<a class="playerQuickViewHubLink" href="' + String(hubHref).replace(/"/g, '') + '" target="_blank" rel="noopener noreferrer">Open full profile in Social Hub →</a>'
       + '</div>';
@@ -9182,18 +9348,25 @@ document.addEventListener('DOMContentLoaded', function(){
         requestAnimationFrame(paint);
       });
     }
+    if(isSelf){
+      void mmPqvLoadInbox();
+    }else{
+      void mmPqvFetchAndRenderThread(handleRaw, true);
+    }
+    mmPqvStartInteractPoll(handleRaw, isSelf);
     requestAnimationFrame(function(){ positionPlayerQuickCard(); });
   }
 
   let mmQuickViewSeq = 0;
-  async function handlePlayerQuickView(username, anchorRow){
+  async function handlePlayerQuickView(username, anchorEl){
     const u = String(username || '').trim();
     if (!u) return;
     const seq = ++mmQuickViewSeq;
     const body = q('#playerQuickViewBody');
     if (!body) return;
+    mmPqvClearPoll();
     body.innerHTML = '<div class="playerQuickViewLoading">Loading profile…</div>';
-    openPlayerQuickView(anchorRow);
+    openPlayerQuickView(anchorEl);
     let leaderRow = null;
     try{
       const soc = window.mmSocial;
@@ -9216,21 +9389,6 @@ document.addEventListener('DOMContentLoaded', function(){
     if(seq !== mmQuickViewSeq) return;
     renderPlayerQuickView(payload);
     mmQuickViewOpenUser = u;
-    if(mmQuickViewRefreshTimer){
-      try{ clearInterval(mmQuickViewRefreshTimer); }catch(e2){}
-      mmQuickViewRefreshTimer = null;
-    }
-    mmQuickViewRefreshTimer = setInterval(function(){
-      const un = mmQuickViewOpenUser;
-      if(!un || !window.mmSupabase) return;
-      const seqAtStart = mmQuickViewSeq;
-      fetchPlayerQuickView(un, { leaderRow: null }).then(function(fresh){
-        if(seqAtStart !== mmQuickViewSeq) return;
-        const ov = q('#playerQuickViewOverlay');
-        if(!ov || ov.hasAttribute('hidden')) return;
-        renderPlayerQuickView(fresh);
-      }).catch(function(){});
-    }, 5000);
   }
 
   window.handlePlayerQuickView = handlePlayerQuickView;
@@ -9284,20 +9442,23 @@ document.addEventListener('DOMContentLoaded', function(){
       }
       if(act === 'dm-send'){
         void (async function(){
+          const comp = document.getElementById('pqvDmComposer');
           const ta = document.getElementById('pqvDmInput');
-          const body = (ta && ta.value || '').trim();
+          const body = ((comp && comp.value) || (ta && ta.value) || '').trim();
           if(!body) return toast('Write a message first', 'warning');
           if(!window.mmSupabase) return toast('Sign in to send messages', 'warning');
           if(!un) return toast('Player handle missing', 'warning');
           const { data, error } = await window.mmSupabase.rpc('mm_send_direct_message', { p_to_username: un, p_body: body });
           if(error){
             const m = String(error.message || '');
-            if(/does not exist|42883/i.test(m)) return toast('Run player_interaction_rpc.sql in Supabase to enable direct messages.', 'warning');
+            if(/does not exist|42883/i.test(m)) return toast('Run the latest player_interaction_rpc.sql for DMs.', 'warning');
             return toast(m || 'Message failed', 'warning');
           }
           if(data && data.ok === false) return toast(String(data.error || 'Message failed'), 'warning');
+          if(comp) comp.value = '';
           if(ta) ta.value = '';
           toast('Message sent', 'success');
+          await mmPqvFetchAndRenderThread(un, true);
         })();
         return;
       }
@@ -9333,9 +9494,52 @@ document.addEventListener('DOMContentLoaded', function(){
           }catch(e3){}
           try{ if(typeof refresh === 'function') refresh(); }catch(e4){}
           toast('Payment sent from shared exchange wallet', 'success');
+          await mmPqvFetchAndRenderThread(un, true);
         })();
         return;
       }
+    }, true);
+
+    document.addEventListener('click', function mmPlayerQuickOpenPeer(e){
+      const row = e.target.closest('[data-mm-pqv-open-user]');
+      if(!row) return;
+      const openTo = (row.getAttribute('data-mm-pqv-open-user') || '').trim();
+      if(!openTo) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const chip = document.getElementById('socialChip');
+      handlePlayerQuickView(openTo, chip || null);
+    }, true);
+
+    document.addEventListener('click', function mmSocialChipOpenCard(e){
+      const chip = e.target.closest('#socialChip');
+      if(!chip) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const un = window.mmSocial && window.mmSocial.profile && window.mmSocial.profile.username;
+      if(!un) return toast('Sign in to open your player card', 'warning');
+      handlePlayerQuickView(String(un).trim(), chip);
+    }, true);
+
+    document.addEventListener('keydown', function mmSocialChipOpenKey(e){
+      if(e.key !== 'Enter' && e.key !== ' ') return;
+      const chip = e.target.closest('#socialChip');
+      if(!chip) return;
+      e.preventDefault();
+      const un = window.mmSocial && window.mmSocial.profile && window.mmSocial.profile.username;
+      if(!un) return toast('Sign in to open your player card', 'warning');
+      handlePlayerQuickView(String(un).trim(), chip);
+    }, true);
+
+    document.addEventListener('keydown', function mmPqvComposerEnter(e){
+      if(e.key !== 'Enter' || e.shiftKey) return;
+      const c = e.target.closest('#pqvDmComposer');
+      if(!c) return;
+      const hostBody = q('#playerQuickViewBody');
+      if(!hostBody || !hostBody.contains(c)) return;
+      e.preventDefault();
+      const send = hostBody.querySelector('[data-mm-pqv-act="dm-send"]');
+      if(send) send.click();
     }, true);
 
     document.addEventListener('keydown', function mmPlayerQuickEsc(e){
