@@ -385,6 +385,8 @@ canvas{width:100%;height:100%}
   body.mm-motion .shopCard:hover{box-shadow:0 12px 32px rgba(0,0,0,.35),var(--glow-accent);transform:translateY(-1px)}
 }
 .shopCard .ico{width:54px;height:54px;border-radius:12px;display:grid;place-items:center;background:transparent;border:1px solid rgba(255,255,255,.14);font-size:0;color:var(--text-secondary);box-shadow:none}
+.shopCard .ico--photo{padding:0;overflow:hidden}
+.shopCard .ico--photo img{width:100%;height:100%;object-fit:cover;display:block}
 .shopCard h4{margin:0;font-size:1rem;color:var(--text)}
 .shopCard p{margin:4px 0 0;color:var(--muted);font-size:.85rem;line-height:1.4}
 .priceCol{text-align:right}
@@ -396,8 +398,12 @@ canvas{width:100%;height:100%}
 .profileCard{padding:18px;border-radius:var(--radius);background:rgba(255,255,255,.04);border:var(--glass-border);backdrop-filter:blur(8px)}
 .avatar{width:88px;height:88px;border-radius:14px;background:var(--accent-gradient);display:grid;place-items:center;font-size:2rem;color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.2),var(--glow-accent)}
 .assetList{display:grid;gap:10px;max-height:420px;overflow:auto;padding-right:4px}
-.assetRow{padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.04);border:var(--glass-border);display:flex;justify-content:space-between;gap:10px;align-items:center}
-.assetRowTitle{display:inline-flex;align-items:center;gap:8px;min-width:0}
+.assetRow{padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.04);border:var(--glass-border);display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:12px;align-items:center}
+.assetRowThumb{width:52px;height:52px;border-radius:11px;overflow:hidden;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);display:grid;place-items:center;font-size:0}
+.assetRowThumb img{width:100%;height:100%;object-fit:cover;display:block}
+.assetRowBody{min-width:0}
+.assetRowTitle{display:block;min-width:0}
+.assetRowTitle span{font-weight:800}
 .assetRowTitle .mmIco{flex-shrink:0}
 .toastDock{
   position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);
@@ -778,7 +784,8 @@ canvas{width:100%;height:100%}
 
   .avatar{width:56px;height:56px;border-radius:13px;font-size:1.3rem}
   .assetList{gap:8px}
-  .assetRow{padding:9px 10px;border-radius:10px;font-size:.76rem}
+  .assetRow{padding:9px 10px;border-radius:10px;font-size:.76rem;grid-template-columns:40px minmax(0,1fr) auto;gap:8px}
+  .assetRowThumb{width:40px;height:40px;border-radius:9px}
 
   .newsFlashBadge{font-size:.6rem;padding:5px 8px}
   .newsFlashMarquee{font-size:.82rem;padding-right:2.5rem}
@@ -2533,6 +2540,8 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 <script src="./supabase-client.js"></script>
 <link rel="stylesheet" href="./avatar.css" />
 <script src="./avatar-engine.js"></script>
+<script src="./identity-visuals.js"></script>
+<script src="./identity-studio.js"></script>
 
 </head>
 <body>
@@ -2915,8 +2924,8 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
             <div class="panelSub" style="margin:0;font-weight:800">Spotlight wardrobe</div>
             <div class="empirePickGrid" id="empirePickBar"></div>
             <div class="empireStudioCard" style="margin-top:12px;padding:12px 14px">
-              <div class="panelTitle" style="font-size:1rem">Avatar studio</div>
-              <div class="panelSub" style="margin-top:6px">Skin, hair, outfit, pose, and scale. Changes save with your game and sync to the cloud so other players can see your character in Online Players. Use Randomize / Defaults inside the studio.</div>
+              <div class="panelTitle" style="font-size:1rem">Identity studio</div>
+              <div class="panelSub" style="margin-top:6px">Wardrobe, jewelry, watches, residences, and fleet tie directly to items you own. Equip to update the live figure and stage — presets replace raw sliders. Everything saves with your run.</div>
               <div id="empireAvatarStudio" style="margin-top:10px"></div>
             </div>
             <div class="empireStudioCard empireLifeCard" style="margin-top:12px;padding:12px 14px">
@@ -2925,6 +2934,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
               <div id="empireLifestyleMount" class="empireLifeStudio mmAvStudio" style="margin-top:10px"></div>
             </div>
             <div class="empireAvatarStage" id="empireAvatarStage" data-tier="starter">
+              <div class="empireIdentityBgLayer" id="empireIdentityBgLayer" aria-hidden="true"></div>
               <div class="empireStageSky"></div>
               <div class="empireHouseBackdrop" id="empireHouseBackdrop" aria-hidden="true">
                 <div class="empBigEmoji" id="empireHouseEmoji">🏚️</div>
@@ -3626,6 +3636,7 @@ const shoppingItems = mapItems(shoppingData,'shopping');
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 }
+try{ window.escapeHtml = escapeHtml; }catch(e){}
 
 function niceCategory(name){
   return name.charAt(0).toUpperCase()+name.slice(1);
@@ -3658,6 +3669,7 @@ const game = {
   casinoTab: 'blackjack',
   casino: null,
   avatarDNA: defaultAvatarDNA(),
+  avatarLoadout: {},
   stocks: stockSeed,
   news: [],
   newsArchive: [],
@@ -4114,6 +4126,7 @@ function mmReadAccountPreserveFromGame(){
     ownedProfileAvatars: Array.isArray(game.ownedProfileAvatars) ? game.ownedProfileAvatars.slice() : ['default_avatar'],
     ownedProfileBanners: Array.isArray(game.ownedProfileBanners) ? game.ownedProfileBanners.slice() : ['default_banner','profile_banner_gold','profile_banner_neon','profile_banner_midnight'],
     avatarDNA: JSON.parse(JSON.stringify(normalizeAvatarDNA(game.avatarDNA || {}))),
+    avatarLoadout: JSON.parse(JSON.stringify(mmNormalizeAvatarLoadout(game.avatarLoadout || {}, game.shoppingOwned || []))),
     marginTradingUnlocked: !!game.marginTradingUnlocked,
     legacy: Math.max(0, Math.floor(Number(game.legacy) || 0))
   };
@@ -4172,6 +4185,7 @@ function mmApplyGameplayResetLocal(preserve){
   game.ownedProfileAvatars = Array.isArray(p.ownedProfileAvatars) && p.ownedProfileAvatars.length ? p.ownedProfileAvatars.slice() : ['default_avatar'];
   game.ownedProfileBanners = Array.isArray(p.ownedProfileBanners) && p.ownedProfileBanners.length ? p.ownedProfileBanners.slice() : ['default_banner','profile_banner_gold','profile_banner_neon','profile_banner_midnight'];
   game.avatarDNA = normalizeAvatarDNA(p.avatarDNA || {});
+  game.avatarLoadout = mmNormalizeAvatarLoadout(p.avatarLoadout && typeof p.avatarLoadout === 'object' ? p.avatarLoadout : {}, []);
   try{
     const soc = typeof window !== 'undefined' ? window.mmSocial : null;
     if(soc){
@@ -5290,6 +5304,7 @@ function mmStashAccountFieldsForResetReload(){
       ownedProfileAvatars: Array.isArray(game.ownedProfileAvatars) ? [...game.ownedProfileAvatars] : null,
       ownedProfileBanners: Array.isArray(game.ownedProfileBanners) ? [...game.ownedProfileBanners] : null,
       avatarDNA: game.avatarDNA ? JSON.parse(JSON.stringify(normalizeAvatarDNA(game.avatarDNA))) : null,
+      avatarLoadout: game.avatarLoadout ? JSON.parse(JSON.stringify(mmNormalizeAvatarLoadout(game.avatarLoadout, game.shoppingOwned || []))) : null,
       marginTradingUnlocked: !!game.marginTradingUnlocked,
       selectedAvatar: soc ? soc.selectedAvatar : null,
       selectedBanner: soc ? soc.selectedBanner : null,
@@ -5309,6 +5324,9 @@ function mmMergeResetPreservedAccount(){
     if(Array.isArray(p.ownedProfileAvatars) && p.ownedProfileAvatars.length) game.ownedProfileAvatars = p.ownedProfileAvatars;
     if(Array.isArray(p.ownedProfileBanners) && p.ownedProfileBanners.length) game.ownedProfileBanners = p.ownedProfileBanners;
     if(p.avatarDNA && typeof p.avatarDNA === 'object') game.avatarDNA = normalizeAvatarDNA(p.avatarDNA);
+    if(p.avatarLoadout && typeof p.avatarLoadout === 'object'){
+      game.avatarLoadout = mmNormalizeAvatarLoadout(p.avatarLoadout, game.shoppingOwned || []);
+    }
     if(p.marginTradingUnlocked) game.marginTradingUnlocked = true;
     const soc = typeof window !== 'undefined' ? window.mmSocial : null;
     if(soc){
@@ -6027,6 +6045,176 @@ async function mmQuickSellFromHolding(stockIndex, mode, holdingKind){
 }
 
 function getItemById(id){ return businessItems.find(x=>x.id===id) || shoppingItems.find(x=>x.id===id); }
+try{ window.getItemById = getItemById; }catch(e){}
+
+/** Limited colorways for identity studio (no free-form color picker). */
+const MM_APPEARANCE_PALETTES = [
+  { shirtHue: 235, coatHue: 268, pantsHue: 242, shirtSat: 42, coatSat: 30, pantsSat: 26 },
+  { shirtHue: 38, coatHue: 32, pantsHue: 28, shirtSat: 46, coatSat: 38, pantsSat: 32 },
+  { shirtHue: 168, coatHue: 174, pantsHue: 166, shirtSat: 36, coatSat: 28, pantsSat: 24 },
+  { shirtHue: 350, coatHue: 328, pantsHue: 318, shirtSat: 44, coatSat: 36, pantsSat: 30 },
+  { shirtHue: 210, coatHue: 222, pantsHue: 218, shirtSat: 40, coatSat: 34, pantsSat: 28 },
+  { shirtHue: 280, coatHue: 300, pantsHue: 262, shirtSat: 38, coatSat: 32, pantsSat: 26 },
+  { shirtHue: 24, coatHue: 20, pantsHue: 26, shirtSat: 28, coatSat: 22, pantsSat: 24 },
+  { shirtHue: 130, coatHue: 154, pantsHue: 138, shirtSat: 32, coatSat: 26, pantsSat: 22 }
+];
+try{
+  window.MM_APPEARANCE_PALETTES = MM_APPEARANCE_PALETTES;
+  window.MM_APPEARANCE_PALETTE_SWATCHES = MM_APPEARANCE_PALETTES.map(p =>
+    'hsl(' + p.shirtHue + ',' + Math.min(70, Math.round(p.shirtSat + 8)) + '%,48%)'
+  );
+}catch(e){}
+
+function mmNormalizeAvatarLoadout(lo, owned){
+  const list = Array.isArray(owned) ? owned : [];
+  const o = {
+    outfitLuxuryId: null,
+    jewelryId: null,
+    watchId: null,
+    backgroundHomeId: null,
+    showcaseCarId: null,
+    appearanceHair: null,
+    appearancePalette: 0,
+    appearanceBase: 'm',
+    pose: null
+  };
+  if(lo && typeof lo === 'object') Object.assign(o, lo);
+  const fix = (id, catCheck)=>{
+    if(id == null || id === '') return null;
+    const s = String(id);
+    if(!list.includes(s)) return null;
+    const it = getItemById(s);
+    if(!it || it.kind !== 'shopping') return null;
+    if(typeof catCheck === 'function' && !catCheck(it)) return null;
+    return s;
+  };
+  o.outfitLuxuryId = fix(o.outfitLuxuryId, it=>it.category === 'luxury' || it.category === 'social');
+  o.jewelryId = fix(o.jewelryId, it=>it.category === 'jewelry');
+  o.watchId = fix(o.watchId, it=>it.category === 'watches');
+  o.backgroundHomeId = fix(o.backgroundHomeId, it=>it.category === 'homes');
+  o.showcaseCarId = fix(o.showcaseCarId, it=>it.category === 'cars');
+  o.appearancePalette = Math.max(0, Math.min(MM_APPEARANCE_PALETTES.length - 1, Math.floor(Number(o.appearancePalette) || 0)));
+  o.appearanceBase = o.appearanceBase === 'f' || o.appearanceBase === 'n' ? o.appearanceBase : 'm';
+  if(o.appearanceHair != null){
+    const hi = Math.floor(Number(o.appearanceHair));
+    o.appearanceHair = hi >= 0 && hi <= 5 ? hi : null;
+  }
+  if(o.pose != null){
+    const pi = Math.floor(Number(o.pose));
+    o.pose = pi >= 0 && pi <= 2 ? pi : null;
+  }
+  return o;
+}
+
+function mmMergeLoadoutIntoDNA(baseDna, loadout){
+  const owned = game.shoppingOwned || [];
+  const L = mmNormalizeAvatarLoadout(loadout || {}, owned);
+  const d = normalizeAvatarDNA(JSON.parse(JSON.stringify(baseDna || {})));
+  if(L.pose != null) d.pose = L.pose;
+  const base = L.appearanceBase || 'm';
+  const sc = Number(d.scalePct) || 100;
+  if(base === 'f') d.scalePct = Math.max(78, Math.min(118, sc - 4));
+  else if(base === 'n') d.scalePct = Math.max(78, Math.min(118, sc + 2));
+  else d.scalePct = Math.max(78, Math.min(118, sc));
+  const hairN = (window.MM_AVATAR && window.MM_AVATAR.HAIR_STYLE_COUNT) || 18;
+  const hairPresets = [2, 5, 8, 11, 14, 7];
+  if(L.appearanceHair != null){
+    const hi = Math.max(0, Math.min(5, Math.floor(L.appearanceHair)));
+    d.hairStyle = hairPresets[hi] % hairN;
+  }
+  if(MM_APPEARANCE_PALETTES.length){
+    const pi = Math.max(0, Math.min(MM_APPEARANCE_PALETTES.length - 1, Math.floor(L.appearancePalette || 0)));
+    Object.assign(d, MM_APPEARANCE_PALETTES[pi]);
+  }
+  const lux = L.outfitLuxuryId ? getItemById(L.outfitLuxuryId) : null;
+  if(lux){
+    const st = Number(lux.effects && lux.effects.style) || 12;
+    d.coatStyle = Math.min(5, Math.max(1, Math.floor(st / 22)));
+    d.shirtStyle = Math.min(4, Math.max(1, Math.floor(st / 28)));
+    d.shirtHue = (38 + st * 9) % 360;
+    d.coatHue = (218 + st * 6) % 360;
+    d.pantsHue = (226 + st * 4) % 360;
+    d.shirtSat = Math.min(88, 32 + st);
+    d.coatSat = Math.min(82, 22 + Math.floor(st / 3));
+  }
+  return normalizeAvatarDNA(d);
+}
+
+function mmFlexFromLoadout(){
+  const owned = game.shoppingOwned || [];
+  const L = mmNormalizeAvatarLoadout(game.avatarLoadout || {}, owned);
+  const jewelItem = L.jewelryId ? getItemById(L.jewelryId) : resolveEmpireSpotItem('jewelry');
+  const watchItem = L.watchId ? getItemById(L.watchId) : resolveEmpireSpotItem('watches');
+  const f = window.MM_AVATAR.classifyShopFlex(jewelItem, watchItem);
+  const out = Object.assign({}, f);
+  const thumb = it => (it && window.mmIdentityThumbForItem ? window.mmIdentityThumbForItem(it) : '');
+  if(jewelItem){
+    const u = thumb(jewelItem);
+    if(u){
+      const cf = window.MM_AVATAR.classifyShopFlex(jewelItem, null);
+      if(cf.necklace){
+        out.necklaceImg = u;
+        out.necklace = '';
+        out.necklaceTitle = jewelItem.name;
+      }else if(cf.chestJewel){
+        out.chestJewelImg = u;
+        out.chestJewel = '';
+        out.chestJewelTitle = jewelItem.name;
+      }else if(cf.ringR){
+        out.ringRImg = u;
+        out.ringR = '';
+        out.ringRTitle = jewelItem.name;
+      }else if(cf.ringL){
+        out.ringLImg = u;
+        out.ringL = '';
+        out.ringLTitle = jewelItem.name;
+      }
+    }
+  }
+  if(watchItem){
+    const uw = thumb(watchItem);
+    if(uw){
+      out.watchImg = uw;
+      out.watch = '';
+      out.watchTitle = watchItem.name;
+    }
+  }
+  return out;
+}
+
+function mmResolveHomeForEmpireDisplay(){
+  const L = mmNormalizeAvatarLoadout(game.avatarLoadout || {}, game.shoppingOwned || []);
+  if(L.backgroundHomeId){
+    const it = getItemById(L.backgroundHomeId);
+    if(it) return it;
+  }
+  return resolveEmpireSpotItem('homes');
+}
+function mmResolveCarForEmpireDisplay(){
+  const L = mmNormalizeAvatarLoadout(game.avatarLoadout || {}, game.shoppingOwned || []);
+  if(L.showcaseCarId){
+    const it = getItemById(L.showcaseCarId);
+    if(it) return it;
+  }
+  return resolveEmpireSpotItem('cars');
+}
+function mmResolveJewelForEmpireDisplay(){
+  const L = mmNormalizeAvatarLoadout(game.avatarLoadout || {}, game.shoppingOwned || []);
+  if(L.jewelryId){
+    const it = getItemById(L.jewelryId);
+    if(it) return it;
+  }
+  return resolveEmpireSpotItem('jewelry');
+}
+function mmResolveWatchForEmpireDisplay(){
+  const L = mmNormalizeAvatarLoadout(game.avatarLoadout || {}, game.shoppingOwned || []);
+  if(L.watchId){
+    const it = getItemById(L.watchId);
+    if(it) return it;
+  }
+  return resolveEmpireSpotItem('watches');
+}
+
 function buyItem(id){
   const item = getItemById(id);
   const ownedList = item.kind==='business' ? game.businessOwned : game.shoppingOwned;
@@ -6075,9 +6263,17 @@ function doPrestige(){
   if(!confirm(`Prestige for ${gain} Legacy Points? This resets money, stocks, and purchases.`)) return;
   const legacy = game.legacy + gain;
   const keepAvatarDNA = JSON.parse(JSON.stringify(normalizeAvatarDNA(game.avatarDNA || {})));
+  const prevLo = mmNormalizeAvatarLoadout(game.avatarLoadout || {}, game.shoppingOwned || []);
+  const keepLook = {
+    appearanceHair: prevLo.appearanceHair,
+    appearancePalette: prevLo.appearancePalette,
+    appearanceBase: prevLo.appearanceBase,
+    pose: prevLo.pose
+  };
   localStorage.removeItem(SAVE_KEY);
   Object.assign(game,{cash:500,totalEarned:500,xp:0,level:1,legacy,passivePerSec:0,incomeMult:1,tradeBonus:0,style:0,network:0,view:'home',mmMobileTab:'home',selectedStock:0,tradeQty:1,newsBonusPool:0,mood:'Balanced',trades:0,lastSaved:0,businessOwned:['business_headquarters_0'],shoppingOwned:[],empireShowcasePicks:{homes:'',cars:'',jewelry:'',watches:''},casinoTab:'blackjack',casino:null,ownedProfileAvatars:['default_avatar'],ownedProfileBanners:['default_banner','profile_banner_gold','profile_banner_neon','profile_banner_midnight'],stocks: JSON.parse(JSON.stringify(stockSeed)),news:[],newsArchive:[],ticksUntilNextNews:irand(18,48),paused:false,nextBonusAt:Date.now()+irand(15000,60000),nextLifeAt:Date.now()+irand(60000,300000),activeEvent:null,debt:0,debtInterestRate:0.00045,leverage:1,globalEvent:null,nextGlobalAt:Date.now()+irand(45000,120000),dayCount:1,simHourOfDay:0,creditScore:300,creditTier:0,onTimePayments:0,missedPayments:0,loanCycleStartDay:1,loanDueDay:8,loanDueAmount:0,loanPaidThisCycle:0});
   game.avatarDNA = keepAvatarDNA;
+  game.avatarLoadout = mmNormalizeAvatarLoadout(keepLook, []);
   recalc();
   makeNews(true);makeNews(true);
   save(false);refresh();toast(`Prestiged +${gain} LP`);
@@ -6243,6 +6439,7 @@ function load(){
       game.casino.bj = { phase: 'idle', deck: [], player: [], dealer: [], holeHidden: false, staked: 0, doubled: false };
     }
     game.avatarDNA = normalizeAvatarDNA(game.avatarDNA || {});
+    game.avatarLoadout = mmNormalizeAvatarLoadout(game.avatarLoadout || {}, game.shoppingOwned || []);
     if(!game.newsArchive.length && Array.isArray(game.news) && game.news.length){
       game.newsArchive = game.news.map((n, i) => {
         const idNum = typeof n.id === 'number' ? n.id : NaN;
@@ -7701,8 +7898,13 @@ function renderItems(kind){
     if(item.effects.trade) effectText.push(`+${Math.round(item.effects.trade*100)}% trade edge`);
     if(item.effects.style) effectText.push(`+${item.effects.style} style`);
     if(item.effects.network) effectText.push(`+${Math.round(item.effects.network*100)}% network`);
+    const thumbUrl = kind === 'shopping' && window.mmIdentityThumbForItem ? window.mmIdentityThumbForItem(item) : '';
+    const ico =
+      thumbUrl
+        ? `<div class="ico ico--photo"><img alt="" loading="lazy" decoding="async" src="${escapeHtml(thumbUrl)}"/></div>`
+        : `<div class="ico">${mmIconFromEmoji(item.icon, 28)}</div>`;
     card.innerHTML=
-      `<div class="ico">${mmIconFromEmoji(item.icon, 28)}</div><div><h4>${escapeHtml(item.name)}</h4><p>${escapeHtml(item.desc)}</p></div><div class="priceCol"><div class="cost">${owned?'Owned':fmt(item.cost)}</div><div class="effect">${escapeHtml(effectText.join(' · ') || 'Status boost')}</div><button class="buySmall ${owned?'owned':''}">${owned?'Owned':'Buy'}</button></div>`;
+      `${ico}<div><h4>${escapeHtml(item.name)}</h4><p>${escapeHtml(item.desc)}</p></div><div class="priceCol"><div class="cost">${owned?'Owned':fmt(item.cost)}</div><div class="effect">${escapeHtml(effectText.join(' · ') || 'Status boost')}</div><button class="buySmall ${owned?'owned':''}">${owned?'Owned':'Buy'}</button></div>`;
     if(!owned) card.querySelector('button').onclick=()=>buyItem(item.id);
     grid.appendChild(card);
   });
@@ -7788,6 +7990,7 @@ function sanitizeEmpirePicks(){
   if(dirty){
     try{ save(false); }catch(e){}
   }
+  try{ game.avatarLoadout = mmNormalizeAvatarLoadout(game.avatarLoadout || {}, game.shoppingOwned || []); }catch(e){}
 }
 function resolveEmpireSpotItem(cat){
   ensureEmpireShowcasePicks();
@@ -8164,15 +8367,9 @@ function renderBadges(targetSel){
 let refreshEmpireAvatarStudio = null;
 function ensureEmpireAvatarStudio(){
   const studio = $('#empireAvatarStudio');
-  const host = $('#empireAvatarHost');
-  if(!studio || !host || !window.MM_AVATAR) return;
+  if(!studio || !window.MM_AVATAR || !window.mmMountIdentityStudio) return;
   if(!refreshEmpireAvatarStudio){
-    refreshEmpireAvatarStudio = window.MM_AVATAR.mountStudio(studio, host, {
-      get: () => game.avatarDNA,
-      set: (d) => { game.avatarDNA = window.MM_AVATAR.normalizeAvatarDNA(d); },
-      save: () => { try{ save(false); }catch(e){} },
-      flex: () => window.MM_AVATAR.classifyShopFlex(resolveEmpireSpotItem('jewelry'), resolveEmpireSpotItem('watches'))
-    });
+    refreshEmpireAvatarStudio = window.mmMountIdentityStudio(studio);
   }else{
     refreshEmpireAvatarStudio();
   }
@@ -8180,20 +8377,42 @@ function ensureEmpireAvatarStudio(){
 function paintEmpireAvatarFigure(){
   if(!window.MM_AVATAR) return;
   game.avatarDNA = window.MM_AVATAR.normalizeAvatarDNA(game.avatarDNA || {});
+  game.avatarLoadout = mmNormalizeAvatarLoadout(game.avatarLoadout || {}, game.shoppingOwned || []);
+  const merged = mmMergeLoadoutIntoDNA(game.avatarDNA, game.avatarLoadout);
+  const flex = mmFlexFromLoadout();
   const host = $('#empireAvatarHost');
-  if(!host) return;
-  window.MM_AVATAR.applyAvatarDNAToHost(host, game.avatarDNA,
-    window.MM_AVATAR.classifyShopFlex(resolveEmpireSpotItem('jewelry'), resolveEmpireSpotItem('watches'))
-  );
+  if(host) window.MM_AVATAR.applyAvatarDNAToHost(host, merged, flex);
+  const mini = document.getElementById('identityStudioPreviewHost');
+  if(mini) window.MM_AVATAR.applyAvatarDNAToHost(mini, merged, flex);
+  const bg = document.getElementById('empireIdentityBgLayer');
+  if(bg && window.mmIdentityHeroForItem){
+    const hid = game.avatarLoadout && game.avatarLoadout.backgroundHomeId;
+    const homeItem = hid ? getItemById(hid) : mmResolveHomeForEmpireDisplay();
+    const url = homeItem ? window.mmIdentityHeroForItem(homeItem) : '';
+    if(url){
+      bg.style.backgroundImage = 'url(' + JSON.stringify(String(url)) + ')';
+      bg.style.opacity = '0.5';
+    }else{
+      bg.style.backgroundImage = '';
+      bg.style.opacity = '0';
+    }
+  }
 }
+try{
+  window.mmNormalizeAvatarLoadout = mmNormalizeAvatarLoadout;
+  window.mmMergeLoadoutIntoDNA = mmMergeLoadoutIntoDNA;
+  window.mmFlexFromLoadout = mmFlexFromLoadout;
+  window.mmPaintEmpireAvatarFigure = paintEmpireAvatarFigure;
+}catch(e){}
 function renderEmpire(){
   sanitizeEmpirePicks();
   ensureEmpireShowcasePicks();
   game.avatarDNA = normalizeAvatarDNA(game.avatarDNA || {});
-  const homePick = resolveEmpireSpotItem('homes');
-  const carPick = resolveEmpireSpotItem('cars');
-  const jewelPick = resolveEmpireSpotItem('jewelry');
-  const watchPick = resolveEmpireSpotItem('watches');
+  game.avatarLoadout = mmNormalizeAvatarLoadout(game.avatarLoadout || {}, game.shoppingOwned || []);
+  const homePick = mmResolveHomeForEmpireDisplay();
+  const carPick = mmResolveCarForEmpireDisplay();
+  const jewelPick = mmResolveJewelForEmpireDisplay();
+  const watchPick = mmResolveWatchForEmpireDisplay();
   const hq = getTopOwned('business','headquarters');
   const railHome = getTopOwned('shopping','homes');
 
@@ -8205,13 +8424,23 @@ function renderEmpire(){
   const hint = $('#empireSpotlightHint');
 
   if(he){
-    const ic = homePick && homePick.icon ? homePick.icon : '🏚️';
-    he.innerHTML = mmIconFromEmoji(ic, 72);
+    const u = homePick && window.mmIdentityThumbForItem ? window.mmIdentityThumbForItem(homePick) : '';
+    if(u){
+      he.innerHTML = '<img class="empSpotImg" alt="" loading="lazy" decoding="async" src="' + escapeHtml(u) + '"/>';
+    }else{
+      const ic = homePick && homePick.icon ? homePick.icon : '🏚️';
+      he.innerHTML = mmIconFromEmoji(ic, 72);
+    }
   }
   if(hc) hc.textContent = homePick && homePick.name ? homePick.name : 'Dream residence';
   if(ce){
-    const ic = carPick && carPick.icon ? carPick.icon : '🚗';
-    ce.innerHTML = mmIconFromEmoji(ic, 56);
+    const u = carPick && window.mmIdentityThumbForItem ? window.mmIdentityThumbForItem(carPick) : '';
+    if(u){
+      ce.innerHTML = '<img class="empSpotImg empSpotImg--car" alt="" loading="lazy" decoding="async" src="' + escapeHtml(u) + '"/>';
+    }else{
+      const ic = carPick && carPick.icon ? carPick.icon : '🚗';
+      ce.innerHTML = mmIconFromEmoji(ic, 56);
+    }
   }
   if(cc) cc.textContent = carPick && carPick.name ? carPick.name : 'Daily driver';
   if(stage) stage.dataset.tier = empireSpotlightTier(homePick);
@@ -8223,8 +8452,8 @@ function renderEmpire(){
   if(hint){
     const pinned = ['homes','cars','jewelry','watches'].filter(k => game.empireShowcasePicks[k]);
     hint.textContent = pinned.length
-      ? `${pinned.length} slot${pinned.length>1?'s are':' is'} pinned to specific items. Use Auto to follow your newest top-tier flex.`
-      : 'Each slot uses your finest owned piece until you pin a favorite below.';
+      ? `${pinned.length} slot${pinned.length>1?'s are':' is'} pinned to specific items. Use Auto to follow your newest top-tier flex. Identity studio can still override visuals when you equip owned pieces there.`
+      : 'Each slot uses your finest owned piece until you pin a favorite below. Equip jewelry, watches, wardrobe, homes, and cars in Identity studio for the live figure.';
   }
 
   $('#showHome').textContent = homePick ? homePick.name : 'Tiny Apartment';
@@ -8279,8 +8508,13 @@ function renderUser(){
   if(!ids.length){ wrap.innerHTML='<div class="panelSub">No purchased assets yet.</div>'; return; }
   ids.map(getItemById).sort((a,b)=>b.cost-a.cost).forEach(item=>{
     const row=document.createElement('div'); row.className='assetRow';
+    const tu = item.kind === 'shopping' && window.mmIdentityThumbForItem ? window.mmIdentityThumbForItem(item) : '';
+    const ra = item.kind === 'shopping' && window.mmIdentityRarityLabel ? window.mmIdentityRarityLabel(item.cost) : '';
+    const thumb = tu
+      ? `<div class="assetRowThumb"><img alt="" loading="lazy" decoding="async" src="${escapeHtml(tu)}"/></div>`
+      : `<div class="assetRowThumb assetRowThumb--ico">${mmIconFromEmoji(item.icon, 22)}</div>`;
     row.innerHTML=
-      `<div><b class="assetRowTitle">${mmIconFromEmoji(item.icon, 20)}<span>${escapeHtml(item.name)}</span></b><div class="panelSub" style="margin-top:4px">${item.kind==='business'?'Business':'Lifestyle'} · ${escapeHtml(item.category)}</div></div><div>${fmt(item.cost)}</div>`;
+      `${thumb}<div class="assetRowBody"><b class="assetRowTitle"><span>${escapeHtml(item.name)}</span></b><div class="panelSub" style="margin-top:4px">${item.kind==='business'?'Business':'Lifestyle'} · ${escapeHtml(item.category)}${ra ? ' · ' + escapeHtml(ra) : ''}</div></div><div>${fmt(item.cost)}</div>`;
     wrap.appendChild(row);
   });
   try{

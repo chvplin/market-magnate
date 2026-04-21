@@ -305,25 +305,40 @@
     }
 
     const f = flex || {};
-    function setGlyph(sel, emoji, title) {
+    function setGlyphOrImg(sel, emoji, title, imgUrl) {
       const el = host.querySelector(sel);
       if (!el) return;
+      el.classList.remove('mmAvGlyph--media');
+      const url = imgUrl && String(imgUrl).trim() ? String(imgUrl).trim() : '';
+      if (url) {
+        el.textContent = '';
+        el.style.display = 'block';
+        el.title = title || '';
+        el.classList.add('mmAvGlyph--media');
+        let im = el.querySelector('img.mmAvGlyphImg');
+        if (!im) {
+          im = document.createElement('img');
+          im.className = 'mmAvGlyphImg';
+          im.alt = '';
+          im.loading = 'lazy';
+          im.decoding = 'async';
+          el.appendChild(im);
+        }
+        if (im.getAttribute('src') !== url) im.setAttribute('src', url);
+        return;
+      }
+      const old = el.querySelector('img.mmAvGlyphImg');
+      if (old) old.remove();
       const ch = emoji && String(emoji).trim() ? String(emoji).trim() : '';
       el.textContent = ch;
       el.style.display = ch ? 'block' : 'none';
       el.title = title || '';
     }
-    setGlyph('#mmSlotNecklace', f.necklace, f.necklaceTitle);
-    setGlyph('#mmSlotChestJewel', f.chestJewel, f.chestJewelTitle);
-    setGlyph('#mmSlotRingL', f.ringL, f.ringLTitle);
-    setGlyph('#mmSlotRingR', f.ringR, f.ringRTitle);
-    const wEl = host.querySelector('#mmSlotWatch');
-    if (wEl) {
-      const w = f.watch && String(f.watch).trim() ? String(f.watch).trim() : '';
-      wEl.textContent = w;
-      wEl.style.display = w ? 'block' : 'none';
-      wEl.title = f.watchTitle || '';
-    }
+    setGlyphOrImg('#mmSlotNecklace', f.necklace, f.necklaceTitle, f.necklaceImg);
+    setGlyphOrImg('#mmSlotChestJewel', f.chestJewel, f.chestJewelTitle, f.chestJewelImg);
+    setGlyphOrImg('#mmSlotRingL', f.ringL, f.ringLTitle, f.ringLImg);
+    setGlyphOrImg('#mmSlotRingR', f.ringR, f.ringRTitle, f.ringRImg);
+    setGlyphOrImg('#mmSlotWatch', f.watch, f.watchTitle, f.watchImg);
   }
 
   function rowRange(label, key, min, max) {
@@ -482,6 +497,7 @@
   }
 
   global.MM_AVATAR = {
+    HAIR_STYLE_COUNT: HAIR_N,
     MM_AVATAR_DEFAULT: MM_AVATAR_DEFAULT,
     HAIR_LABELS: HAIR_LABELS,
     normalizeAvatarDNA: normalizeAvatarDNA,
