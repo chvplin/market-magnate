@@ -2296,7 +2296,54 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 
 /* ========== Mobile app shell (≤767px) — presentation only; same DOM & game logic ========== */
 .mmMobileHomeMore{display:none}
+#mmMobileSummaryBar{display:none}
+#mmMobileHomeFeed{display:none}
+.mmMobileSummaryBar{
+  flex-direction:column;gap:8px;padding:12px 14px;margin:0 0 12px 0;border-radius:16px;
+  background:linear-gradient(165deg,rgba(22,22,34,.96),rgba(14,14,22,.92));border:var(--glass-border);
+  box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.06)
+}
+.mmMobSumRow{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;min-width:0}
+.mmMobSumName{font-weight:950;font-size:1.05rem;line-height:1.2;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.mmMobSumMood{font-size:.78rem;font-weight:800;color:var(--muted);text-align:right;max-width:46%;line-height:1.3}
+.mmMobSumMoney{display:flex;justify-content:space-between;gap:12px;font-size:.95rem}
+.mmMobSumMoney b{font-weight:900;font-variant-numeric:tabular-nums}
+.mmMobSumK{font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-right:4px}
+.mmMobSumStage{font-size:.82rem;font-weight:800;color:var(--text-secondary);padding-top:2px;border-top:1px solid rgba(255,255,255,.08)}
+.mmMobileHomeFeed{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+.mmMobFeedCard{padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.05);border:var(--glass-border)}
+.mmMobFeedTag{font-size:.68rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.mmMobFeedCard p{margin:6px 0 0;font-size:.9rem;line-height:1.45;font-weight:750;color:var(--text)}
+@media (min-width:768px){
+  #mmMobileSummaryBar,#mmMobileHomeFeed{display:none!important}
+}
 @media (max-width:767px){
+  body.mm-mobile-app #mmMobileSummaryBar{display:flex!important}
+  body.mm-mobile-app.mm-tab-home #mmMobileHomeFeed{display:flex!important;flex-direction:column}
+  body.mm-mobile-app .app{
+    min-height:100dvh;
+    min-height:-webkit-fill-available;
+  }
+  body.mm-mobile-app main.content{
+    flex:1 1 auto;
+    min-height:0;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior-y:contain;
+  }
+  body.mm-mobile-app.mm-tab-stocks .hero,
+  body.mm-mobile-app.mm-tab-portfolio .hero,
+  body.mm-mobile-app.mm-tab-profile .hero{display:none!important}
+  body.mm-mobile-app.mm-tab-stocks #stocksView.panel,
+  body.mm-mobile-app.mm-tab-profile #userView.panel{margin-top:0}
+  body.mm-mobile-app.mm-tab-home .hero{
+    grid-template-columns:1fr!important;
+    gap:14px!important;
+  }
+  body.mm-mobile-app .arenaSlideDock{
+    bottom:max(88px,calc(84px + env(safe-area-inset-bottom,0px)));
+    z-index:133;
+  }
   body.mm-mobile-app .mmMobileHomeMore{display:block;margin-top:14px}
   .mmMobileHomeMoreLabel{font-size:.72rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
   .mmMobileHomeMoreRow{display:flex;flex-wrap:wrap;gap:8px}
@@ -2345,7 +2392,12 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   body.mm-mobile-app.mm-tab-portfolio #stocksView.panel{display:block!important}
   body.mm-mobile-app.mm-tab-portfolio .stocksWrap{display:flex;flex-direction:column;gap:14px}
   body.mm-mobile-app.mm-tab-portfolio .detailTop{order:2}
-  body.mm-mobile-app.mm-tab-portfolio .stockList{max-height:min(200px,32vh)!important}
+  body.mm-mobile-app.mm-tab-portfolio .stockList{max-height:min(240px,36vh)!important}
+  body.mm-mobile-app.mm-tab-social aside.rightRail{
+    max-height:calc(100dvh - 168px - env(safe-area-inset-bottom,0px));
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
 }
 @media (min-width:768px){
   body:not(.mm-mobile-app) .mmMobileHomeMore{display:none!important}
@@ -2406,7 +2458,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   <button type="button" class="arenaSlideTab" id="arenaSlideTab" aria-expanded="false" aria-controls="arenaSlidePanelInner" title="Live arena — hover the left edge, or tap to pin">Arena</button>
   <div class="arenaSlidePanelInner railCard arenaRailCard" id="arenaSlidePanelInner" role="region" aria-label="Live arena">
     <div class="railTitle"><span>Live arena</span><span class="arenaLiveBadge" title="Shared multiplayer rail"><span class="dot" aria-hidden="true"></span>LIVE</span></div>
-    <p class="arenaIntro">Same shared clock as everyone else — <b>Global chat</b> lives here. Big trades, jackpots, and flex buys scroll in the purple <b>Live</b> strip under the top bar. Hover the left edge or tap <b>Arena</b> to pin.</p>
+    <p class="arenaIntro">Same shared clock as everyone else — <b>Global chat</b> lives here. The purple <b>Live</b> strip under the top bar only highlights huge public moments (e.g. $10M+ tape size, major flex buys, level ups). Private life events stay as center-screen choices. Hover the left edge or tap <b>Arena</b> to pin.</p>
     <div class="layoutHint" id="seasonPill" style="margin-bottom:6px"></div>
     <div id="worldPulseRail" class="worldPulseRail" aria-live="polite">Syncing world pulse…</div>
     <div class="arenaSubTitle">You vs them</div>
@@ -2482,6 +2534,17 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   </aside>
 
   <main class="content">
+    <div id="mmMobileSummaryBar" class="mmMobileSummaryBar" aria-label="Mobile portfolio summary">
+      <div class="mmMobSumRow">
+        <div class="mmMobSumName" data-mm-mob-name>—</div>
+        <div class="mmMobSumMood" data-mm-mob-mood>—</div>
+      </div>
+      <div class="mmMobSumRow mmMobSumMoney">
+        <div><span class="mmMobSumK">Cash</span><b data-mm-mob-cash>—</b></div>
+        <div><span class="mmMobSumK">Net</span><b data-mm-mob-net>—</b></div>
+      </div>
+      <div class="mmMobSumStage" data-mm-mob-stage>—</div>
+    </div>
     <section class="hero">
       <div class="heroLeft">
         <div class="pillRow">
@@ -2513,6 +2576,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
           <div class="heroCard"><div class="label">News Mood</div><div class="value" id="marketMoodHero">Calm</div></div>
           <div class="heroCard"><div class="label">Owned Assets</div><div class="value" id="assetCountHero">0</div></div>
         </div>
+        <div class="mmMobileHomeFeed" id="mmMobileHomeFeed" aria-label="Home briefing"></div>
       </div>
       <div class="heroArt empirePreview">
         <div class="glow g1"></div><div class="glow g2"></div>
@@ -2856,7 +2920,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 
 <nav class="mobileNav" id="mobileNav" aria-label="Mobile navigation">
   <button type="button" class="mobileNavBtn" data-mm-tab="home" aria-controls="app"><span>🏠</span><b>Home</b></button>
-  <button type="button" class="mobileNavBtn" data-mm-tab="stocks" aria-controls="stocksView"><span>📊</span><b>Stocks</b></button>
+  <button type="button" class="mobileNavBtn" data-mm-tab="stocks" aria-controls="stocksView"><span>📈</span><b>Market</b></button>
   <button type="button" class="mobileNavBtn" data-mm-tab="portfolio" aria-controls="financeView"><span>💼</span><b>Portfolio</b></button>
   <button type="button" class="mobileNavBtn" data-mm-tab="social" aria-controls="rightRail"><span>🌐</span><b>Social</b></button>
   <button type="button" class="mobileNavBtn" data-mm-tab="profile" aria-controls="userView"><span>👤</span><b>Profile</b></button>
@@ -3359,6 +3423,70 @@ function mmOnResizeLayout(){
   }
 }
 
+/** Mobile shell: compact summary under global chrome (same `game` / HUD data as desktop). */
+function mmRenderMobileSummaryBar(){
+  if(!mmIsMobileLayout()) return;
+  const bar = document.getElementById('mmMobileSummaryBar');
+  if(!bar) return;
+  const set = (sel, val)=>{
+    const n = bar.querySelector(sel);
+    if(n) n.textContent = val != null && String(val).length ? String(val) : '—';
+  };
+  let name = '';
+  try{
+    name = (window.mmSocial && window.mmSocial.profile && (window.mmSocial.profile.display_name || window.mmSocial.profile.username)) || '';
+  }catch(e){}
+  if(!String(name).trim()){
+    const chip = document.getElementById('socialChipName');
+    if(chip) name = chip.textContent || '';
+  }
+  set('[data-mm-mob-name]', String(name || 'Player').trim().slice(0, 36));
+  const moodHero = document.getElementById('marketMoodHero');
+  const mood = moodHero && moodHero.textContent ? moodHero.textContent.trim() : String(game.mood || '—');
+  set('[data-mm-mob-mood]', mood);
+  try{
+    set('[data-mm-mob-cash]', fmt(game.cash));
+    set('[data-mm-mob-net]', fmt(netWorth()));
+  }catch(e){
+    set('[data-mm-mob-cash]', '—');
+    set('[data-mm-mob-net]', '—');
+  }
+  let stageLine = '—';
+  try{
+    const a = typeof currentStage === 'function' ? currentStage() : '';
+    const b = typeof currentStatus === 'function' ? currentStatus() : '';
+    const parts = [a, b].filter(x => String(x || '').trim().length);
+    if(parts.length) stageLine = parts.join(' · ');
+  }catch(e2){}
+  set('[data-mm-mob-stage]', stageLine);
+}
+/** Mobile Home tab: short briefing cards (feed-style; no extra state). */
+function mmRenderMobileHomeFeed(){
+  if(!mmIsMobileLayout()) return;
+  if((game.mmMobileTab || 'home') !== 'home') return;
+  const el = document.getElementById('mmMobileHomeFeed');
+  if(!el) return;
+  const cards = [];
+  if(game.globalEvent && (game.globalEvent.title || game.globalEvent.name)){
+    cards.push({ tag: 'World', text: String(game.globalEvent.title || game.globalEvent.name || 'Event').slice(0, 120) });
+  }
+  const n0 = Array.isArray(game.news) && game.news[0];
+  if(n0 && (n0.headline || n0.title)){
+    cards.push({ tag: 'Headline', text: String(n0.headline || n0.title || '').slice(0, 140) });
+  }
+  try{
+    cards.push({ tag: 'Clock', text: formatGameDate() + ' · Sim day ' + (Number(game.dayCount) || 1) });
+  }catch(e){
+    cards.push({ tag: 'Clock', text: '—' });
+  }
+  el.innerHTML = cards
+    .map(
+      c =>
+        `<div class="mmMobFeedCard"><span class="mmMobFeedTag">${escapeHtml(c.tag)}</span><p>${escapeHtml(c.text)}</p></div>`
+    )
+    .join('');
+}
+
 function recalc(){
   game.passivePerSec = 0;
   game.incomeMult = 1 + game.legacy*0.08;
@@ -3559,7 +3687,17 @@ function performBankruptcyReset(){
 function currentStage(){ let s=stageDefs[0].name; for(const x of stageDefs){ if(netWorth()>=x.worth) s=x.name; } return s; }
 function currentStatus(){ let s=statusDefs[0].name; for(const x of statusDefs){ if(netWorth()>=x.worth) s=x.name; } return s; }
 
-function addXP(n){ game.xp += n; }
+function addXP(n){
+  const prevLevel = Math.max(1, Math.floor(Math.sqrt(Math.max(Number(game.xp) || 0, 0)) / 5) + 1);
+  game.xp += Number(n) || 0;
+  const newLevel = Math.max(1, Math.floor(Math.sqrt(Math.max(Number(game.xp) || 0, 0)) / 5) + 1);
+  if(newLevel > prevLevel){
+    try{
+      const who = mmLivePlayerTag();
+      mmPushWorldLiveFeed(`${who} reached level ${newLevel}`, '⭐ ');
+    }catch(e){}
+  }
+}
 const TOAST_MIN_VISIBLE_MS = 2500;
 const TOAST_FADE_OUT_MS = 360;
 const TOAST_MAX_STACK = 8;
@@ -3674,6 +3812,60 @@ let __mmWorldLiveBuffer = [];
 let __mmWorldLiveRunId = 0;
 let __mmWorldLiveHideTimer = null;
 const MM_WORLD_LIVE_MAX = 28;
+/** Top “Live” strip: only major public moments (see mmMaybePushPublicTradeImpact, milestones, flex buys, level ups). */
+const MM_PUBLIC_LIVE_MIN_ORDER_USD = 10_000_000;
+const MM_PUBLIC_LIVE_TAPE_REL_LIQ = 0.035;
+const MM_PUBLIC_LIVE_MIN_TAPE_ORDER_USD = 500_000;
+const MM_PUBLIC_LIVE_NET_WORTH_DELTA = 10_000_000;
+const MM_PUBLIC_LIVE_SHOPPING_MIN_USD = 500_000;
+const MM_PUBLIC_LIVE_SHOPPING_CATS = new Set(['homes', 'cars', 'jewelry', 'watches', 'collectibles']);
+const MM_PUBLIC_LIVE_NET_MILESTONE_USD = 10_000_000;
+function mmAppendLocalArenaPing(text){
+  const raw = String(text || '').trim();
+  if(!raw) return;
+  const buf = window.__mmArenaPingBuffer || (window.__mmArenaPingBuffer = []);
+  buf.unshift({ id: 'local-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10), t: Date.now(), html: escapeHtml(raw) });
+  while(buf.length > 40) buf.pop();
+  if(typeof window.mmRefreshLive === 'function') window.mmRefreshLive();
+}
+function mmLivePlayerTag(){
+  const dis = (window.mmSocial && window.mmSocial.profile && (window.mmSocial.profile.display_name || window.mmSocial.profile.username)) || '';
+  const un = (window.mmSocial && window.mmSocial.profile && window.mmSocial.profile.username) || '';
+  const d = String(dis || '').trim();
+  const u = String(un || '').trim();
+  if(d && u) return d + ' (@' + u + ')';
+  if(d) return d;
+  if(u) return '@' + u;
+  return 'A trader';
+}
+function mmMaybePushPublicTradeImpact(s, notional, side, extraNote){
+  try{
+    const n = Math.max(0, Number(notional) || 0);
+    if(!s || n < 1) return;
+    const liq = Math.max(45000, Number(s.liquidity) || 1e5);
+    const rel = n / liq;
+    const sym = String(s.symbol || '?');
+    const who = mmLivePlayerTag();
+    if(n >= MM_PUBLIC_LIVE_MIN_ORDER_USD){
+      mmPushWorldLiveFeed(
+        `${who} ${side === 'buy' ? 'committed' : 'moved'} ${fmt(n)} on ${sym}${extraNote ? ' · ' + extraNote : ''}`,
+        ''
+      );
+      return;
+    }
+    if(n >= MM_PUBLIC_LIVE_MIN_TAPE_ORDER_USD && rel >= MM_PUBLIC_LIVE_TAPE_REL_LIQ){
+      mmPushWorldLiveFeed(`${who} shook the tape on ${sym} (~${(rel * 100).toFixed(1)}% of liquidity)`, '');
+    }
+  }catch(e){}
+}
+function mmMaybePushPublicRealizedProfit(pnl, symbol){
+  try{
+    const p = Number(pnl);
+    if(!Number.isFinite(p) || p < MM_PUBLIC_LIVE_MIN_ORDER_USD) return;
+    const who = mmLivePlayerTag();
+    mmPushWorldLiveFeed(`${who} booked ${fmt(p)} profit on ${String(symbol || '?')}`, '');
+  }catch(e){}
+}
 function mmPushWorldLiveFeed(text, prefix){
   const line = (prefix ? String(prefix) : '') + String(text || '').trim();
   if(!line) return;
@@ -3924,16 +4116,7 @@ function mmProcessLifeEventWall(){
         {icon:'💻', title:'Laptop Crash', text:'Your main machine dies during market hours.', apply(){ const amt=Math.max(600, netWorth()*rand(0.0009,0.0025)); game.cash=Math.max(0,game.cash-amt); return `Emergency replacement -${fmt(amt)}`; }, alt(){ const amt=Math.max(120, netWorth()*rand(0.0003,0.0009)); game.cash=Math.max(0,game.cash-amt); return `Cloud workaround -${fmt(amt)} (tape stays synced)`; }},
         {icon:'🧾', title:'Tax Surprise', text:'A boring notice arrives with expensive consequences.', apply(){ const amt=Math.max(900, netWorth()*rand(0.001,0.0032)); game.cash=Math.max(0,game.cash-amt); return `Taxes paid -${fmt(amt)}`; }, alt(){ addXP(-2); return 'You delay it and hope for the best.'; }}
       ];
-  const event = events[irand(0, events.length - 1)];
-  const pickApply = Math.random() > 0.45;
-  const res = pickApply ? (event.apply ? event.apply() : '') : (event.alt ? event.alt() : '');
-  try{
-    toast(`${event.icon || '💬'} ${event.title}: ${res}`, /-/.test(String(res)) ? 'warning' : 'success');
-  }catch(e){}
-  try{
-    mmPushArenaFeed('life', `${event.title} — ${res}`);
-  }catch(e){}
-  refresh();
+  showEventModal(events[irand(0, events.length - 1)]);
 }
 
 function processLifeEvent(){
@@ -4003,7 +4186,7 @@ function mmPushArenaFeed(kind, text){
   mmArenaEnsureGameFields();
   const firm = (game.firmTag || '').trim();
   const prefix = firm ? '[' + firm + '] ' : '';
-  mmPushWorldLiveFeed(String(text || ''), prefix);
+  mmAppendLocalArenaPing(prefix + String(text || ''));
 }
 function mmApplyTradeMicroPrice(s, notional, side){
   if(!s || !notional) return;
@@ -4030,7 +4213,6 @@ function mmSpectatorToast(msg){
   try{
     toast(msg, 'notification');
   }catch(e){}
-  mmPushWorldLiveFeed(String(msg || ''), '');
 }
 /** Shared-world public activity row (optional table `shared_activity_feed` — see shared_world_schema.sql). */
 async function mmInsertSharedActivityFeed(activityType, text, meta){
@@ -4060,7 +4242,7 @@ function mmDiffNetFromActivity(rows){
     const p = prev[key];
     if(typeof p === 'number' && Number.isFinite(nw)){
       const d = nw - p;
-      if(Math.abs(d) >= 35000){
+      if(Math.abs(d) >= MM_PUBLIC_LIVE_NET_WORTH_DELTA){
         const who = r.display_name || r.username || 'Trader';
         out.push({ t: now, kind: 'leader', text: who + ' tape · net ' + (d >= 0 ? '+' : '') + fmt(d) });
       }
@@ -4370,11 +4552,12 @@ async function mmBuySellStockViaRpc(side, qty, lev){
       const notional = qty * (Number.isFinite(px) ? px : s.price);
       if(lev > 1){
         if(notional >= 220000) mmPushArenaFeed('trade', `Leveraged ${fmtNum(qty)} ${s.symbol} — tape moved`);
+        mmMaybePushPublicTradeImpact(s, notional, 'buy', 'leveraged');
         toast(`Opened ${fmtNum(qty)} ${s.symbol} at ${lev}x`, 'success');
       }else{
         if(notional >= 160000) mmPushArenaFeed('trade', `You bought ~${fmt(notional)} ${s.symbol}`);
-        if(notional >= 380000) mmSpectatorToast(`Big buy: ${fmt(notional)} ${s.symbol} — everyone watches the tape`);
         if(notional >= 380000) void mmInsertSharedActivityFeed('trade_buy', `Bought ~${fmt(notional)} ${s.symbol}`, { symbol: s.symbol, qty, notional });
+        mmMaybePushPublicTradeImpact(s, notional, 'buy', '');
         toast(`Bought ${fmtNum(qty)} ${s.symbol}`, 'success');
       }
     }else{
@@ -4383,11 +4566,13 @@ async function mmBuySellStockViaRpc(side, qty, lev){
       if(lev > 1){
         const pnl = (Number.isFinite(px) ? px - prevLevAvg : 0) * qty * lev;
         game.totalEarned += Math.max(0, pnl);
+        mmMaybePushPublicTradeImpact(s, notional, 'sell', 'leveraged close');
+        mmMaybePushPublicRealizedProfit(pnl, s.symbol);
         toast(`${pnl >= 0 ? 'Closed' : 'Stopped'} ${fmtNum(qty)} ${s.symbol} ${lev}x`, pnl >= 0 ? 'success' : 'warning');
       }else{
         game.totalEarned += Math.max(0, notional);
         if(notional >= 160000) mmPushArenaFeed('trade', `You sold ~${fmt(notional)} ${s.symbol}`);
-        if(notional >= 380000) mmSpectatorToast(`Size sell: ${fmt(notional)} ${s.symbol} — liquidity test`);
+        mmMaybePushPublicTradeImpact(s, notional, 'sell', '');
         if(notional >= 380000) void mmInsertSharedActivityFeed('trade_sell', `Sold ~${fmt(notional)} ${s.symbol}`, { symbol: s.symbol, qty, notional });
         toast(`Sold ${fmtNum(qty)} ${s.symbol}`, 'success');
       }
@@ -5145,6 +5330,7 @@ function buyStock(){
     if(levNotional >= 220000){
       mmPushArenaFeed('trade', `Leveraged ${fmtNum(qty)} ${s.symbol} — tape moved`);
     }
+    mmMaybePushPublicTradeImpact(s, levNotional, 'buy', 'leveraged');
     toast(`Opened ${fmtNum(qty)} ${s.symbol} at ${lev}x`, 'success');
     refresh();
     return;
@@ -5161,8 +5347,8 @@ function buyStock(){
   if(cost >= 160000){
     mmPushArenaFeed('trade', `You bought ~${fmt(cost)} ${s.symbol}`);
   }
-  if(cost >= 380000) mmSpectatorToast(`Big buy: ${fmt(cost)} ${s.symbol} — everyone watches the tape`);
   if(cost >= 380000) void mmInsertSharedActivityFeed('trade_buy', `Bought ~${fmt(cost)} ${s.symbol}`, { symbol: s.symbol, qty, notional: cost });
+  mmMaybePushPublicTradeImpact(s, cost, 'buy', '');
   toast(`Bought ${fmtNum(qty)} ${s.symbol}`, 'success');
   refresh();
 }
@@ -5187,7 +5373,10 @@ async function sellStock(){
     game.totalEarned += Math.max(0, pnl);
     game.trades++;
     addXP(4 + qty * 0.03 + lev);
-    mmApplyTradeMicroPrice(s, qty * s.price, 'sell');
+    const levNotionalClose = qty * s.price;
+    mmApplyTradeMicroPrice(s, levNotionalClose, 'sell');
+    mmMaybePushPublicTradeImpact(s, levNotionalClose, 'sell', 'leveraged close');
+    mmMaybePushPublicRealizedProfit(pnl, s.symbol);
     toast(`${pnl >= 0 ? 'Closed' : 'Stopped'} ${fmtNum(qty)} ${s.symbol} ${lev}x`, pnl >= 0 ? 'success' : 'warning');
     refresh();
     return;
@@ -5201,6 +5390,8 @@ async function sellStock(){
     return;
   }
   const value = qty*s.price;
+  const avgBefore = Number(s.avg) || 0;
+  const profitSpot = value - qty * avgBefore;
   game.cash += value;
   s.owned = Math.max(0, spotOwned - qty);
   if(s.owned<=0){ s.owned=0; s.avg=0; }
@@ -5209,8 +5400,9 @@ async function sellStock(){
   addXP(2 + qty*0.02);
   mmApplyTradeMicroPrice(s, value, 'sell');
   if(value >= 160000) mmPushArenaFeed('trade', `You sold ~${fmt(value)} ${s.symbol}`);
-  if(value >= 380000) mmSpectatorToast(`Size sell: ${fmt(value)} ${s.symbol} — liquidity test`);
   if(value >= 380000) void mmInsertSharedActivityFeed('trade_sell', `Sold ~${fmt(value)} ${s.symbol}`, { symbol: s.symbol, qty, notional: value });
+  mmMaybePushPublicTradeImpact(s, value, 'sell', '');
+  mmMaybePushPublicRealizedProfit(profitSpot, s.symbol);
   toast(`Sold ${fmtNum(qty)} ${s.symbol}`, 'success');
   refresh();
 }
@@ -5326,10 +5518,15 @@ function buyItem(id){
   } else {
     toast(`${item.name} purchased`, 'success');
   }
-  if(Number(item.cost) >= 95000){
-    const dis = (window.mmSocial && window.mmSocial.profile && (window.mmSocial.profile.display_name || window.mmSocial.profile.username)) || 'A player';
-    const un = (window.mmSocial && window.mmSocial.profile && window.mmSocial.profile.username) || '';
-    mmPushWorldLiveFeed(`${dis}${un ? ' (@' + un + ')' : ''} bought ${item.name} · ${fmt(item.cost)}`, '');
+  if(
+    item.kind === 'shopping' &&
+    MM_PUBLIC_LIVE_SHOPPING_CATS.has(String(item.category || '')) &&
+    Number(item.cost) >= MM_PUBLIC_LIVE_SHOPPING_MIN_USD
+  ){
+    try{
+      const who = mmLivePlayerTag();
+      mmPushWorldLiveFeed(`${who} acquired ${item.name} · ${fmt(item.cost)}`, '🏠 ');
+    }catch(e){}
   }
   refresh();
 }
@@ -6293,7 +6490,7 @@ function renderArenaRail(){
               `<div class="liveFeedLine"><span class="layoutHint">${new Date(l.t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span> · ${l.html}</div>`
           )
           .join('')
-      : '<div class="layoutHint">Global chat from signed-in players (and quick reactions). Big trades, jackpots, and flex buys scroll in the <b>Live</b> strip under the top bar.</div>';
+      : '<div class="layoutHint">Global chat from signed-in players (and quick reactions). The top <b>Live</b> strip shows only major public highlights.</div>';
   }
   const react = document.getElementById('reactionDock');
   if(react && !react.dataset.bound){
@@ -6367,8 +6564,16 @@ function mmCheckNetMilestones(){
   for(const m of marks){
     if(n >= m && !game._mmMilestones['m' + m]){
       game._mmMilestones['m' + m] = 1;
-      mmSpectatorToast('Milestone: ' + fmt(m) + ' net worth');
-      mmPushArenaFeed('spectator', 'You crossed ' + fmt(m) + ' net — arena notices');
+      try{
+        toast('Milestone: ' + fmt(m) + ' net worth', 'success');
+      }catch(e){}
+      mmPushArenaFeed('spectator', 'You crossed ' + fmt(m) + ' net worth');
+      if(m >= MM_PUBLIC_LIVE_NET_MILESTONE_USD){
+        try{
+          const who = mmLivePlayerTag();
+          mmPushWorldLiveFeed(`${who} crossed ${fmt(m)} net worth`, '💎 ');
+        }catch(e){}
+      }
     }
   }
 }
@@ -7791,6 +7996,10 @@ function updateHud(){
   }
   $('#marketMoodHero').textContent = (typeof game._dailyMoodHero === 'string' && game._dailyMoodHero.length) ? game._dailyMoodHero : game.mood;
   $('#assetCountHero').textContent = game.businessOwned.length + game.shoppingOwned.length - 1;
+  try{
+    mmRenderMobileSummaryBar();
+    mmRenderMobileHomeFeed();
+  }catch(e){}
 }
 
 function refresh(){
@@ -7855,6 +8064,12 @@ function refreshLive(){
   try{
     if(__mmLiveTick % 2 === 0) tickArenaUi(false);
   }catch(e){}
+  if(mmIsMobileLayout()){
+    try{
+      mmRenderMobileSummaryBar();
+      if((game.mmMobileTab || 'home') === 'home') mmRenderMobileHomeFeed();
+    }catch(e){}
+  }
 }
 try{ window.mmRefreshLive = refreshLive; }catch(e){}
 
