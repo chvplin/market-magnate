@@ -9432,8 +9432,10 @@ try{ window.mmSocial = mmSocial; }catch(e){}
     return avatarShop.find(a=>a.key===key) || {key:'default_avatar', icon:'💹', name:'Market Default', cost:0};
   }
   async function loadOwnedCosmetics(){
-    const localAvatars = Array.isArray(game?.ownedProfileAvatars) ? game.ownedProfileAvatars : ['default_avatar'];
-    const localBanners = Array.isArray(game?.ownedProfileBanners) ? game.ownedProfileBanners : ['default_banner','profile_banner_gold','profile_banner_neon','profile_banner_midnight'];
+    /** `game` lives inside the main game IIFE; this script tag only sees `window.game`. */
+    const liveGame = (typeof window !== 'undefined' && window.game) ? window.game : null;
+    const localAvatars = Array.isArray(liveGame?.ownedProfileAvatars) ? liveGame.ownedProfileAvatars : ['default_avatar'];
+    const localBanners = Array.isArray(liveGame?.ownedProfileBanners) ? liveGame.ownedProfileBanners : ['default_banner','profile_banner_gold','profile_banner_neon','profile_banner_midnight'];
 
     if(!window.mmSupabase){
       mmSocial.ownedAvatarKeys = [...new Set(localAvatars)];
@@ -9463,8 +9465,10 @@ try{ window.mmSocial = mmSocial; }catch(e){}
     mmSocial.ownedAvatarKeys = [...new Set(avatars)];
     mmSocial.ownedBannerKeys = [...new Set(banners)];
 
-    game.ownedProfileAvatars = [...mmSocial.ownedAvatarKeys];
-    game.ownedProfileBanners = [...mmSocial.ownedBannerKeys];
+    if(liveGame){
+      liveGame.ownedProfileAvatars = [...mmSocial.ownedAvatarKeys];
+      liveGame.ownedProfileBanners = [...mmSocial.ownedBannerKeys];
+    }
   }
   
 
@@ -9651,8 +9655,8 @@ function renderThemeSelection(){
     mmSocial.user = await getUser();
     if(!mmSocial.user){
       try{ mmInvalidateAuthUidCache(); }catch(e){}
-      await loadOwnedCosmetics();
       try{ applySocialProfileToUI({}); }catch(e){}
+      try{ await loadOwnedCosmetics(); }catch(e){ try{ console.warn('[MM] loadOwnedCosmetics', e && (e.message || e)); }catch(x){} }
       renderCosmeticStore();
       return;
     }
