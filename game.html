@@ -2124,6 +2124,30 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   .playerQuickViewGrid{grid-template-columns:1fr;}
 }
 
+/* Arena + rail text fields — force readable contrast (native inputs can be white-on-white on dark panels) */
+#arenaChatInput,#firmTagInput,.arenaRailCard input[type="text"]{
+  background:rgba(10,12,20,.94)!important;
+  color:var(--text,#f4f4fb)!important;
+  caret-color:var(--text,#f4f4fb);
+}
+#arenaChatInput::placeholder,#firmTagInput::placeholder,.arenaRailCard input[type="text"]::placeholder{
+  color:var(--muted,#9a9ab8);
+  opacity:.92;
+}
+.playerQuickViewInteractBtns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.playerQuickViewInteractBtns .shopTab{margin:0}
+#pqvDmInput,#pqvPayNote{
+  width:100%;min-height:68px;margin-top:6px;padding:10px 12px;border-radius:12px;
+  border:1px solid rgba(255,255,255,.12);background:#121a28;color:#f0f6ff;font:inherit;resize:vertical;box-sizing:border-box;
+}
+#pqvDmInput::placeholder,#pqvPayNote::placeholder{color:#93a0b3;opacity:.9}
+#pqvPayAmount{
+  width:100%;margin-top:6px;padding:10px 12px;border-radius:12px;
+  border:1px solid rgba(255,255,255,.12);background:#121a28;color:#f0f6ff;font:inherit;box-sizing:border-box;
+}
+#pqvPayAmount::placeholder{color:#93a0b3;opacity:.9}
+.playerQuickViewHint{margin-top:6px;font-size:.78rem;color:#93a0b3;line-height:1.45}
+
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2762,6 +2786,17 @@ const MM_MONEY_SUFFIX_STEPS = [
   [1e3, 'K']
 ];
 const MM_LEVERAGE_UNLOCK_NET = 1_000_000;
+/** Match server mm_execute_trade share cap (avoids bad_qty / float blowups on penny "max"). */
+const MM_MAX_SHARES_PER_ORDER = 1e12;
+function mmFloorShares(x){
+  const n = Math.floor(Number(x));
+  return Number.isFinite(n) ? n : 0;
+}
+function mmClampOrderShares(q){
+  const f = mmFloorShares(q);
+  if(f < 1) return 0;
+  return Math.min(f, MM_MAX_SHARES_PER_ORDER);
+}
 function mmLeverageUnlocked(){
   try{
     if(game.marginTradingUnlocked) return true;
@@ -3850,7 +3885,11 @@ async function mmBuySellStockViaRpc(side, qty, lev){
       return;
     }
     await window.mmSupabase.rpc('mm_ensure_wallet', { p_seed_cash: game.cash });
-    const q = Math.max(0, Math.floor(Number(qty) || 0));
+    const q = mmClampOrderShares(qty);
+    if(String(side).toUpperCase() === 'BUY' && q < 1){
+      toast('Not enough cash', 'warning');
+      return;
+    }
     if(String(side).toUpperCase() === 'SELL' && q < 1){
       toast('No shares to sell', 'warning');
       return;
@@ -3916,7 +3955,8 @@ async function mmBuySellStockViaRpc(side, qty, lev){
       insufficient_lev: 'No leveraged contracts to sell',
       lev_mismatch: 'Leverage mismatch for this symbol',
       snapshot_concurrent_update: 'Market moved — retry the trade',
-      symbol_not_found: 'Symbol not on tape'
+      symbol_not_found: 'Symbol not on tape',
+      bad_qty: 'Order size out of range — try a smaller amount or re-select Max'
     };
     toast(map[code.trim()] || 'Trade failed — check connection or run shared_trade_rpc.sql', 'warning');
   }
@@ -4620,9 +4660,12 @@ function buyStock(){
 
   const s = game.stocks[game.selectedStock];
   const lev = game.leverage || 1;
+  const px = Number(s && s.price);
+  if(!Number.isFinite(px) || px <= 0) return toast('Invalid stock price', 'warning');
+  const rawMax = lev > 1 ? (game.cash * lev) / px : game.cash / px;
   const qty = game.tradeQty === 'max'
-    ? (lev > 1 ? Math.floor((game.cash * lev) / s.price) : Math.floor(game.cash / s.price))
-    : game.tradeQty;
+    ? mmClampOrderShares(rawMax)
+    : mmClampOrderShares(game.tradeQty);
 
   if(qty < 1) return toast('Not enough cash','warning');
 
@@ -4679,7 +4722,7 @@ function sellStock(){
   if(lev > 1){
     const levOwned = Math.max(0, Math.floor(Number(s.levOwned) || 0));
     if(!(levOwned > 0) || s.levMult !== lev) return toast('No matching leveraged position to close','warning');
-    const qty = game.tradeQty === 'max' ? levOwned : Math.min(game.tradeQty, levOwned);
+    const qty = game.tradeQty === 'max' ? mmClampOrderShares(levOwned) : mmClampOrderShares(Math.min(game.tradeQty, levOwned));
     if(qty < 1) return toast('No leveraged contracts to sell','warning');
     if(mmServerTradeRpcEnabled() && mmSharedSignedIn()){
       void mmBuySellStockViaRpc('SELL', qty, lev);
@@ -4700,7 +4743,7 @@ function sellStock(){
   }
 
   const spotOwned = Math.max(0, Math.floor(Number(s.owned) || 0));
-  const qty = game.tradeQty === 'max' ? spotOwned : Math.min(game.tradeQty, spotOwned);
+  const qty = game.tradeQty === 'max' ? mmClampOrderShares(spotOwned) : mmClampOrderShares(Math.min(game.tradeQty, spotOwned));
   if(qty < 1) return toast('No shares to sell','warning');
   if(mmServerTradeRpcEnabled() && mmSharedSignedIn()){
     void mmBuySellStockViaRpc('SELL', qty, 1);
@@ -5596,6 +5639,31 @@ function mmSaveFirmTag(){
   }catch(e){}
   renderArenaRail();
 }
+async function mmArenaPingInsertPayload(payload){
+  const sup = window.mmSupabase;
+  if(!sup) throw new Error('no_supabase');
+  const un = String(payload.username || 'player');
+  const pay = String(payload.payload || '');
+  const kind = String(payload.kind || 'react');
+  const uid = payload.user_id;
+  const { error: rpcErr } = await sup.rpc('mm_arena_ping_send', {
+    p_username: un,
+    p_payload: pay,
+    p_kind: kind
+  });
+  if(!rpcErr) return;
+  const msg = String((rpcErr && (rpcErr.message || rpcErr.details)) || '');
+  const missingFn = /does not exist|42883|could not find.*function/i.test(msg);
+  if(!missingFn) throw rpcErr;
+  if(!uid) throw rpcErr;
+  const { error } = await sup.from('arena_ping').insert({
+    user_id: uid,
+    username: un,
+    payload: pay,
+    kind: kind
+  });
+  if(error) throw error;
+}
 function mmAppendArenaPingRow(row, opts){
   if(!row || row.id == null) return;
   const bulk = !!(opts && opts.bulk);
@@ -5627,15 +5695,20 @@ async function mmSendArenaChat(){
     const user = auth && auth.user;
     if(!user || !user.id) return toast('Sign in to chat', 'warning');
     const un = (window.mmSocial && window.mmSocial.profile && window.mmSocial.profile.username) || 'player';
-    const { error } = await window.mmSupabase.from('arena_ping').insert({
-      user_id: user.id,
-      username: un,
-      payload: Array.from(raw).slice(0, 400).join(''),
-      kind: 'chat'
-    });
-    if(error){
+    try{
+      await mmArenaPingInsertPayload({
+        user_id: user.id,
+        username: un,
+        payload: Array.from(raw).slice(0, 400).join(''),
+        kind: 'chat'
+      });
+    }catch(error){
       console.warn('arena_ping insert', error);
-      return toast(error.message || 'Chat send failed — run arena_ping_schema.sql and enable Realtime on arena_ping', 'warning');
+      const em = error && error.message ? String(error.message) : '';
+      const hint = /relation|does not exist|schema cache|42P01/i.test(em)
+        ? 'Create table public.arena_ping (run arena_ping_schema.sql in Supabase).'
+        : 'Chat send failed — run arena_ping_schema.sql and enable Realtime on arena_ping.';
+      return toast(em || hint, 'warning');
     }
     if(inp) inp.value = '';
   }catch(e){
@@ -5653,13 +5726,12 @@ async function mmSendQuickReaction(code){
       const user = auth && auth.user;
       if(user && user.id){
         const un = (window.mmSocial && window.mmSocial.profile && window.mmSocial.profile.username) || 'player';
-        const { error } = await window.mmSupabase.from('arena_ping').insert({
-          user_id: user.id,
-          username: un,
-          payload: label,
-          kind: 'react'
-        });
-        posted = !error;
+        try{
+          await mmArenaPingInsertPayload({ user_id: user.id, username: un, payload: label, kind: 'react' });
+          posted = true;
+        }catch(e2){
+          posted = false;
+        }
       }
     }
   }catch(e){}
@@ -7390,6 +7462,17 @@ $('#eventSecondary').addEventListener('click', ()=>{ playClickSound(); if(!game.
     dock.classList.remove('is-proximity');
     tab.setAttribute('aria-expanded', 'false');
   });
+  window.mmSetArenaDockOpen = function(open){
+    const want = open !== false;
+    if(want){
+      dock.classList.add('is-open');
+      tab.setAttribute('aria-expanded', 'true');
+      clearProximity();
+    }else{
+      dock.classList.remove('is-open');
+      tab.setAttribute('aria-expanded', 'false');
+    }
+  };
 })();
 
 load();
@@ -8786,6 +8869,9 @@ document.addEventListener('DOMContentLoaded', function(){
       return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]);
     });
   }
+  function escAttr(str){
+    return String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  }
 
   function fmtMoneySafe(n){
     const val = Number(n || 0);
@@ -9064,6 +9150,25 @@ document.addEventListener('DOMContentLoaded', function(){
       +   '<div class="playerQuickViewSectionTitle">Character</div>'
       +   '<div class="playerQuickViewCell playerQuickViewNote">' + escapeHtml(charLine) + '</div>'
       + '</div>'
+      + '<div class="playerQuickViewSection" data-mm-pqv-user="' + escAttr(handleRaw) + '">'
+      +   '<div class="playerQuickViewSectionTitle">Interact</div>'
+      +   '<p class="playerQuickViewHint">Arena is public. Direct messages and gifts need Supabase migrations (<code>player_interaction_rpc.sql</code>) plus a signed-in session.</p>'
+      +   '<div class="playerQuickViewInteractBtns">'
+      +     '<button type="button" class="shopTab" data-mm-pqv-act="arena-at">Arena @' + handle + '</button>'
+      +     '<button type="button" class="shopTab" data-mm-pqv-act="trade-tip">Player trading tips</button>'
+      +   '</div>'
+      +   '<div class="playerQuickViewSubtle" style="margin-top:10px">Direct message</div>'
+      +   '<textarea id="pqvDmInput" maxlength="800" rows="3" placeholder="Private note to @' + handle + '…"></textarea>'
+      +   '<div class="playerQuickViewInteractBtns" style="margin-top:8px">'
+      +     '<button type="button" class="shopTab" data-mm-pqv-act="dm-send">Send DM</button>'
+      +   '</div>'
+      +   '<div class="playerQuickViewSubtle" style="margin-top:14px">Gift shared exchange cash</div>'
+      +   '<input id="pqvPayAmount" type="number" inputmode="decimal" min="1" step="0.01" placeholder="Amount (min 1)" />'
+      +   '<textarea id="pqvPayNote" maxlength="200" rows="2" placeholder="Optional personal reminder (not sent to server)"></textarea>'
+      +   '<div class="playerQuickViewInteractBtns" style="margin-top:8px">'
+      +     '<button type="button" class="shopTab" data-mm-pqv-act="pay-send">Send payment</button>'
+      +   '</div>'
+      + '</div>'
       + '<div class="playerQuickViewFooter">'
       +   '<a class="playerQuickViewHubLink" href="' + String(hubHref).replace(/"/g, '') + '" target="_blank" rel="noopener noreferrer">Open full profile in Social Hub →</a>'
       + '</div>';
@@ -9150,6 +9255,87 @@ document.addEventListener('DOMContentLoaded', function(){
       e.preventDefault();
       e.stopPropagation();
       handlePlayerQuickView(username, row);
+    }, true);
+
+    document.addEventListener('click', function mmPlayerQuickActions(e){
+      const b = e.target.closest('[data-mm-pqv-act]');
+      const hostBody = q('#playerQuickViewBody');
+      if(!b || !hostBody || !hostBody.contains(b)) return;
+      const act = b.getAttribute('data-mm-pqv-act') || '';
+      if(!act) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const wrap = b.closest('[data-mm-pqv-user]');
+      const targetUser = (wrap && wrap.getAttribute('data-mm-pqv-user')) || mmQuickViewOpenUser || '';
+      const un = String(targetUser || '').trim();
+      if(act === 'arena-at'){
+        if(typeof window.mmSetArenaDockOpen === 'function') window.mmSetArenaDockOpen(true);
+        const ci = document.getElementById('arenaChatInput');
+        if(ci){
+          ci.value = '@' + un + ' ';
+          ci.focus();
+        }
+        toast('Arena opened — that chat channel is public to everyone.', 'notification');
+        return;
+      }
+      if(act === 'trade-tip'){
+        toast('Player-to-player stock swaps are not brokered in-game. Trade the same symbol on the shared tape, use Social Hub, or coordinate off-platform.', 'notification');
+        return;
+      }
+      if(act === 'dm-send'){
+        void (async function(){
+          const ta = document.getElementById('pqvDmInput');
+          const body = (ta && ta.value || '').trim();
+          if(!body) return toast('Write a message first', 'warning');
+          if(!window.mmSupabase) return toast('Sign in to send messages', 'warning');
+          if(!un) return toast('Player handle missing', 'warning');
+          const { data, error } = await window.mmSupabase.rpc('mm_send_direct_message', { p_to_username: un, p_body: body });
+          if(error){
+            const m = String(error.message || '');
+            if(/does not exist|42883/i.test(m)) return toast('Run player_interaction_rpc.sql in Supabase to enable direct messages.', 'warning');
+            return toast(m || 'Message failed', 'warning');
+          }
+          if(data && data.ok === false) return toast(String(data.error || 'Message failed'), 'warning');
+          if(ta) ta.value = '';
+          toast('Message sent', 'success');
+        })();
+        return;
+      }
+      if(act === 'pay-send'){
+        void (async function(){
+          const inp = document.getElementById('pqvPayAmount');
+          const amt = Number(inp && inp.value);
+          if(!Number.isFinite(amt) || amt < 1) return toast('Enter an amount of at least 1', 'warning');
+          if(!window.mmSupabase) return toast('Sign in to send payments', 'warning');
+          if(!un) return toast('Player handle missing', 'warning');
+          const { data, error } = await window.mmSupabase.rpc('mm_transfer_shared_cash', { p_to_username: un, p_amount: amt });
+          if(error){
+            const m = String(error.message || '');
+            if(/does not exist|42883/i.test(m)) return toast('Run player_interaction_rpc.sql in Supabase to enable wallet gifts.', 'warning');
+            return toast(m || 'Transfer failed', 'warning');
+          }
+          if(data && data.ok === false){
+            const code = String(data.error || '');
+            const map = {
+              insufficient_cash: 'Not enough cash in the shared exchange wallet',
+              recipient_not_found: 'Recipient not found',
+              amount_too_small: 'Amount too small',
+              amount_too_large: 'Amount too large',
+              cannot_transfer_self: 'Cannot pay yourself'
+            };
+            return toast(map[code] || code || 'Transfer failed', 'warning');
+          }
+          if(inp) inp.value = '';
+          const note = document.getElementById('pqvPayNote');
+          if(note) note.value = '';
+          try{
+            if(typeof window.mmPullServerExchangeState === 'function') await window.mmPullServerExchangeState();
+          }catch(e3){}
+          try{ if(typeof refresh === 'function') refresh(); }catch(e4){}
+          toast('Payment sent from shared exchange wallet', 'success');
+        })();
+        return;
+      }
     }, true);
 
     document.addEventListener('keydown', function mmPlayerQuickEsc(e){
