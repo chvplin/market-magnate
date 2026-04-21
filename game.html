@@ -36,6 +36,10 @@
   --shadow:0 18px 48px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.04);
   --radius:16px;
   --mm-topbar-h:68px;
+  /* Measured at runtime so fixed strips sit flush under the real topbar */
+  --mm-topbar-measured:68px;
+  --mm-news-flash-h:0px;
+  --mm-world-live-h:0px;
   --ink:var(--text);
 }
 @media (max-width:560px){
@@ -108,12 +112,12 @@ border-radius:8px}
 .searchItemMain b{display:block;font-size:.95rem}
 .searchItemMain span{display:block;color:var(--muted);font-size:.84rem;margin-top:3px}
 .searchItemMeta{font-size:.84rem;color:var(--text-secondary);font-weight:800}
-.circleBtn{width:38px;height:38px;border-radius:999px;background:rgba(255,255,255,.06);border:var(--glass-border);display:grid;place-items:center;font-size:1.05rem;color:var(--text);transition:transform .2s ease,box-shadow .22s ease,background .2s ease,border-color .2s ease}
-.circleBtn:hover{background:rgba(138,43,226,.18);box-shadow:var(--glow-accent);transform:translateY(-1px)}
+.circleBtn{width:38px;height:38px;border-radius:999px;background:rgba(138,43,226,.14);border:1px solid rgba(209,0,209,.32);display:grid;place-items:center;font-size:1.05rem;color:var(--text);box-shadow:0 2px 12px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.06);transition:transform .2s ease,box-shadow .22s ease,background .2s ease,border-color .2s ease}
+.circleBtn:hover{background:rgba(138,43,226,.24);border-color:rgba(232,180,255,.45);box-shadow:var(--glow-accent),0 6px 20px rgba(0,0,0,.28);transform:translateY(-1px)}
 .menuToggle{display:none}
 .app{max-width:1580px;margin:0 auto;padding:16px 18px 22px;display:grid;grid-template-columns:minmax(0,278px) minmax(0,1fr) minmax(0,264px);gap:16px;align-items:start}
 .sidebar,.content,.rightRail{min-height:calc(100vh - 88px)}
-.sidebar{background:var(--panel);border:var(--glass-border);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);position:sticky;top:calc(var(--mm-topbar-h) + 6px);display:flex;flex-direction:column;gap:14px;min-width:0;max-width:100%;overflow-x:hidden;overflow-wrap:anywhere;backdrop-filter:blur(14px) saturate(1.15);transition:transform .25s ease,box-shadow .25s ease}
+.sidebar{background:var(--panel);border:var(--glass-border);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);position:sticky;top:calc(var(--mm-topbar-measured, 68px) + var(--mm-news-flash-h, 0px) + var(--mm-world-live-h, 0px) + 6px);display:flex;flex-direction:column;gap:14px;min-width:0;max-width:100%;overflow-x:hidden;overflow-wrap:anywhere;backdrop-filter:blur(14px) saturate(1.15);transition:transform .25s ease,box-shadow .25s ease}
 @media (prefers-reduced-motion: no-preference){
   body.mm-motion .sidebar:hover{box-shadow:var(--shadow),0 0 0 1px rgba(138,43,226,.15),var(--glow-accent)}
 }
@@ -140,6 +144,27 @@ linear-gradient(180deg,#2c7df0,#145dcb);position:relative;overflow:hidden}
 .menuBtn{padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.04);text-align:left;display:flex;align-items:center;gap:12px;border:var(--glass-border);transition:.2s transform,.2s box-shadow,.2s background,.2s border-color}
 .menuBtn:hover{background:rgba(138,43,226,.1);box-shadow:0 6px 20px rgba(0,0,0,.25);transform:translateY(-1px)}
 .menuBtn.active{background:rgba(138,43,226,.18);border-color:rgba(209,0,209,.35);box-shadow:var(--glow-accent)}
+/* Clear “pressable” affordance — same energy as sidebar menu buttons */
+.qtyBtn:not(.disabled):not(.active){
+  background:rgba(138,43,226,.1);
+  border:1px solid rgba(209,0,209,.28);
+  box-shadow:0 2px 10px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.05);
+}
+.shopTab:not(.disabled):not(.active){
+  background:rgba(138,43,226,.08);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 2px 8px rgba(0,0,0,.16);
+}
+.mobileNavBtn:not(.active){
+  background:rgba(138,43,226,.1);
+  border:1px solid rgba(209,0,209,.22);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+}
+.stockItem{
+  background:rgba(138,43,226,.07);
+  border:1px solid rgba(209,0,209,.22);
+  box-shadow:0 2px 10px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.04);
+}
 .sidebar.collapsed{width:92px;padding:14px 10px}
 .sidebar.collapsed .brand,.sidebar.collapsed .menuText,.sidebar.collapsed .bigCash .sub,.sidebar.collapsed .miniStats,.sidebar.collapsed .sideActions{display:none}
 .sidebar.collapsed .menuBtn{justify-content:center;padding:12px}
@@ -151,11 +176,11 @@ linear-gradient(180deg,#2c7df0,#145dcb);position:relative;overflow:hidden}
 .menuText span{display:block;font-size:.83rem;color:var(--muted);opacity:.95;margin-top:2px}
 .sideActions{margin-top:auto;display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .ghostBtn,.dangerBtn,.heroBtn{padding:12px 14px;border-radius:12px;font-weight:800;transition:transform .18s ease,box-shadow .2s ease,filter .2s ease}
-.ghostBtn{background:rgba(255,255,255,.06);border:var(--glass-border);color:var(--text)}
+.ghostBtn{background:rgba(138,43,226,.08);border:1px solid rgba(209,0,209,.22);color:var(--text);box-shadow:0 2px 10px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.05)}
 .heroBtn{background:var(--accent-gradient);color:#fff;box-shadow:var(--glow-accent)}
 .dangerBtn{background:rgba(255,92,122,.12);border:1px solid rgba(255,92,122,.35);color:#ffb4c0}
 .content{display:flex;flex-direction:column;gap:18px;min-width:0;max-width:100%}
-.rightRail{position:sticky;top:calc(var(--mm-topbar-h) + 6px);display:flex;flex-direction:column;gap:16px;min-width:0;max-width:100%}
+.rightRail{position:sticky;top:calc(var(--mm-topbar-measured, 68px) + var(--mm-news-flash-h, 0px) + var(--mm-world-live-h, 0px) + 6px);display:flex;flex-direction:column;gap:16px;min-width:0;max-width:100%}
 .railCard{padding:16px;border-radius:var(--radius);background:var(--panel);border:var(--glass-border);box-shadow:var(--shadow);min-width:0;max-width:100%;overflow:hidden;backdrop-filter:blur(12px);transition:transform .22s ease,box-shadow .25s ease,border-color .22s ease}
 @media (prefers-reduced-motion: no-preference){
   body.mm-motion .railCard:hover{transform:translateY(-2px);box-shadow:var(--shadow),var(--glow-accent);border-color:rgba(138,43,226,.25)}
@@ -309,8 +334,8 @@ canvas{width:100%;height:100%}
 .metric .k{font-size:.74rem;color:var(--muted);text-transform:uppercase;letter-spacing:.11em}
 .metric .v{margin-top:6px;font-weight:900}
 .tradeButtons{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px}
-.tradeBtn{padding:16px;border-radius:10px;font-size:1rem;font-weight:900;transition:transform .2s cubic-bezier(.2,.85,.2,1),filter .2s ease,box-shadow .25s ease}
-.tradeBtn:hover{filter:brightness(1.06);box-shadow:0 10px 28px rgba(0,0,0,.35),0 0 24px rgba(138,43,226,.2)}
+.tradeBtn{padding:16px;border-radius:10px;font-size:1rem;font-weight:900;border:1px solid rgba(255,255,255,.14);box-shadow:0 4px 18px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.12);transition:transform .2s cubic-bezier(.2,.85,.2,1),filter .2s ease,box-shadow .25s ease}
+.tradeBtn:hover{filter:brightness(1.06);box-shadow:0 10px 28px rgba(0,0,0,.35),0 0 24px rgba(138,43,226,.28)}
 .tradeBtn:active{transform:scale(.985)}
 .buyBtn{background:linear-gradient(135deg,#00c978,#00a86a);color:#fff}
 .sellBtn{background:linear-gradient(135deg,#ff6b86,#d63d5c);color:#fff}
@@ -357,7 +382,7 @@ canvas{width:100%;height:100%}
 .priceCol{text-align:right}
 .priceCol .cost{font-weight:900}
 .priceCol .effect{font-size:.8rem;color:var(--muted);margin-top:4px}
-.buySmall{margin-top:8px;padding:9px 12px;border-radius:10px;background:var(--accent-gradient);color:#fff;font-weight:900;box-shadow:var(--glow-accent)}
+.buySmall{margin-top:8px;padding:9px 12px;border-radius:10px;background:var(--accent-gradient);color:#fff;font-weight:900;border:1px solid rgba(255,255,255,.18);box-shadow:var(--glow-accent),0 4px 14px rgba(0,0,0,.25)}
 .buySmall.owned{background:rgba(59,91,253,.2);color:#c8d6ff;border:var(--glass-border)}
 .userGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .profileCard{padding:18px;border-radius:var(--radius);background:rgba(255,255,255,.04);border:var(--glass-border);backdrop-filter:blur(8px)}
@@ -389,9 +414,9 @@ canvas{width:100%;height:100%}
   display:block;
   position:fixed;
   left:0;right:0;
-  top:var(--mm-topbar-h,68px);
-  z-index:200;
-  padding:7px 12px 8px;
+  top:var(--mm-topbar-measured,68px);
+  z-index:2147482980;
+  padding:8px 12px 9px;
   background:linear-gradient(90deg,#0a1020 0%,#152a4a 42%,#0a1020 100%);
   color:#f1f5f9;
   border-bottom:2px solid #f59e0b;
@@ -451,9 +476,9 @@ canvas{width:100%;height:100%}
   display:block;
   position:fixed;
   left:0;right:0;
-  top:var(--mm-topbar-h,68px);
-  z-index:195;
-  padding:6px 12px 7px;
+  top:calc(var(--mm-topbar-measured,68px) + var(--mm-news-flash-h,0px));
+  z-index:2147482975;
+  padding:7px 12px 8px;
   background:linear-gradient(90deg,#0d1424 0%,#1a1f3a 50%,#0d1424 100%);
   color:#e8ecff;
   border-bottom:1px solid rgba(99,102,241,.45);
@@ -466,9 +491,6 @@ canvas{width:100%;height:100%}
 .mmWorldLiveStrip.is-active{
   transform:translateY(0);
   opacity:1;
-}
-.newsFlashBar.is-active ~ .mmWorldLiveStrip{
-  top:calc(var(--mm-topbar-h, 68px) + 38px);
 }
 .mmWorldLiveInner{display:flex;align-items:center;gap:10px;max-width:100%}
 .mmWorldLiveBadge{
@@ -538,7 +560,7 @@ canvas{width:100%;height:100%}
 .eventChoices{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px;position:relative;z-index:1}
 .eventChoices button{padding:14px 16px;border-radius:13px;font-weight:900}
 .eventChoices .primary{background:var(--accent-gradient);color:#fff;box-shadow:var(--glow-accent)}
-.eventChoices .secondary{background:rgba(255,255,255,.06);border:var(--glass-border);color:var(--text)}
+.eventChoices .secondary{background:rgba(138,43,226,.1);border:1px solid rgba(209,0,209,.26);color:var(--text);box-shadow:0 2px 10px rgba(0,0,0,.14)}
 #bankruptcyOverlay{z-index:10060;background:rgba(10,14,22,.78)!important}
 #bankruptcyOverlay .eventModal{border:1px solid rgba(220,90,90,.42);box-shadow:0 28px 90px rgba(0,0,0,.45)}
 #bankruptcyOverlay .bankruptcyActions{margin-top:22px;display:flex;flex-direction:column;gap:12px}
@@ -844,12 +866,12 @@ header, .topbar{
 }
 
 body{
-  padding-top:var(--mm-topbar-h,68px) !important;
+  padding-top:calc(var(--mm-topbar-measured, 68px) + var(--mm-news-flash-h, 0px) + var(--mm-world-live-h, 0px)) !important;
 }
 
 @media (max-width: 560px){
   body{
-    padding-top:var(--mm-topbar-h,62px) !important;
+    padding-top:calc(var(--mm-topbar-measured, 62px) + var(--mm-news-flash-h, 0px) + var(--mm-world-live-h, 0px)) !important;
   }
   .topbar{
     padding-top:max(8px, env(safe-area-inset-top, 0px)) !important;
@@ -874,8 +896,8 @@ body{
 .socialMeta p{margin:4px 0 0;color:var(--muted);font-size:.9rem}
 .socialBio{margin:12px 6px 0;color:var(--text-secondary);line-height:1.45;font-size:.92rem}
 .socialActionRow{display:flex;gap:10px;flex-wrap:wrap;margin:14px 6px 0}
-.socialBtn{padding:10px 12px;border-radius:12px;background:var(--accent-gradient);color:#fff;font-weight:800;box-shadow:var(--glow-accent)}
-.socialBtn.secondary{background:rgba(255,255,255,.06);color:var(--text);border:var(--glass-border)}
+.socialBtn{padding:10px 12px;border-radius:12px;background:var(--accent-gradient);color:#fff;font-weight:800;border:1px solid rgba(255,255,255,.2);box-shadow:var(--glow-accent),0 4px 14px rgba(0,0,0,.22)}
+.socialBtn.secondary{background:rgba(138,43,226,.1);color:var(--text);border:1px solid rgba(209,0,209,.28);box-shadow:0 2px 10px rgba(0,0,0,.16)}
 .leaderMini{display:grid;gap:8px;min-width:0;max-width:100%}
 .leaderMiniRow{display:grid;grid-template-columns:28px minmax(0,1fr) minmax(0,40%);gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);min-width:0}
 .leaderMiniRow:last-child{border-bottom:none}
@@ -946,7 +968,7 @@ body{
 .arenaSlideDock{
   position:fixed;
   left:0;
-  top:calc(var(--mm-topbar-h) + 4px);
+  top:calc(var(--mm-topbar-measured, 68px) + var(--mm-news-flash-h, 0px) + var(--mm-world-live-h, 0px) + 6px);
   bottom:max(12px,env(safe-area-inset-bottom,12px));
   width:30px;
   max-width:min(312px,calc(100vw - 8px));
@@ -985,7 +1007,7 @@ body{
   margin:0;
   padding:10px 0;
   cursor:pointer;
-  background:linear-gradient(180deg,rgba(138,43,226,.35),rgba(22,22,32,.95));
+  background:linear-gradient(180deg,rgba(160,70,255,.42),rgba(22,22,32,.96));
   color:#e8d4ff;
   font:inherit;
   font-size:.65rem;
@@ -997,7 +1019,9 @@ body{
   display:flex;
   align-items:center;
   justify-content:center;
-  border-right:1px solid rgba(255,255,255,.08)
+  border-left:2px solid rgba(232,180,255,.55);
+  border-right:1px solid rgba(255,255,255,.1);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 0 18px rgba(138,43,226,.22)
 }
 .arenaSlideTab:focus-visible{outline:2px solid rgba(209,0,209,.6);outline-offset:-2px}
 .arenaSlidePanelInner{
@@ -1055,8 +1079,8 @@ body{
 .liveFeedLine{font-size:.78rem;line-height:1.35;padding:6px 8px;border-radius:8px;background:var(--panel2);border:1px solid var(--line)}
 .liveFeedLine b{font-weight:850}
 .arenaReactionRow{display:flex;flex-wrap:wrap;gap:6px}
-.arenaReactBtn{font:inherit;font-size:.85rem;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel);cursor:pointer;font-weight:800}
-.arenaReactBtn:hover{background:var(--panel2)}
+.arenaReactBtn{font:inherit;font-size:.85rem;padding:6px 10px;border-radius:999px;border:1px solid rgba(209,0,209,.28);background:rgba(138,43,226,.12);cursor:pointer;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.arenaReactBtn:hover{background:rgba(138,43,226,.22);border-color:rgba(232,180,255,.4)}
 .arenaSprintRow{display:grid;gap:8px}
 .arenaSprintRow .shopTab{font-size:.82rem}
 
@@ -3048,7 +3072,7 @@ const stockSeed = [
   symbol:s[0],name:s[1],sector:s[2],price:s[3],baseVol:s[4],vol:s[4],participants:s[5],liquidity:Math.max(80000, s[5]*rand(0.20,0.45)),sentiment:rand(-0.08,0.08),momentum:0,hype:0,
   drift:rand(-0.003,0.003),owned:0,avg:0,lastDelta:0,history:Array.from({length:60},()=>s[3]),dayHigh:s[3],dayLow:s[3],newsEffect:0,newsVol:0,newsTicks:0,lastFlow:0,colorHue:(i*29)%360, levOwned:0, levAvg:0, levMult:1,
   anchorPrice:s[3], fairValue:s[3] * rand(0.92,1.08), floorPrice:Math.max(0.5, s[3] * 0.18), ceilingPrice:Math.min(5000, Math.max(220, s[3] * (s[4] > 0.04 ? rand(90,180) : s[4] > 0.028 ? rand(24,52) : rand(8,16)))), bubble:0,
-  idioPhase:rand(0, Math.PI*2), latent:rand(-0.14,0.14), volCluster:s[4], microAmp:rand(0.0006,0.0029)
+  idioPhase:rand(0, Math.PI*2), latent:rand(-0.14,0.14), volCluster:s[4], microAmp:rand(0.00042,0.00165)
 }));
 
 
@@ -3447,6 +3471,34 @@ function toast(msg, sound='click'){
 const NEWS_FLASH_MIN_MS = 5000;
 let newsFlashTimer = null;
 let newsFlashRunId = 0;
+/** Sync fixed topbar height + optional news strips so chyrons sit flush and layout clears them. */
+function mmSyncHeadStackLayout(){
+  try{
+    const root = document.documentElement;
+    const tb = document.querySelector('.topbar');
+    let mh = parseFloat(getComputedStyle(root).getPropertyValue('--mm-topbar-h')) || 68;
+    if(tb){
+      const r = tb.getBoundingClientRect();
+      if(r.height > 4) mh = Math.ceil(r.height);
+    }
+    root.style.setProperty('--mm-topbar-measured', mh + 'px');
+    const flash = document.getElementById('newsFlashBar');
+    const live = document.getElementById('mmWorldLiveStrip');
+    let fh = 0;
+    let lh = 0;
+    if(flash && flash.classList.contains('is-active')){
+      const fr = flash.getBoundingClientRect();
+      if(fr.height > 2) fh = Math.ceil(fr.height);
+    }
+    if(live && live.classList.contains('is-active')){
+      const lr = live.getBoundingClientRect();
+      if(lr.height > 2) lh = Math.ceil(lr.height);
+    }
+    root.style.setProperty('--mm-news-flash-h', fh + 'px');
+    root.style.setProperty('--mm-world-live-h', lh + 'px');
+  }catch(e){}
+}
+try{ window.mmSyncHeadStackLayout = mmSyncHeadStackLayout; }catch(e){}
 function showNewsFlashChyron(message){
   const bar = document.getElementById('newsFlashBar');
   const track = document.getElementById('newsFlashTrack');
@@ -3475,6 +3527,7 @@ function showNewsFlashChyron(message){
   });
   bar.removeAttribute('hidden');
   bar.classList.add('is-active');
+  requestAnimationFrame(function(){ requestAnimationFrame(mmSyncHeadStackLayout); });
   const holdMs = Math.min(22000, Math.max(NEWS_FLASH_MIN_MS, Math.floor(sec * 1000)));
   newsFlashTimer = setTimeout(()=>{
     if(runId !== newsFlashRunId) return;
@@ -3482,6 +3535,7 @@ function showNewsFlashChyron(message){
     bar.setAttribute('hidden','');
     track.innerHTML = '';
     track.style.animation = 'none';
+    requestAnimationFrame(mmSyncHeadStackLayout);
   }, holdMs);
 }
 
@@ -3507,6 +3561,7 @@ function mmRenderWorldLiveStrip(){
     bar.setAttribute('hidden', '');
     track.innerHTML = '';
     track.style.animation = 'none';
+    requestAnimationFrame(mmSyncHeadStackLayout);
     return;
   }
   const chunk = __mmWorldLiveBuffer
@@ -3517,6 +3572,7 @@ function mmRenderWorldLiveStrip(){
   if(!chunk){
     bar.classList.remove('is-active');
     bar.setAttribute('hidden', '');
+    requestAnimationFrame(mmSyncHeadStackLayout);
     return;
   }
   track.innerHTML = '';
@@ -3535,6 +3591,7 @@ function mmRenderWorldLiveStrip(){
   });
   bar.removeAttribute('hidden');
   bar.classList.add('is-active');
+  requestAnimationFrame(function(){ requestAnimationFrame(mmSyncHeadStackLayout); });
   __mmWorldLiveHideTimer = setTimeout(function(){
     if(runId !== __mmWorldLiveRunId) return;
     const stale = Date.now() - 22000;
@@ -3545,6 +3602,7 @@ function mmRenderWorldLiveStrip(){
       bar.setAttribute('hidden', '');
       track.innerHTML = '';
       track.style.animation = 'none';
+      requestAnimationFrame(mmSyncHeadStackLayout);
     }
   }, 22000);
 }
@@ -3818,12 +3876,23 @@ function mmPushArenaFeed(kind, text){
 }
 function mmApplyTradeMicroPrice(s, notional, side){
   if(!s || !notional) return;
-  const liq = Math.max(80000, Number(s.liquidity) || 1e5);
-  const mag = Math.min(0.014, (notional / liq) * (side === 'buy' ? 0.16 : 0.13));
-  if(mag < 2e-6) return;
-  const prev = s.price;
-  s.price = clamp(prev * (1 + (side === 'buy' ? mag : -mag)), s.floorPrice, s.ceilingPrice);
+  const n = Math.max(0, Number(notional) || 0);
+  if(n < 1) return;
+  const liq = Math.max(45000, Number(s.liquidity) || 1e5);
+  const rel = n / liq;
+  const sign = side === 'buy' ? 1 : -1;
+  const impact = Math.min(0.09, 0.0035 + Math.pow(Math.min(rel * 4.2, 14), 0.7) * 0.05);
+  const prev = Number(s.price) || 0;
+  if(prev <= 0) return;
+  s.price = clamp(prev * (1 + sign * impact), s.floorPrice, s.ceilingPrice);
   s.lastDelta = prev > 1e-12 ? s.price / prev - 1 : 0;
+  const fv = Number(s.fairValue);
+  if(Number.isFinite(fv) && fv > 0){
+    const pull = sign * Math.min(0.045, rel * 0.0035) * fv;
+    s.fairValue = clamp(fv + pull, s.floorPrice * 1.02, s.ceilingPrice * 0.94);
+  }
+  s.momentum = clamp((Number(s.momentum) || 0) + sign * Math.min(0.06, rel * 0.014), -0.16, 0.16);
+  s.sentiment = clamp((Number(s.sentiment) || 0) + sign * Math.min(0.09, rel * 0.022), -1.05, 1.05);
   mmQueueSharedTapePush();
 }
 function mmSpectatorToast(msg){
@@ -4650,7 +4719,7 @@ async function marketTick(opts){
     if(typeof s.idioPhase !== 'number') s.idioPhase = rRand(0, Math.PI * 2);
     if(typeof s.latent !== 'number') s.latent = rRand(-0.12, 0.12);
     if(typeof s.volCluster !== 'number') s.volCluster = s.baseVol;
-    if(typeof s.microAmp !== 'number') s.microAmp = rRand(0.00065, 0.0028);
+    if(typeof s.microAmp !== 'number') s.microAmp = rRand(0.00045, 0.00155);
 
     s.latent = clamp(
       (s.latent * decayH(0.9)) +
@@ -4668,10 +4737,12 @@ async function marketTick(opts){
       0.048
     );
 
-    const idioWave = Math.sin(t * (0.052 + s.baseVol * 0.95) + s.idioPhase) * s.microAmp * 1.38;
+    s.idioPhase += rRandn() * 0.035;
+    const idioWave =
+      Math.sin(t * (0.031 + s.baseVol * 0.38) + s.idioPhase) * s.microAmp * 0.52;
     const sym = s.symbol || 'ZZ';
     const symJ = (sym.length * 23 + sym.charCodeAt(0) * 5 + (s.colorHue || 0)) * 0.017;
-    const weakGlobal = Math.sin(t * (0.027 + s.baseVol * 0.014) + (s.colorHue || 0) * 0.022 + symJ) * 0.00078;
+    const weakGlobal = Math.sin(t * (0.018 + s.baseVol * 0.009) + (s.colorHue || 0) * 0.018 + symJ) * 0.00038;
     const secKey = s.sector || 'Other';
     const secBase = sectorShock[secKey] || 0;
     const secPulse = secBase * (0.48 + ((s.colorHue || 0) % 113) / 220);
@@ -5242,7 +5313,7 @@ function load(){
       merged.idioPhase ??= rand(0, Math.PI * 2);
       merged.latent ??= rand(-0.12, 0.12);
       merged.volCluster ??= merged.baseVol;
-      merged.microAmp ??= rand(0.00065, 0.0028);
+      merged.microAmp ??= rand(0.00045, 0.00155);
       merged.price = clamp(merged.price, merged.floorPrice, merged.ceilingPrice);
       merged.fairValue = clamp(
         Math.max(merged.fairValue, merged.floorPrice * 1.03, merged.anchorPrice * 0.28),
@@ -7734,6 +7805,19 @@ $('#eventSecondary').addEventListener('click', ()=>{ playClickSound(); if(!game.
   };
 })();
 
+(function mmInitHeadStackLayout(){
+  const go = ()=>{ try{ mmSyncHeadStackLayout(); }catch(e){} };
+  go();
+  if(typeof ResizeObserver !== 'undefined'){
+    const tb = document.querySelector('.topbar');
+    if(tb) new ResizeObserver(go).observe(tb);
+    const flash = document.getElementById('newsFlashBar');
+    const live = document.getElementById('mmWorldLiveStrip');
+    if(flash) new ResizeObserver(go).observe(flash);
+    if(live) new ResizeObserver(go).observe(live);
+  }
+  window.addEventListener('resize', go, { passive: true });
+})();
 load();
 refresh();
 try{
