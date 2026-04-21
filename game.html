@@ -446,6 +446,85 @@ canvas{width:100%;height:100%}
   letter-spacing:.01em;
   white-space:nowrap;
 }
+#mmWorldLiveStrip.mmWorldLiveStrip[hidden]{ display:none !important; }
+.mmWorldLiveStrip{
+  display:block;
+  position:fixed;
+  left:0;right:0;
+  top:var(--mm-topbar-h,68px);
+  z-index:195;
+  padding:6px 12px 7px;
+  background:linear-gradient(90deg,#0d1424 0%,#1a1f3a 50%,#0d1424 100%);
+  color:#e8ecff;
+  border-bottom:1px solid rgba(99,102,241,.45);
+  box-shadow:0 6px 22px rgba(0,0,0,.18);
+  transform:translateY(-120%);
+  opacity:0;
+  transition:transform .32s cubic-bezier(.2,.9,.2,1),opacity .24s ease;
+  pointer-events:none;
+}
+.mmWorldLiveStrip.is-active{
+  transform:translateY(0);
+  opacity:1;
+}
+.newsFlashBar.is-active ~ .mmWorldLiveStrip{
+  top:calc(var(--mm-topbar-h, 68px) + 38px);
+}
+.mmWorldLiveInner{display:flex;align-items:center;gap:10px;max-width:100%}
+.mmWorldLiveBadge{
+  flex:0 0 auto;
+  font-size:.62rem;
+  font-weight:950;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:#eef2ff;
+  background:linear-gradient(135deg,#6366f1,#8b5cf6);
+  border-radius:8px;
+  padding:5px 9px;
+  box-shadow:0 2px 0 rgba(0,0,0,.15);
+}
+.mmWorldLiveViewport{
+  flex:1 1 auto;
+  min-width:0;
+  overflow:hidden;
+  mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent);
+}
+.mmWorldLiveTrack{
+  display:flex;
+  width:max-content;
+  will-change:transform;
+}
+.mmWorldLiveMarquee{
+  display:inline-block;
+  padding-right:3rem;
+  font-weight:750;
+  font-size:.86rem;
+  letter-spacing:.01em;
+  white-space:nowrap;
+  color:#dbe4ff;
+}
+@keyframes mmWorldLiveScroll{
+  0%{ transform:translateX(0); }
+  100%{ transform:translateX(-50%); }
+}
+.socialChipNotify{
+  position:absolute;
+  top:-3px;
+  right:-2px;
+  min-width:18px;
+  height:18px;
+  padding:0 5px;
+  border-radius:999px;
+  background:linear-gradient(135deg,#f43f5e,#fb7185);
+  color:#fff;
+  font-size:.62rem;
+  font-weight:950;
+  line-height:18px;
+  text-align:center;
+  box-shadow:0 2px 8px rgba(244,63,94,.45);
+  pointer-events:none;
+}
+.socialChip{position:relative}
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-thumb{background:rgba(138,43,226,.25);border-radius:999px;border:2px solid transparent;background-clip:padding-box}
 .modalOverlay,.overlay{position:fixed;inset:0;background:rgba(5,5,12,.72);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:140;padding:18px}
@@ -2221,7 +2300,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
     <button class="circleBtn" id="shareEmpireBtn" title="Share Empire">🔗</button>
     <button class="circleBtn" id="leaderboardBtn" title="Leaderboard">🏆</button>
     <button class="circleBtn" id="topUser">👤</button>
-    <div class="socialChip" id="socialChip" title="Your profile, messages & payments" role="button" tabindex="0"><div class="avatarMini" id="socialChipAvatar">💹</div><div class="crestMini" id="socialChipCrest">◈</div><div style="min-width:0"><div class="name" id="socialChipName">Guest</div><div class="sub" id="socialChipSub">Offline</div></div></div>
+    <div class="socialChip" id="socialChip" title="Your profile, messages & payments" role="button" tabindex="0"><span id="socialChipNotify" class="socialChipNotify" hidden>0</span><div class="avatarMini" id="socialChipAvatar">💹</div><div class="crestMini" id="socialChipCrest">◈</div><div style="min-width:0"><div class="name" id="socialChipName">Guest</div><div class="sub" id="socialChipSub">Offline</div></div></div>
   </div>
 </div>
 <div id="newsFlashBar" class="newsFlashBar" hidden aria-live="polite" aria-atomic="true">
@@ -2232,17 +2311,25 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
     </div>
   </div>
 </div>
+<div id="mmWorldLiveStrip" class="mmWorldLiveStrip" hidden aria-live="polite">
+  <div class="mmWorldLiveInner">
+    <span class="mmWorldLiveBadge" title="Live player moments (not arena chat)">Live</span>
+    <div class="mmWorldLiveViewport">
+      <div class="mmWorldLiveTrack" id="mmWorldLiveTrack"></div>
+    </div>
+  </div>
+</div>
 
 <div class="arenaSlideDock" id="arenaSlideDock">
   <button type="button" class="arenaSlideTab" id="arenaSlideTab" aria-expanded="false" aria-controls="arenaSlidePanelInner" title="Live arena — hover the left edge, or tap to pin">Arena</button>
   <div class="arenaSlidePanelInner railCard arenaRailCard" id="arenaSlidePanelInner" role="region" aria-label="Live arena">
     <div class="railTitle"><span>Live arena</span><span class="arenaLiveBadge" title="Shared multiplayer rail"><span class="dot" aria-hidden="true"></span>LIVE</span></div>
-    <p class="arenaIntro">Same shared clock, tape, and chat as everyone else — hover the left edge or tap <b>Arena</b> to pin this panel open.</p>
+    <p class="arenaIntro">Same shared clock as everyone else — <b>Global chat</b> lives here. Big trades, jackpots, and flex buys scroll in the purple <b>Live</b> strip under the top bar. Hover the left edge or tap <b>Arena</b> to pin.</p>
     <div class="layoutHint" id="seasonPill" style="margin-bottom:6px"></div>
     <div id="worldPulseRail" class="worldPulseRail" aria-live="polite">Syncing world pulse…</div>
     <div class="arenaSubTitle">You vs them</div>
     <div id="rivalPressureRail"></div>
-    <div class="arenaSubTitle">Tape</div>
+    <div class="arenaSubTitle">Global chat</div>
     <div id="liveActivityFeed" class="liveFeedList"></div>
     <div class="arenaSubTitle">Chat</div>
     <div id="arenaChatRow" style="display:flex;gap:6px;margin-bottom:8px;align-items:center">
@@ -3398,6 +3485,124 @@ function showNewsFlashChyron(message){
   }, holdMs);
 }
 
+let __mmWorldLiveBuffer = [];
+let __mmWorldLiveRunId = 0;
+let __mmWorldLiveHideTimer = null;
+const MM_WORLD_LIVE_MAX = 28;
+function mmPushWorldLiveFeed(text, prefix){
+  const line = (prefix ? String(prefix) : '') + String(text || '').trim();
+  if(!line) return;
+  __mmWorldLiveBuffer.unshift({ t: Date.now(), text: line });
+  if(__mmWorldLiveBuffer.length > MM_WORLD_LIVE_MAX) __mmWorldLiveBuffer.length = MM_WORLD_LIVE_MAX;
+  mmRenderWorldLiveStrip();
+}
+function mmRenderWorldLiveStrip(){
+  const bar = document.getElementById('mmWorldLiveStrip');
+  const track = document.getElementById('mmWorldLiveTrack');
+  if(!bar || !track) return;
+  const runId = ++__mmWorldLiveRunId;
+  clearTimeout(__mmWorldLiveHideTimer);
+  if(!__mmWorldLiveBuffer.length){
+    bar.classList.remove('is-active');
+    bar.setAttribute('hidden', '');
+    track.innerHTML = '';
+    track.style.animation = 'none';
+    return;
+  }
+  const chunk = __mmWorldLiveBuffer
+    .slice(0, 14)
+    .map(function(x){ return String(x.text || '').trim(); })
+    .filter(Boolean)
+    .join('   ·   ');
+  if(!chunk){
+    bar.classList.remove('is-active');
+    bar.setAttribute('hidden', '');
+    return;
+  }
+  track.innerHTML = '';
+  track.style.animation = 'none';
+  void track.offsetWidth;
+  const spanA = document.createElement('span');
+  spanA.className = 'mmWorldLiveMarquee';
+  spanA.textContent = chunk + '   ·   ';
+  const spanB = spanA.cloneNode(true);
+  track.appendChild(spanA);
+  track.appendChild(spanB);
+  const sec = Math.max(18, Math.min(56, 12 + chunk.length * 0.045));
+  requestAnimationFrame(function(){
+    if(runId !== __mmWorldLiveRunId) return;
+    track.style.animation = `mmWorldLiveScroll ${sec}s linear infinite`;
+  });
+  bar.removeAttribute('hidden');
+  bar.classList.add('is-active');
+  __mmWorldLiveHideTimer = setTimeout(function(){
+    if(runId !== __mmWorldLiveRunId) return;
+    const stale = Date.now() - 22000;
+    __mmWorldLiveBuffer = __mmWorldLiveBuffer.filter(function(x){ return x.t >= stale; });
+    if(__mmWorldLiveBuffer.length) mmRenderWorldLiveStrip();
+    else{
+      bar.classList.remove('is-active');
+      bar.setAttribute('hidden', '');
+      track.innerHTML = '';
+      track.style.animation = 'none';
+    }
+  }, 22000);
+}
+
+function mmFeedWorldLiveFromLeaderDiffs(lines){
+  if(!Array.isArray(lines) || !lines.length) return;
+  for(let i = 0; i < lines.length; i++){
+    const ln = lines[i];
+    if(ln && ln.text) mmPushWorldLiveFeed('📊 ' + String(ln.text), '');
+  }
+}
+
+async function mmRefreshToolbarNotifyBadge(){
+  const badge = document.getElementById('socialChipNotify');
+  if(!badge || !window.mmSupabase) return;
+  try{
+    const { data: auth } = await window.mmSupabase.auth.getUser();
+    const uid = auth && auth.user && auth.user.id;
+    if(!uid){
+      badge.setAttribute('hidden', '');
+      return;
+    }
+    let since = 0;
+    try{
+      since = Number(localStorage.getItem('MM_NOTIF_SEEN_TS') || '0') || 0;
+    }catch(e){}
+    if(!since){
+      since = Date.now();
+      try{
+        localStorage.setItem('MM_NOTIF_SEEN_TS', String(since));
+      }catch(e2){}
+    }
+    const sinceIso = new Date(Math.max(0, since - 2000)).toISOString();
+    let n = 0;
+    const q1 = await window.mmSupabase
+      .from('mm_player_direct_message')
+      .select('id', { count: 'exact', head: true })
+      .eq('to_user', uid)
+      .gt('created_at', sinceIso);
+    if(!q1.error && typeof q1.count === 'number') n += q1.count;
+    const q2 = await window.mmSupabase
+      .from('mm_player_wallet_transfer')
+      .select('id', { count: 'exact', head: true })
+      .eq('to_user', uid)
+      .gt('created_at', sinceIso);
+    if(!q2.error && typeof q2.count === 'number') n += q2.count;
+    if(n > 0){
+      badge.textContent = n > 99 ? '99+' : String(n);
+      badge.removeAttribute('hidden');
+    }else{
+      badge.setAttribute('hidden', '');
+    }
+  }catch(e){
+    badge.setAttribute('hidden', '');
+  }
+}
+try{ window.mmRefreshToolbarNotifyBadge = mmRefreshToolbarNotifyBadge; }catch(e){}
+
 
 function maybeTriggerGlobalEvent(rng){
   const rIr = rng && rng.rand ? (a, b)=>mmRngIrand(rng, a, b) : irand;
@@ -3608,9 +3813,7 @@ function mmPushArenaFeed(kind, text){
   mmArenaEnsureGameFields();
   const firm = (game.firmTag || '').trim();
   const prefix = firm ? '[' + firm + '] ' : '';
-  game._arenaFeed.unshift({ t: Date.now(), kind: kind || 'info', text: prefix + String(text || '') });
-  if(game._arenaFeed.length > 48) game._arenaFeed.length = 48;
-  if(mmSharedMarketConfigured()) mmQueueSharedTapePush();
+  mmPushWorldLiveFeed(String(text || ''), prefix);
 }
 function mmApplyTradeMicroPrice(s, notional, side){
   if(!s || !notional) return;
@@ -3626,7 +3829,7 @@ function mmSpectatorToast(msg){
   try{
     toast(msg, 'notification');
   }catch(e){}
-  mmPushArenaFeed('spectator', msg);
+  mmPushWorldLiveFeed(String(msg || ''), '');
 }
 /** Shared-world public activity row (optional table `shared_activity_feed` — see shared_world_schema.sql). */
 async function mmInsertSharedActivityFeed(activityType, text, meta){
@@ -4020,7 +4223,7 @@ function mmBuildSharedMarketPayloadBody(genForPayload){
     news: Array.isArray(game.news) ? game.news.slice(0, 24) : [],
     newsArchive: Array.isArray(game.newsArchive) ? game.newsArchive.slice(0, 120) : [],
     arena: {
-      feed: Array.isArray(game._arenaFeed) ? game._arenaFeed.slice(0, 48) : [],
+      feed: [],
       sprint: game.arenaSprint && typeof game.arenaSprint === 'object' ? game.arenaSprint : null,
       contract: game.arenaContract && typeof game.arenaContract === 'object' ? game.arenaContract : null
     },
@@ -4274,7 +4477,7 @@ function mmApplySharedMarketPayload(payload){
     game.simNow = mmWallSimNowFromGen(gClock);
     if(payload.arena && typeof payload.arena === 'object'){
       const a = payload.arena;
-      game._arenaFeed = Array.isArray(a.feed) ? a.feed.slice(0, 48) : [];
+      game._arenaFeed = [];
       game.arenaSprint = a.sprint && typeof a.sprint === 'object' && typeof a.sprint.start === 'number' ? a.sprint : null;
       game.arenaContract = a.contract && typeof a.contract === 'object' && a.contract.target != null ? a.contract : null;
     }else{
@@ -4907,6 +5110,11 @@ function buyItem(id){
     toast(`${item.name} purchased · prestige updated`, 'success');
   } else {
     toast(`${item.name} purchased`, 'success');
+  }
+  if(Number(item.cost) >= 95000){
+    const dis = (window.mmSocial && window.mmSocial.profile && (window.mmSocial.profile.display_name || window.mmSocial.profile.username)) || 'A player';
+    const un = (window.mmSocial && window.mmSocial.profile && window.mmSocial.profile.username) || '';
+    mmPushWorldLiveFeed(`${dis}${un ? ' (@' + un + ')' : ''} bought ${item.name} · ${fmt(item.cost)}`, '');
   }
   refresh();
 }
@@ -5800,20 +6008,17 @@ function renderArenaRail(){
   const feedEl = document.getElementById('liveActivityFeed');
   if(feedEl){
     const merged = [];
-    const diffLines = window.__mmLastActivityDiffLines || [];
-    diffLines.forEach(d => merged.push({ t: d.t, html: escapeHtml(d.text) }));
-    (game._arenaFeed || []).forEach(l => merged.push({ t: l.t, html: escapeHtml(l.text) }));
     (window.__mmArenaPingBuffer || []).forEach(l => merged.push({ t: l.t, html: l.html }));
     merged.sort((a, b) => b.t - a.t);
-    feedEl.innerHTML = merged.slice(0, 18).length
+    feedEl.innerHTML = merged.slice(0, 22).length
       ? merged
-          .slice(0, 18)
+          .slice(0, 22)
           .map(
             l =>
               `<div class="liveFeedLine"><span class="layoutHint">${new Date(l.t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span> · ${l.html}</div>`
           )
           .join('')
-      : '<div class="layoutHint">Tape fills as you trade, take loans, hit the casino, and as rivals sync.</div>';
+      : '<div class="layoutHint">Global chat from signed-in players (and quick reactions). Big trades, jackpots, and flex buys scroll in the <b>Live</b> strip under the top bar.</div>';
   }
   const react = document.getElementById('reactionDock');
   if(react && !react.dataset.bound){
@@ -7330,6 +7535,11 @@ function refreshLive(){
   try{ checkBankruptcy(); }catch(e){}
   const v = game.view;
   __mmLiveTick++;
+  if(__mmLiveTick % 120 === 0){
+    try{
+      if(typeof window.mmRefreshToolbarNotifyBadge === 'function') void window.mmRefreshToolbarNotifyBadge();
+    }catch(e){}
+  }
   const stocksHudSkip = v === 'stocks' && !game.paused && (__mmLiveTick % 2 === 1);
   if(!stocksHudSkip) updateHud();
   if(v !== 'stocks' || __mmLiveTick % 2 === 0) renderMenu();
@@ -8041,6 +8251,9 @@ function renderThemeSelection(){
     const favPill = qs('#statusPill'); if(favPill && favorite && favorite !== '—') favPill.textContent = favorite;
 
     renderAvatarGrid(); renderThemeSelection(); renderBannerGrid();
+    try{
+      if(typeof window.mmRefreshToolbarNotifyBadge === 'function') void window.mmRefreshToolbarNotifyBadge();
+    }catch(e){}
   }
   async function getUser(){
   if(!window.mmSupabase) return null;
@@ -8340,6 +8553,7 @@ async function loadLeaderboardSocial(){
     }catch(e){
       window.__mmLastActivityDiffLines = [];
     }
+    mmFeedWorldLiveFromLeaderDiffs(window.__mmLastActivityDiffLines || []);
     if(typeof tickArenaUi === 'function'){
       try{
         tickArenaUi(true);
@@ -8408,6 +8622,7 @@ async function loadLeaderboardSocial(){
   }catch(e){
     window.__mmLastActivityDiffLines = [];
   }
+  mmFeedWorldLiveFromLeaderDiffs(window.__mmLastActivityDiffLines || []);
   if(typeof mmUpdateLeaderRankNudge === 'function'){
     try{
       mmUpdateLeaderRankNudge(rows);
@@ -9110,6 +9325,12 @@ document.addEventListener('DOMContentLoaded', function(){
     const overlay = q('#playerQuickViewOverlay');
     if (!overlay) return;
     mmQuickAnchorEl = anchorEl || null;
+    try{
+      localStorage.setItem('MM_NOTIF_SEEN_TS', String(Date.now()));
+    }catch(e){}
+    if(typeof window.mmRefreshToolbarNotifyBadge === 'function'){
+      try{ void window.mmRefreshToolbarNotifyBadge(); }catch(e2){}
+    }
     overlay.removeAttribute('hidden');
     overlay.classList.add('is-open');
     overlay.setAttribute('aria-hidden', 'false');
@@ -9226,6 +9447,30 @@ document.addEventListener('DOMContentLoaded', function(){
     return 'Market Default';
   }
 
+  function mmPqvFillExchangeWalletHints(peerUsername, peerProfileId){
+    const box = document.getElementById('pqvWalletHints');
+    if(!box) return;
+    void (async function(){
+      try{
+        if(typeof mmServerTradeRpcEnabled !== 'function' || !mmServerTradeRpcEnabled()) return;
+        if(!window.mmSupabase) return;
+        const { data: auth } = await window.mmSupabase.auth.getUser();
+        const myId = auth && auth.user && auth.user.id;
+        if(!myId) return;
+        if(typeof mmPullServerExchangeState === 'function') await mmPullServerExchangeState();
+        if(typeof refresh === 'function') refresh();
+        const g = typeof window.game !== 'undefined' ? window.game : null;
+        const cashNum = g && Number.isFinite(Number(g.cash)) ? Number(g.cash) : 0;
+        const you = typeof fmt === 'function' ? fmt(cashNum) : ('$' + Math.round(cashNum));
+        if(String(peerProfileId || '') === String(myId)){
+          box.innerHTML = 'Your <b>shared exchange wallet</b> (tape): <b>' + escapeHtml(you) + '</b>';
+          return;
+        }
+        box.innerHTML = 'Your exchange wallet: <b>' + escapeHtml(you) + '</b> · Profile “cash” above is cloud save stats; payments use the shared wallet.';
+      }catch(e){}
+    })();
+  }
+
   function renderPlayerQuickView(payload){
     const body = q('#playerQuickViewBody');
     if (!body) return;
@@ -9278,6 +9523,7 @@ document.addEventListener('DOMContentLoaded', function(){
       interactHtml = ''
         + '<div class="playerQuickViewSection pqvThreadWrap" data-mm-pqv-user="' + escAttr(handleRaw) + '">'
         +   '<div class="playerQuickViewSectionTitle">Messages & shared wallet</div>'
+        +   '<div class="playerQuickViewHint" id="pqvWalletHints" style="margin-top:2px"></div>'
         +   '<div id="pqvThreadScroll" class="pqvThreadScroll" aria-live="polite"></div>'
         +   '<div class="pqvComposerRow">'
         +     '<input type="text" id="pqvDmComposer" maxlength="800" placeholder="Message @' + handle + '…" autocomplete="off" />'
@@ -9352,6 +9598,7 @@ document.addEventListener('DOMContentLoaded', function(){
       void mmPqvLoadInbox();
     }else{
       void mmPqvFetchAndRenderThread(handleRaw, true);
+      mmPqvFillExchangeWalletHints(handleRaw, pid);
     }
     mmPqvStartInteractPoll(handleRaw, isSelf);
     requestAnimationFrame(function(){ positionPlayerQuickCard(); });
@@ -9493,8 +9740,37 @@ document.addEventListener('DOMContentLoaded', function(){
             if(typeof window.mmPullServerExchangeState === 'function') await window.mmPullServerExchangeState();
           }catch(e3){}
           try{ if(typeof refresh === 'function') refresh(); }catch(e4){}
+          const hints = document.getElementById('pqvWalletHints');
+          if(hints && data && data.ok !== false){
+            const rawY = data.your_cash != null ? data.your_cash : data.cash;
+            const y =
+              rawY != null && typeof fmt === 'function'
+                ? fmt(Number(rawY))
+                : rawY != null
+                  ? String(rawY)
+                  : '';
+            const p =
+              data.peer_cash != null && typeof fmt === 'function'
+                ? fmt(Number(data.peer_cash))
+                : data.peer_cash != null
+                  ? String(data.peer_cash)
+                  : '';
+            if(y && p){
+              hints.innerHTML =
+                'Your exchange wallet: <b>' +
+                escapeHtml(y) +
+                '</b> · Their exchange wallet: <b>' +
+                escapeHtml(p) +
+                '</b>';
+            }else if(y){
+              hints.innerHTML = 'Your exchange wallet: <b>' + escapeHtml(y) + '</b>';
+            }
+          }
           toast('Payment sent from shared exchange wallet', 'success');
           await mmPqvFetchAndRenderThread(un, true);
+          try{
+            if(typeof window.mmRefreshToolbarNotifyBadge === 'function') void window.mmRefreshToolbarNotifyBadge();
+          }catch(e5){}
         })();
         return;
       }
