@@ -8372,6 +8372,35 @@ function bindSocialUI(){
         }catch(e){}
       })();
     });
+
+    // Another tab (e.g. account Sign out) removed the persisted Supabase session — clear this tab and stop online heartbeats.
+    try{
+      if(!window.__MM_GAME_AUTH_STORAGE_BOUND){
+        window.__MM_GAME_AUTH_STORAGE_BOUND = true;
+        window.addEventListener('storage', function(ev){
+          if(!ev || !ev.key) return;
+          if(!ev.key.startsWith('sb-') || !ev.key.endsWith('-auth-token')) return;
+          if(ev.newValue) return;
+          (async function(){
+            try{
+              if(!window.mmSupabase) return;
+              const { data } = await window.mmSupabase.auth.getSession();
+              const uid = data?.session?.user?.id || null;
+              if(uid){
+                const stale = '1970-01-01T00:00:00.000Z';
+                await window.mmSupabase.from('online_presence').update({
+                  last_seen: stale,
+                  updated_at: new Date().toISOString()
+                }).eq('user_id', uid);
+              }
+            }catch(e){}
+            try{
+              await window.mmSupabase.auth.signOut({ scope: 'local' });
+            }catch(e2){}
+          })();
+        });
+      }
+    }catch(e){}
   }
 
   try{ window.loadLeaderboardSocial = loadLeaderboardSocial; }catch(e){}

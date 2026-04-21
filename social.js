@@ -39,8 +39,8 @@
   const isSignInPage = /\/signin\.html$/i.test(location.pathname);
   const isSignUpPage = /\/signup\.html$/i.test(location.pathname);
   const isAccountPage = /\/account\.html$/i.test(location.pathname);
-  /** After sign-out or forced session end on hub pages, return players to the email/password screen. */
-  const MM_SIGN_IN_LANDING = "./signin.html";
+  /** After sign-out or forced session end on hub pages, return to hub (Sign in / Create account). */
+  const MM_HUB_AUTH_LANDING = "./index.html";
 
   function readHubAvatarDNA() {
     if (!window.MM_AVATAR) return {};
@@ -460,7 +460,7 @@ async function getUser() {
       return;
     }
     if (!user && isAccountPage) {
-      window.location.replace(MM_SIGN_IN_LANDING);
+      window.location.replace(MM_HUB_AUTH_LANDING);
     }
   }
 
@@ -587,11 +587,43 @@ async function getUser() {
     window.location.href = "./account.html";
   }
 
+  function clearPersistedSupabaseSession() {
+    const strip = (store) => {
+      if (!store || typeof store.length !== "number") return;
+      const keys = [];
+      for (let i = 0; i < store.length; i++) {
+        const k = store.key(i);
+        if (k && k.startsWith("sb-") && k.endsWith("-auth-token")) keys.push(k);
+      }
+      keys.forEach((k) => {
+        try {
+          store.removeItem(k);
+        } catch (e) {}
+      });
+    };
+    try {
+      strip(localStorage);
+      strip(sessionStorage);
+    } catch (e) {}
+  }
+
+  /** Drop out of `mm_public_online_players` (30m window) while still authenticated. */
+  async function clearOwnOnlinePresenceRow(userId) {
+    if (!window.mmSupabase || !userId) return;
+    const stale = "1970-01-01T00:00:00.000Z";
+    try {
+      await window.mmSupabase
+        .from("online_presence")
+        .update({ last_seen: stale, updated_at: new Date().toISOString() })
+        .eq("user_id", userId);
+    } catch (e) {}
+  }
+
   let signOutInFlight = false;
   async function signOut() {
     if (signOutInFlight) return;
     signOutInFlight = true;
-    const landing = MM_SIGN_IN_LANDING;
+    const landing = MM_HUB_AUTH_LANDING;
     const goLanding = () => {
       try {
         window.location.replace(landing);
@@ -605,29 +637,42 @@ async function getUser() {
       signOutInFlight = false;
       return;
     }
-    let signErr = null;
+
+    let userId = null;
+    try {
+      const { data } = await window.mmSupabase.auth.getSession();
+      userId = data?.session?.user?.id || null;
+    } catch (e) {}
+    if (!userId) {
+      try {
+        const u = await getUser().catch(() => null);
+        userId = u?.id || null;
+      } catch (e) {}
+    }
+
+    await clearOwnOnlinePresenceRow(userId);
+
     try {
       const { error } = await window.mmSupabase.auth.signOut({ scope: "global" });
-      if (error) signErr = error;
-    } catch (e) {
-      signErr = e;
-    }
-    if (signErr) {
-      try {
+      if (error) {
         const { error: e2 } = await window.mmSupabase.auth.signOut({ scope: "local" });
-        if (e2) signErr = e2;
-        else signErr = null;
-      } catch (e2) {
-        signErr = e2;
+        if (e2) {
+          try {
+            console.warn("[MM] signOut", e2.message || e2);
+          } catch (x) {}
+        }
       }
-    }
-    if (signErr) {
+    } catch (e) {
       try {
-        flash(el.authMessage(), (signErr && signErr.message) || "Sign out failed.", false);
-      } catch (e) {}
-      signOutInFlight = false;
-      return;
+        await window.mmSupabase.auth.signOut({ scope: "local" });
+      } catch (e2) {}
+      try {
+        console.warn("[MM] signOut", e && (e.message || e));
+      } catch (x) {}
     }
+
+    clearPersistedSupabaseSession();
+
     try {
       localStorage.removeItem(HUB_AVATAR_FALLBACK_KEY);
       localStorage.removeItem("MM_LAST_LOGIN");
@@ -637,9 +682,6 @@ async function getUser() {
       if (el.authPassword()) el.authPassword().value = "";
       if (el.authEmail()) el.authEmail().value = "";
       if (el.authUsername()) el.authUsername().value = "";
-    } catch (e) {}
-    try {
-      flash(el.authMessage(), "Signed out.", true);
     } catch (e) {}
     accountDetailsLoadedOnce = false;
     hubAuthBack();
