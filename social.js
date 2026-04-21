@@ -38,7 +38,8 @@
   const isIndexPage = /\/index\.html$/i.test(location.pathname) || /\/$/i.test(location.pathname);
   const isSignInPage = /\/signin\.html$/i.test(location.pathname);
   const isSignUpPage = /\/signup\.html$/i.test(location.pathname);
-  const isAccountPage = /\/account\.html$/i.test(location.pathname);
+  /** `file:` / Windows paths may use backslashes or omit a leading slash in `pathname`. */
+  const isAccountPage = /(^|[\\/])account\.html$/i.test(String(location.pathname || ""));
   /** After sign-out or forced session end on hub pages, return to hub (Sign in / Create account). */
   const MM_HUB_AUTH_LANDING = "./index.html";
 
@@ -429,6 +430,19 @@ async function getUser() {
 
   async function refreshAuthUI() {
     const user = await getUser().catch(() => null);
+    // Must run before mutating hubSignedInRow: hiding that row removes Play / Sign out from the layout
+    // while still on account.html if navigation is slow, blocked, or never runs — looks like "nothing happened".
+    if (!user && isAccountPage) {
+      try {
+        window.location.replace(new URL(MM_HUB_AUTH_LANDING, window.location.href).href);
+      } catch (e) {
+        try {
+          window.location.href = MM_HUB_AUTH_LANDING;
+        } catch (e2) {}
+      }
+      return;
+    }
+
     setText(el.authStatus(), user ? `Signed in as ${user.email}` : "Not signed in");
     const choice = el.hubAuthChoice();
     const stage = el.hubAuthStage();
@@ -458,9 +472,6 @@ async function getUser() {
     if (user && (isIndexPage || isSignInPage || isSignUpPage)) {
       window.location.href = "./account.html";
       return;
-    }
-    if (!user && isAccountPage) {
-      window.location.replace(MM_HUB_AUTH_LANDING);
     }
   }
 
@@ -623,12 +634,20 @@ async function getUser() {
   async function signOut() {
     if (signOutInFlight) return;
     signOutInFlight = true;
-    const landing = MM_HUB_AUTH_LANDING;
+    const landingHref = (() => {
+      try {
+        return new URL(MM_HUB_AUTH_LANDING, window.location.href).href;
+      } catch (e) {
+        return MM_HUB_AUTH_LANDING;
+      }
+    })();
     const goLanding = () => {
       try {
-        window.location.replace(landing);
+        window.location.replace(landingHref);
       } catch (e) {
-        window.location.href = landing;
+        try {
+          window.location.href = landingHref;
+        } catch (e2) {}
       }
     };
 
@@ -638,54 +657,73 @@ async function getUser() {
       return;
     }
 
-    let userId = null;
+    const safetyNav = window.setTimeout(goLanding, 4000);
+
     try {
-      const { data } = await window.mmSupabase.auth.getSession();
-      userId = data?.session?.user?.id || null;
-    } catch (e) {}
-    if (!userId) {
+      let userId = null;
       try {
-        const u = await getUser().catch(() => null);
-        userId = u?.id || null;
+        const { data } = await window.mmSupabase.auth.getSession();
+        userId = data?.session?.user?.id || null;
       } catch (e) {}
-    }
-
-    await clearOwnOnlinePresenceRow(userId);
-
-    try {
-      const { error } = await window.mmSupabase.auth.signOut({ scope: "global" });
-      if (error) {
-        const { error: e2 } = await window.mmSupabase.auth.signOut({ scope: "local" });
-        if (e2) {
-          try {
-            console.warn("[MM] signOut", e2.message || e2);
-          } catch (x) {}
-        }
+      if (!userId) {
+        try {
+          const u = await getUser().catch(() => null);
+          userId = u?.id || null;
+        } catch (e) {}
       }
+
+      try {
+        await Promise.race([
+          clearOwnOnlinePresenceRow(userId),
+          new Promise((r) => setTimeout(r, 2500))
+        ]);
+      } catch (e) {}
+
+      try {
+        const { error } = await window.mmSupabase.auth.signOut({ scope: "global" });
+        if (error) {
+          const { error: e2 } = await window.mmSupabase.auth.signOut({ scope: "local" });
+          if (e2) {
+            try {
+              console.warn("[MM] signOut", e2.message || e2);
+            } catch (x) {}
+          }
+        }
+      } catch (e) {
+        try {
+          await window.mmSupabase.auth.signOut({ scope: "local" });
+        } catch (e2) {}
+        try {
+          console.warn("[MM] signOut", e && (e.message || e));
+        } catch (x) {}
+      }
+
+      clearPersistedSupabaseSession();
+
+      try {
+        localStorage.removeItem(HUB_AVATAR_FALLBACK_KEY);
+        localStorage.removeItem("MM_LAST_LOGIN");
+        localStorage.removeItem("MM_PROFILE_HINT");
+      } catch (e) {}
+      try {
+        if (el.authPassword()) el.authPassword().value = "";
+        if (el.authEmail()) el.authEmail().value = "";
+        if (el.authUsername()) el.authUsername().value = "";
+      } catch (e) {}
+      accountDetailsLoadedOnce = false;
+      hubAuthBack();
     } catch (e) {
       try {
-        await window.mmSupabase.auth.signOut({ scope: "local" });
-      } catch (e2) {}
-      try {
-        console.warn("[MM] signOut", e && (e.message || e));
+        console.warn("[MM] signOut failed", e && (e.message || e));
       } catch (x) {}
+      clearPersistedSupabaseSession();
+    } finally {
+      try {
+        window.clearTimeout(safetyNav);
+      } catch (e) {}
+      goLanding();
+      signOutInFlight = false;
     }
-
-    clearPersistedSupabaseSession();
-
-    try {
-      localStorage.removeItem(HUB_AVATAR_FALLBACK_KEY);
-      localStorage.removeItem("MM_LAST_LOGIN");
-      localStorage.removeItem("MM_PROFILE_HINT");
-    } catch (e) {}
-    try {
-      if (el.authPassword()) el.authPassword().value = "";
-      if (el.authEmail()) el.authEmail().value = "";
-      if (el.authUsername()) el.authUsername().value = "";
-    } catch (e) {}
-    accountDetailsLoadedOnce = false;
-    hubAuthBack();
-    goLanding();
   }
 
   async function syncToCloud() {
