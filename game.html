@@ -2657,7 +2657,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
       </div>
     </div>
     <p>Your cash is negative and you do not hold enough <b>liquid investments</b> (stocks or open margin positions) to cover the shortfall if everything were sold at current prices. Business and lifestyle purchases cannot be liquidated here.</p>
-    <p style="margin-top:10px;color:#5a6570">The only way forward is a full reset: your local save is cleared and the game reloads, same as the sidebar reset.</p>
+    <p style="margin-top:10px;color:#5a6570">Reset clears your character run (cash, positions, upgrades, luxury, debt) while keeping account cosmetics and legacy. When signed in, the cloud wallet, leaderboard stats, and cloud save update so you do not reload still bankrupt.</p>
     <div class="bankruptcyActions">
       <button type="button" class="dangerBtn" id="bankruptcyResetBtn">Reset &amp; start over</button>
     </div>
@@ -2699,6 +2699,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 <script>
 (() => {
 const SAVE_KEY = 'market_magnate_ultra_save_v11';
+try{ window.MM_SAVE_KEY = SAVE_KEY; }catch(e){}
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 const rand = (a,b) => Math.random()*(b-a)+a;
@@ -3117,11 +3118,114 @@ function checkBankruptcy(){
   }
   try{ playWarningSound(); }catch(e){}
 }
-function performBankruptcyReset(){
+function mmCloseBankruptcyOverlay(){
+  try{ __bankruptcyActive = false; }catch(e){}
+  try{
+    const ov = document.getElementById('bankruptcyOverlay');
+    if(ov) ov.classList.remove('show');
+  }catch(e){}
+  try{ document.body.style.overflow = ''; }catch(e){}
+}
+
+function mmReadAccountPreserveFromGame(){
+  return {
+    ownedProfileAvatars: Array.isArray(game.ownedProfileAvatars) ? game.ownedProfileAvatars.slice() : ['default_avatar'],
+    ownedProfileBanners: Array.isArray(game.ownedProfileBanners) ? game.ownedProfileBanners.slice() : ['default_banner','profile_banner_gold','profile_banner_neon','profile_banner_midnight'],
+    avatarDNA: JSON.parse(JSON.stringify(normalizeAvatarDNA(game.avatarDNA || {}))),
+    marginTradingUnlocked: !!game.marginTradingUnlocked,
+    legacy: Math.max(0, Math.floor(Number(game.legacy) || 0))
+  };
+}
+
+function mmApplyGameplayResetLocal(preserve){
+  const p = preserve || mmReadAccountPreserveFromGame();
+  Object.assign(game, {
+    cash:500,
+    totalEarned:500,
+    xp:0,
+    level:1,
+    legacy:p.legacy,
+    passivePerSec:0,
+    incomeMult:1,
+    tradeBonus:0,
+    style:0,
+    network:0,
+    view:'stocks',
+    selectedStock:0,
+    tradeQty:1,
+    newsBonusPool:0,
+    mood:'Balanced',
+    trades:0,
+    lastSaved:0,
+    businessOwned:['business_headquarters_0'],
+    shoppingOwned:[],
+    empireShowcasePicks:{homes:'',cars:'',jewelry:'',watches:''},
+    casinoTab:'blackjack',
+    casino:null,
+    stocks: JSON.parse(JSON.stringify(stockSeed)),
+    news:[],
+    newsArchive:[],
+    ticksUntilNextNews:irand(18,48),
+    paused:false,
+    nextBonusAt:Date.now()+irand(15000,60000),
+    nextLifeAt:Date.now()+irand(60000,300000),
+    activeEvent:null,
+    debt:0,
+    debtInterestRate:0.00045,
+    leverage:1,
+    globalEvent:null,
+    nextGlobalAt:Date.now()+irand(45000,120000),
+    dayCount:1,
+    simHourOfDay:0,
+    creditScore:300,
+    creditTier:0,
+    onTimePayments:0,
+    missedPayments:0,
+    loanCycleStartDay:1,
+    loanDueDay:8,
+    loanDueAmount:0,
+    loanPaidThisCycle:0,
+    marginTradingUnlocked:!!p.marginTradingUnlocked
+  });
+  game.ownedProfileAvatars = Array.isArray(p.ownedProfileAvatars) && p.ownedProfileAvatars.length ? p.ownedProfileAvatars.slice() : ['default_avatar'];
+  game.ownedProfileBanners = Array.isArray(p.ownedProfileBanners) && p.ownedProfileBanners.length ? p.ownedProfileBanners.slice() : ['default_banner','profile_banner_gold','profile_banner_neon','profile_banner_midnight'];
+  game.avatarDNA = normalizeAvatarDNA(p.avatarDNA || {});
+  try{
+    const soc = typeof window !== 'undefined' ? window.mmSocial : null;
+    if(soc){
+      soc.ownedAvatarKeys = [...new Set(game.ownedProfileAvatars)];
+      soc.ownedBannerKeys = [...new Set(game.ownedProfileBanners)];
+    }
+  }catch(e){}
+}
+
+async function mmExecuteGameplayReset(){
   try{ mmStashMarketForResetBeforeReload(); }catch(e){}
-  try{ mmStashAccountFieldsForResetReload(); }catch(e){}
-  try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
-  location.reload();
+  const preserve = mmReadAccountPreserveFromGame();
+  mmApplyGameplayResetLocal(preserve);
+  try{ mmNormalizeStockHoldings(); }catch(e){}
+  recalc();
+  try{ makeNews(true); makeNews(true); }catch(e){}
+  try{ if(typeof ensureCasinoState === 'function') ensureCasinoState(); }catch(e){}
+  save(false);
+  try{
+    if(window.mmSupabase && typeof window.mmSupabase.rpc === 'function'){
+      const seed = Math.max(0, Number(game.cash) || 500);
+      const { error } = await window.mmSupabase.rpc('mm_reset_exchange_state', { p_seed_cash: seed });
+      if(error) console.warn('[MM] mm_reset_exchange_state', error.message || error);
+    }
+  }catch(e){ console.warn('[MM] mm_reset_exchange_state threw', e); }
+  try{
+    if(typeof window.mmForceCloudGameplaySnapshot === 'function'){
+      await window.mmForceCloudGameplaySnapshot();
+    }
+  }catch(e){ console.warn('[MM] mmForceCloudGameplaySnapshot', e); }
+  mmCloseBankruptcyOverlay();
+  try{ location.reload(); }catch(e){ location.href = location.href; }
+}
+
+function performBankruptcyReset(){
+  void mmExecuteGameplayReset();
 }
 
 function currentStage(){ let s=stageDefs[0].name; for(const x of stageDefs){ if(netWorth()>=x.worth) s=x.name; } return s; }
@@ -4710,6 +4814,7 @@ function save(show=true){
   game.lastSaved = Date.now();
   if(show) toast('Game saved');
 }
+try{ window.mmSaveGameSilent = function(){ save(false); }; }catch(e){}
 
 const SPEEDS = [
   {label:'0.5x', mult:0.5},
@@ -4837,11 +4942,8 @@ function load(){
   }catch(e){ console.warn(e); recalc(); try{ document.body.classList.add('mm-motion'); }catch(_e){} }
 }
 function reset(){
-  if(!confirm('Reset all gameplay progress? Your profile cosmetics (banners, avatars) and permanently unlocked margin trading stay on this account.')) return;
-  mmStashMarketForResetBeforeReload();
-  mmStashAccountFieldsForResetReload();
-  localStorage.removeItem(SAVE_KEY);
-  location.reload();
+  if(!confirm('Reset all gameplay progress? Your profile cosmetics (banners, avatars), legacy points, and permanently unlocked margin trading stay on this account. Cloud stats and save will update if you are signed in.')) return;
+  void mmExecuteGameplayReset();
 }
 
 function renderWatchlist(){
@@ -7441,13 +7543,21 @@ try{ window.mmSocial = mmSocial; }catch(e){}
   function currentNetWorth(){ try{ return typeof netWorth === 'function' ? netWorth() : (window.game?.cash||0); }catch(e){ return 0; } }
   function currentStageSafe(){ try{ return typeof currentStage === 'function' ? currentStage() : 'Bedroom Trader'; }catch(e){ return 'Bedroom Trader'; } }
   function currentStatusSafe(){ try{ return typeof currentStatus === 'function' ? currentStatus() : 'Unknown Hustler'; }catch(e){ return 'Unknown Hustler'; } }
-  function getCurrentSave(){ try{ return JSON.parse(localStorage.getItem('market_magnate_ultra_save_v11') || 'null'); }catch(e){ return null; } }
+  function getCurrentSave(){
+    try{
+      const k = window.MM_SAVE_KEY || 'market_magnate_ultra_save_v11';
+      return JSON.parse(localStorage.getItem(k) || 'null');
+    }catch(e){ return null; }
+  }
   function getCurrentStats(){
-    const g = getCurrentSave() || {};
-    const stocks = Array.isArray(g.stocks)?g.stocks:[];
+    const live = typeof window !== 'undefined' ? window.game : null;
+    const g = live && Array.isArray(live.stocks) ? live : (getCurrentSave() || {});
+    const stocks = Array.isArray(g.stocks) ? g.stocks : [];
     const portfolio = stocks.reduce((sum,s)=>sum + Number(s?.owned||0)*Number(s?.price||0),0);
-    const cash = Number(g.cash||0);
-    const net = Number(g.netWorth || cash + portfolio || currentNetWorth());
+    const cash = Number(g.cash || 0);
+    const net = live && typeof netWorth === 'function'
+      ? Number(netWorth())
+      : Number(g.netWorth || (cash + portfolio) || currentNetWorth());
     let avatar_dna = '';
     try{
       const gv = typeof window !== 'undefined' ? window.game : null;
@@ -7458,11 +7568,11 @@ try{ window.mmSocial = mmSocial; }catch(e){}
     const row = {
       net_worth: Number(net || 0),
       cash: Number(cash || 0),
-      total_profit: Number(g.totalEarned || 0),
-      lifetime_trades: Math.round(Number(g.trades || 0)),
-      highest_net_worth: Number(g.highestNetWorth || net || 0),
-      prestige: Math.round(Number(g.legacy || 0)),
-      xp: Math.round(Number(g.xp || 0)),
+      total_profit: Number((live && live.totalEarned != null) ? live.totalEarned : (g.totalEarned || 0)),
+      lifetime_trades: Math.round(Number((live && live.trades != null) ? live.trades : (g.trades || 0))),
+      highest_net_worth: Number((live && live.highestNetWorth != null) ? live.highestNetWorth : (g.highestNetWorth || net || 0)),
+      prestige: Math.round(Number((live && live.legacy != null) ? live.legacy : (g.legacy || 0))),
+      xp: Math.round(Number((live && live.xp != null) ? live.xp : (g.xp || 0))),
       empire_tier: String(currentStageSafe())
     };
     if(avatar_dna) row.avatar_dna = avatar_dna;
@@ -8052,6 +8162,39 @@ async function loadLeaderboardSocial(){
     if(onlineCount) onlineCount.textContent = '(—)';
   }
 }
+
+  async function mmForceCloudGameplaySnapshot(){
+    try{
+      if(!window.mmSupabase) return;
+      const user = await getUser();
+      if(!user) return;
+      try{ if(typeof window.mmSaveGameSilent === 'function') window.mmSaveGameSilent(); }catch(e){}
+      const key = window.MM_SAVE_KEY || 'market_magnate_ultra_save_v11';
+      let slotData = null;
+      try{ slotData = JSON.parse(localStorage.getItem(key) || 'null'); }catch(e){ slotData = null; }
+      const stats = getCurrentStats();
+      const nowIso = new Date().toISOString();
+      let statsPayload = Object.assign({ user_id: user.id, updated_at: nowIso }, stats);
+      let statsRes = await window.mmSupabase.from('player_stats').upsert(statsPayload);
+      if(statsRes?.error && stats.avatar_dna){
+        const { avatar_dna, ...rest } = stats;
+        statsPayload = Object.assign({ user_id: user.id, updated_at: nowIso }, rest);
+        statsRes = await window.mmSupabase.from('player_stats').upsert(statsPayload);
+      }
+      if(statsRes?.error) console.warn('[MM] mmForceCloudGameplaySnapshot player_stats', statsRes.error.message || statsRes.error);
+      if(slotData){
+        const saveRes = await window.mmSupabase.from('save_slots').upsert({ user_id: user.id, save_data: slotData, updated_at: nowIso });
+        if(saveRes?.error) console.warn('[MM] mmForceCloudGameplaySnapshot save_slots', saveRes.error.message || saveRes.error);
+      }
+      try{
+        if(window.game) window.game._mmLastSaveSlotUpsert = Date.now();
+      }catch(e){}
+    }catch(err){
+      console.warn('[MM] mmForceCloudGameplaySnapshot', err && (err.message || err));
+    }
+  }
+  try{ window.mmForceCloudGameplaySnapshot = mmForceCloudGameplaySnapshot; }catch(e){}
+
   async function syncStatsToCloud(){
     try{
       if(!window.mmSupabase) return;
