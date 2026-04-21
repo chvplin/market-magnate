@@ -3675,9 +3675,11 @@ const MM_RESET_MARKET_KEY = 'MM_RESET_KEEP_MARKET_V1';
 const MM_RESET_PRESERVE_ACCOUNT_KEY = 'MM_RESET_PRESERVE_ACCOUNT_V1';
 function mmBuildResetMarketStash(){
   if(!Array.isArray(game.stocks) || !game.stocks.length) return null;
-  const slimStocks = JSON.parse(JSON.stringify(game.stocks)).map(s=>{
-    if(s && Array.isArray(s.history) && s.history.length > 45) s.history = s.history.slice(-45);
-    return s;
+  /** Never stash `owned` / margin / avg — those are per-player; stashing full rows broke portfolio after reset/reload. */
+  const slimStocks = game.stocks.map((s)=>{
+    const w = mmSharedStockWire(s);
+    if(w.history && w.history.length > 45) w.history = w.history.slice(-45);
+    return w;
   });
   return {
     stocks: slimStocks,
@@ -3975,6 +3977,12 @@ function mmSharedStockWire(s){
     flowSmooth: s.flowSmooth
   };
 }
+/** Tape-only keys merged onto `game.stocks` from shared snapshot or post-reset stash (never player positions). */
+const MM_SHARED_TAPE_STOCK_KEYS = [
+  'name', 'sector', 'colorHue', 'baseVol', 'floorPrice', 'ceilingPrice', 'price', 'fairValue', 'anchorPrice', 'anchorDrift',
+  'dayHigh', 'dayLow', 'lastDelta', 'idioPhase', 'latent', 'volCluster', 'microAmp', 'microWalk', 'drift', 'hype', 'bubble',
+  'momentum', 'sentiment', 'newsEffect', 'newsVol', 'newsTicks', 'participants', 'liquidity', 'lastFlow', 'flowSmooth'
+];
 function mmMergeResetPreservedMarket(){
   try{
     const raw = sessionStorage.getItem(MM_RESET_MARKET_KEY);
@@ -3988,7 +3996,13 @@ function mmMergeResetPreservedMarket(){
       for(const s of game.stocks){
         const b = by[String(s.symbol || '').toUpperCase()];
         if(!b) continue;
-        Object.assign(s, b);
+        for(const k of MM_SHARED_TAPE_STOCK_KEYS){
+          if(b[k] !== undefined && b[k] !== null) s[k] = b[k];
+        }
+        if(Array.isArray(b.history) && b.history.length){
+          s.history = b.history.slice(-100);
+          if(s.history.length < 2) s.history.unshift(s.price);
+        }
       }
     }
     if(typeof blob._macroShock === 'number') game._macroShock = blob._macroShock;
@@ -4131,16 +4145,11 @@ function mmApplySharedMarketPayload(payload){
   for(const r of payload.stocks){
     if(r && r.symbol) bySym[String(r.symbol).toUpperCase()] = r;
   }
-  const wireKeys = [
-    'name', 'sector', 'colorHue', 'baseVol', 'floorPrice', 'ceilingPrice', 'price', 'fairValue', 'anchorPrice', 'anchorDrift',
-    'dayHigh', 'dayLow', 'lastDelta', 'idioPhase', 'latent', 'volCluster', 'microAmp', 'microWalk', 'drift', 'hype', 'bubble',
-    'momentum', 'sentiment', 'newsEffect', 'newsVol', 'newsTicks', 'participants', 'liquidity', 'lastFlow', 'flowSmooth'
-  ];
   for(const s of game.stocks){
     const sym = String(s.symbol || '').toUpperCase();
     const r = bySym[sym];
     if(!r) continue;
-    for(const k of wireKeys){
+    for(const k of MM_SHARED_TAPE_STOCK_KEYS){
       if(r[k] !== undefined && r[k] !== null) s[k] = r[k];
     }
     if(Array.isArray(r.history) && r.history.length){
