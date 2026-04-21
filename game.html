@@ -62,6 +62,11 @@ linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.42));pointer-events:n
 button,input,select{font:inherit}
 button{cursor:pointer;border:none;color:var(--text)}
 .topbar{position:sticky;top:0;z-index:130;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 16px;background:rgba(12,12,18,.78);backdrop-filter:blur(18px) saturate(1.2);border-bottom:var(--glass-border);box-shadow:0 8px 32px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.05);width:100%;max-width:100%;box-sizing:border-box;overflow-x:clip;overflow-y:visible}
+/* Mobile: keep header above legacy fixed layers (e.g. arena dock) so menu/search taps register. */
+body.mm-mobile-app .topbar{z-index:220!important;position:sticky}
+body.mm-mobile-app .topLeft .menuToggle{position:relative;z-index:5}
+body.mm-mobile-app .topLeft .mmMark{position:relative;z-index:4}
+body.mm-mobile-app .topLeft .searchWrap{z-index:1}
 .topLeft{display:flex;align-items:center;gap:10px;flex:1 1 auto;min-width:0;max-width:100%;overflow:visible}
 .topRight{display:flex;align-items:center;gap:10px;flex:0 0 auto;min-width:0}
 .mmMark{width:40px;height:40px;border-radius:12px;background:var(--accent-gradient);color:#fff;display:grid;place-items:center;font-weight:900;font-size:1rem;box-shadow:var(--glow-accent),0 8px 22px rgba(0,0,0,.35);position:relative;overflow:hidden}
@@ -2340,10 +2345,36 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
     grid-template-columns:1fr!important;
     gap:14px!important;
   }
-  body.mm-mobile-app .arenaSlideDock{
-    bottom:max(88px,calc(84px + env(safe-area-inset-bottom,0px)));
-    z-index:133;
+  /* Slide-out arena is desktop/tablet; on phone it is a dedicated tab (see .mm-tab-arena). */
+  body.mm-mobile-app:not(.mm-tab-arena) .arenaSlideDock{display:none!important}
+  body.mm-mobile-app.mm-tab-arena #mmMobileSummaryBar{display:none!important}
+  body.mm-mobile-app.mm-tab-arena .app{display:none!important}
+  body.mm-mobile-app.mm-tab-arena .arenaSlideDock{
+    display:flex!important;
+    flex-direction:column!important;
+    left:0!important;
+    right:0!important;
+    width:100%!important;
+    max-width:100%!important;
+    top:calc(var(--mm-topbar-measured, 68px) + var(--mm-news-flash-h, 0px) + var(--mm-world-live-h, 0px) + 4px)!important;
+    bottom:calc(88px + env(safe-area-inset-bottom, 0px))!important;
+    border-radius:0!important;
+    border-left:none!important;
+    border-right:none!important;
+    border-bottom:none!important;
+    z-index:100!important;
+    box-shadow:none!important;
   }
+  body.mm-mobile-app.mm-tab-arena .arenaSlideTab{display:none!important}
+  body.mm-mobile-app.mm-tab-arena .arenaSlideDock.is-open{width:100%!important}
+  body.mm-mobile-app.mm-tab-arena .arenaSlidePanelInner{
+    opacity:1!important;
+    pointer-events:auto!important;
+    flex:1 1 auto!important;
+    min-height:0!important;
+    padding:14px 14px calc(12px + env(safe-area-inset-bottom,0px))!important;
+  }
+  body.mm-mobile-app.mm-tab-arena .liveFeedList{max-height:min(48vh,360px)!important}
   body.mm-mobile-app .mmMobileHomeMore{display:block;margin-top:14px}
   .mmMobileHomeMoreLabel{font-size:.72rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
   .mmMobileHomeMoreRow{display:flex;flex-wrap:wrap;gap:8px}
@@ -2357,7 +2388,29 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
     gap:12px!important;
     min-height:0;
   }
-  body.mm-mobile-app .sidebar{display:none!important}
+  /* Slide-in game menu (Shopping, News, …) — was display:none, so the hamburger did nothing. */
+  body.mm-mobile-app .sidebar{
+    display:flex!important;
+    flex-direction:column!important;
+    position:fixed!important;
+    left:0!important;
+    top:calc(var(--mm-topbar-measured, 68px) + var(--mm-news-flash-h, 0px) + var(--mm-world-live-h, 0px) + 4px)!important;
+    bottom:calc(88px + env(safe-area-inset-bottom, 0px))!important;
+    width:min(360px, 90vw)!important;
+    max-width:90vw!important;
+    z-index:215!important;
+    transform:translateX(-108%)!important;
+    transition:transform .26s ease,box-shadow .26s ease!important;
+    border-radius:0 18px 18px 0!important;
+    margin:0!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+    box-shadow:none!important;
+  }
+  body.mm-mobile-app .sidebar.open{
+    transform:translateX(0)!important;
+    box-shadow:16px 0 48px rgba(0,0,0,.5)!important;
+  }
   body.mm-mobile-app .content{width:100%!important;min-width:0!important;order:1}
   body.mm-mobile-app aside.rightRail{
     position:static!important;
@@ -2379,13 +2432,13 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   body.mm-mobile-app.mm-tab-home section.panel{display:none!important}
   body.mm-mobile-app .mobileNav{
     display:grid!important;
-    grid-template-columns:repeat(5,minmax(0,1fr))!important;
-    gap:6px!important;
+    grid-template-columns:repeat(6,minmax(0,1fr))!important;
+    gap:4px!important;
     padding:8px 8px calc(10px + env(safe-area-inset-bottom,0px))!important;
     z-index:2147482800!important;
   }
-  body.mm-mobile-app .mobileNavBtn{min-height:52px;padding:8px 2px 6px;border-radius:12px}
-  body.mm-mobile-app .mobileNavBtn b{font-size:.58rem;letter-spacing:-.02em}
+  body.mm-mobile-app .mobileNavBtn{min-height:52px;padding:8px 1px 6px;border-radius:12px}
+  body.mm-mobile-app .mobileNavBtn b{font-size:.52rem;letter-spacing:-.03em}
   body.mm-mobile-app .mobileQuickTrade{bottom:calc(74px + env(safe-area-inset-bottom,0px))!important}
   body.mm-mobile-app{padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))!important}
   body.mm-mobile-app.mm-tab-portfolio #financeView.panel{display:block!important}
@@ -2923,6 +2976,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
   <button type="button" class="mobileNavBtn" data-mm-tab="stocks" aria-controls="stocksView"><span>📈</span><b>Market</b></button>
   <button type="button" class="mobileNavBtn" data-mm-tab="portfolio" aria-controls="financeView"><span>💼</span><b>Portfolio</b></button>
   <button type="button" class="mobileNavBtn" data-mm-tab="social" aria-controls="rightRail"><span>🌐</span><b>Social</b></button>
+  <button type="button" class="mobileNavBtn" data-mm-tab="arena" aria-controls="arenaSlideDock"><span>⚡</span><b>Arena</b></button>
   <button type="button" class="mobileNavBtn" data-mm-tab="profile" aria-controls="userView"><span>👤</span><b>Profile</b></button>
 </nav>
 
@@ -3390,13 +3444,13 @@ function mmSyncMobileBodyClass(){
   const on = mmIsMobileLayout();
   document.body.classList.toggle('mm-mobile-app', on);
   if(!on){
-    ['home','stocks','portfolio','social','profile'].forEach(t=>{
+    ['home','stocks','portfolio','social','arena','profile'].forEach(t=>{
       try{ document.body.classList.remove('mm-tab-' + t); }catch(e){}
     });
   }
 }
 function mmSetBodyTabClass(tab){
-  const tabs = ['home','stocks','portfolio','social','profile'];
+  const tabs = ['home','stocks','portfolio','social','arena','profile'];
   tabs.forEach(t=>{ try{ document.body.classList.remove('mm-tab-' + t); }catch(e){} });
   if(tab && tabs.includes(tab)) document.body.classList.add('mm-tab-' + tab);
 }
@@ -3407,7 +3461,9 @@ function mmSetMobileTab(tab){
   else if(tab === 'stocks') game.view = 'stocks';
   else if(tab === 'portfolio') game.view = 'stocks';
   else if(tab === 'social') game.view = 'news';
-  else if(tab === 'profile') game.view = 'user';
+  else if(tab === 'arena'){
+    /* Keep underlying view for sync; UI is driven by mmMobileTab + renderMenu. */
+  }else if(tab === 'profile') game.view = 'user';
   mmSetBodyTabClass(tab);
   refresh();
 }
@@ -5642,7 +5698,7 @@ function load(){
   try{
     const parsed = JSON.parse(raw);
     Object.assign(game, parsed);
-    if(typeof game.mmMobileTab !== 'string' || !['home','stocks','portfolio','social','profile'].includes(game.mmMobileTab)){
+    if(typeof game.mmMobileTab !== 'string' || !['home','stocks','portfolio','social','arena','profile'].includes(game.mmMobileTab)){
       game.mmMobileTab = 'home';
     }
     if(!mmIsMobileLayout() && game.view === 'home') game.view = 'stocks';
@@ -5766,7 +5822,8 @@ function renderMobileNav(){
   const tab = game.mmMobileTab || 'home';
   $$('#mobileNav .mobileNavBtn').forEach(btn=>{
     const t = btn.getAttribute('data-mm-tab');
-    btn.classList.toggle('active', !aux && t === tab);
+    const active = t === tab && (!aux || tab === 'arena');
+    btn.classList.toggle('active', active);
   });
   if(quick){
     const showQ = game.view === 'stocks' && (tab === 'stocks' || tab === 'portfolio');
@@ -5803,6 +5860,10 @@ function renderMenu(){
     const tab = game.mmMobileTab || 'home';
     mmSetBodyTabClass(tab);
     const all = ['stocks','shopping','news','business','user','finance','empire','casino'];
+    if(tab === 'arena'){
+      all.forEach(v=>{ const el = $('#'+v+'View'); if(el) el.classList.add('hidden'); });
+      return;
+    }
     const aux = ['shopping','news','business','casino','empire','finance'];
     if(aux.includes(game.view)){
       all.forEach(v=>{
@@ -8234,6 +8295,13 @@ $('#eventSecondary').addEventListener('click', ()=>{ playClickSound(); if(!game.
   });
   window.mmSetArenaDockOpen = function(open){
     const want = open !== false;
+    try{
+      if(typeof mmIsMobileLayout === 'function' && mmIsMobileLayout()){
+        if(want && typeof mmSetMobileTab === 'function') mmSetMobileTab('arena');
+        else if(!want && (game.mmMobileTab === 'arena') && typeof mmSetMobileTab === 'function') mmSetMobileTab('home');
+        return;
+      }
+    }catch(e){}
     if(want){
       dock.classList.add('is-open');
       tab.setAttribute('aria-expanded', 'true');
