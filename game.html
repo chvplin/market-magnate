@@ -9643,7 +9643,7 @@ function renderThemeSelection(){
 }
   async function loadSocialProfile(){
     if(!window.mmSupabase){
-      applySocialProfileToUI({});
+      try{ applySocialProfileToUI({}); }catch(e){}
       return;
     }
     try{ await window.mmSupabase.auth.getSession(); }catch(e){}
@@ -9652,7 +9652,7 @@ function renderThemeSelection(){
     if(!mmSocial.user){
       try{ mmInvalidateAuthUidCache(); }catch(e){}
       await loadOwnedCosmetics();
-      applySocialProfileToUI({});
+      try{ applySocialProfileToUI({}); }catch(e){}
       renderCosmeticStore();
       return;
     }
@@ -9661,7 +9661,7 @@ function renderThemeSelection(){
     let {data, error} = await window.mmSupabase.from('profiles').select('*').eq('id', mmSocial.user.id).maybeSingle();
     if(error){
       console.warn(error);
-      applySocialProfileToUI({});
+      try{ applySocialProfileToUI({}); }catch(e){}
       return;
     }
 
