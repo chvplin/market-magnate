@@ -5839,6 +5839,10 @@ function mmUpdateLeaderRankNudge(rows){
   }
   __mmLastLeaderRank = rank;
 }
+try{
+  window.renderRivalFromLeaderboard = renderRivalFromLeaderboard;
+  window.mmUpdateLeaderRankNudge = mmUpdateLeaderRankNudge;
+}catch(e){}
 function mmStartArenaSprint(ms){
   mmArenaEnsureGameFields();
   const dur = Math.min(30 * 60 * 1000, Math.max(5 * 60 * 1000, ms || 12 * 60 * 1000));
@@ -6110,6 +6114,7 @@ function tickArenaUi(force){
     renderArenaRail();
   }catch(e){}
 }
+try{ window.tickArenaUi = tickArenaUi; }catch(e){}
 
 function renderFinance(){
   const s = game.stocks[game.selectedStock];
@@ -8379,6 +8384,7 @@ function mmIsSelfOnlineRowGame(row){
 }
 
 function mmMapOnlineRpcRowGame(r){
+  if(!r || typeof r !== 'object') return null;
   return {
     user_id: r.user_id,
     username: r.username || 'unknown',
@@ -8395,11 +8401,13 @@ function mmMapOnlineRpcRowGame(r){
 
 function mmFinalizeOnlineListGame(mappedRows, opts){
   opts = opts || {};
+  if(!Array.isArray(mappedRows)) mappedRows = [];
   var maxSlots = opts.maxSlots || 12;
   var windowMs = opts.windowMs || MM_ONLINE_PRESENCE_WINDOW_MS;
   var skipWindow = opts.skipWindow !== false;
   var now = Date.now();
   function inWindow(r){
+    if(!r || typeof r !== 'object') return false;
     var raw = r.last_seen || r.updated_at || r.last_active || null;
     if(!raw) return false;
     var t = new Date(raw).getTime();
@@ -8490,7 +8498,7 @@ async function fetchPlayerStatsRecentActivity(maxRows){
       return [];
     }
     console.info('[MM][rpc] mm_public_online_players ok rows=', res.data.length);
-    return res.data.map(mmMapOnlineRpcRowGame);
+    return res.data.map(mmMapOnlineRpcRowGame).filter(function(x){ return !!x; });
   }catch(e){
     console.warn('[MM][rpc] mm_public_online_players threw', e && (e.message || e));
     return [];
@@ -8520,6 +8528,10 @@ async function loadLeaderboardSocial(){
     try{ mmSocial.presenceRowsForSearch = []; }catch(e){}
     return;
   }
+
+  if(!Array.isArray(rows)) rows = [];
+  if(!Array.isArray(activityRows)) activityRows = [];
+  rows = rows.filter(function(r){ return r != null && typeof r === 'object'; });
 
   var onlineOpts = { skipWindow: true, windowMs: MM_ONLINE_UI_MAX_AGE_MS, maxSlots: 24 };
 
@@ -8551,7 +8563,7 @@ async function loadLeaderboardSocial(){
     }
     try{
       window.__mmLastActivityDiffLines =
-        typeof mmDiffNetFromActivity === 'function' ? mmDiffNetFromActivity(activityRows) : [];
+        typeof window.mmDiffNetFromActivity === 'function' ? window.mmDiffNetFromActivity(activityRows) : [];
     }catch(e){
       window.__mmLastActivityDiffLines = [];
     }
@@ -8560,17 +8572,17 @@ async function loadLeaderboardSocial(){
         window.mmFeedWorldLiveFromLeaderDiffs(window.__mmLastActivityDiffLines || []);
       }
     }catch(eWL){ console.warn('[MM] world live from leader diffs', eWL && (eWL.message || eWL)); }
-    if(typeof tickArenaUi === 'function'){
+    if(typeof window.tickArenaUi === 'function'){
       try{
-        tickArenaUi(true);
+        window.tickArenaUi(true);
       }catch(e){}
     }
     return;
   }
 
   mmSocial.leaderRows = rows;
-  if(typeof renderRivalFromLeaderboard === 'function'){
-    try{ renderRivalFromLeaderboard(rows); }catch(e){}
+  if(typeof window.renderRivalFromLeaderboard === 'function'){
+    try{ window.renderRivalFromLeaderboard(rows); }catch(e){}
   }
 
   if(mini){
@@ -8594,7 +8606,7 @@ async function loadLeaderboardSocial(){
         <td>${idx + 1}</td>
         <td title="${escapeHtml(String(row.display_name || row.username || ''))}">${escapeHtml(String(row.display_name || row.username || 'Unknown'))}</td>
         <td>${formatMoney(row.net_worth)}</td>
-        <td>${typeof fmtStat === 'function' ? fmtStat(row.prestige || 0) : String(row.prestige || 0)}</td>
+        <td>${typeof window.mmFormatStat === 'function' ? window.mmFormatStat(row.prestige || 0) : String(row.prestige || 0)}</td>
       </tr>`).join('') || '<tr><td colspan="4">No players yet.</td></tr>';
   }
 
@@ -8624,7 +8636,7 @@ async function loadLeaderboardSocial(){
   }
 
   try{
-    window.__mmLastActivityDiffLines = typeof mmDiffNetFromActivity === 'function' ? mmDiffNetFromActivity(activityRows) : [];
+    window.__mmLastActivityDiffLines = typeof window.mmDiffNetFromActivity === 'function' ? window.mmDiffNetFromActivity(activityRows) : [];
   }catch(e){
     window.__mmLastActivityDiffLines = [];
   }
@@ -8633,18 +8645,18 @@ async function loadLeaderboardSocial(){
       window.mmFeedWorldLiveFromLeaderDiffs(window.__mmLastActivityDiffLines || []);
     }
   }catch(eWL2){ console.warn('[MM] world live from leader diffs', eWL2 && (eWL2.message || eWL2)); }
-  if(typeof mmUpdateLeaderRankNudge === 'function'){
+  if(typeof window.mmUpdateLeaderRankNudge === 'function'){
     try{
-      mmUpdateLeaderRankNudge(rows);
+      window.mmUpdateLeaderRankNudge(rows);
     }catch(e){}
   }
-  if(typeof tickArenaUi === 'function'){
+  if(typeof window.tickArenaUi === 'function'){
     try{
-      tickArenaUi(true);
+      window.tickArenaUi(true);
     }catch(e){}
   }
   }catch(renderErr){
-    console.warn('[MM][rail] loadLeaderboardSocial RENDER failed', renderErr && (renderErr.message || renderErr));
+    console.warn('[MM][rail] loadLeaderboardSocial RENDER failed', renderErr && (renderErr.stack || renderErr.message || renderErr));
     if(mini) mini.innerHTML = '<div class="layoutHint">Could not render rankings.</div>';
     if(modal) modal.innerHTML = '<tr><td colspan="4">Could not render rankings.</td></tr>';
     if(onlineWrap) onlineWrap.innerHTML = '<div class="layoutHint">Could not render online players.</div>';
