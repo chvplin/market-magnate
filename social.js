@@ -423,9 +423,20 @@ function renderOwnedAccountCosmetics(owned){
   }
 
 async function getUser() {
-    const { data, error } = await window.mmSupabase.auth.getUser();
-    if (error) throw error;
-    return data.user || null;
+    if (!window.mmSupabase) return null;
+    let sessionUser = null;
+    try {
+      const { data } = await window.mmSupabase.auth.getSession();
+      sessionUser = data?.session?.user || null;
+    } catch (e) {}
+    try {
+      const { data, error } = await window.mmSupabase.auth.getUser();
+      if (data?.user) return data.user;
+      if (error && sessionUser) return sessionUser;
+    } catch (e) {
+      if (sessionUser) return sessionUser;
+    }
+    return sessionUser;
   }
 
   async function refreshAuthUI() {
