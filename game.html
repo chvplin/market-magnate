@@ -2315,6 +2315,18 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 .mmMobSumMoney b{font-weight:900;font-variant-numeric:tabular-nums}
 .mmMobSumK{font-size:.72rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-right:4px}
 .mmMobSumStage{font-size:.82rem;font-weight:800;color:var(--text-secondary);padding-top:2px;border-top:1px solid rgba(255,255,255,.08)}
+.mmMobSumRet,.mmMobSumMilestone,.mmMobSumRival{
+  font-size:.8rem;font-weight:750;color:var(--text-secondary);line-height:1.35;padding-top:6px;border-top:1px solid rgba(255,255,255,.06)
+}
+.mmMobSumRet b,.mmMobSumMilestone b,.mmMobSumRival b{font-weight:900;color:var(--text);font-size:.84rem}
+.mmMobSumRival[hidden]{display:none!important}
+.mmRetentionStrip{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.mmRetentionStrip .mmRetPill{display:flex;align-items:baseline;gap:6px;max-width:100%}
+.mmRetentionStrip .mmRetK{font-size:.68rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.mmPrestigePreviewCard{border:1px solid rgba(209,0,209,.22);background:rgba(138,43,226,.06);margin-bottom:14px}
+@media (max-width:767px){
+  body.mm-mobile-app .mmRetentionStrip{display:none!important}
+}
 .mmMobileHomeFeed{margin-top:14px;display:flex;flex-direction:column;gap:10px}
 .mmMobFeedCard{padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.05);border:var(--glass-border)}
 .mmMobFeedTag{font-size:.68rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
@@ -2671,6 +2683,9 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
         <div><span class="mmMobSumK">Net</span><b data-mm-mob-net>—</b></div>
       </div>
       <div class="mmMobSumStage" data-mm-mob-stage>—</div>
+      <div class="mmMobSumRet" data-mm-mob-next>—</div>
+      <div class="mmMobSumMilestone" data-mm-mob-mile>—</div>
+      <div class="mmMobSumRival" data-mm-mob-rival hidden>—</div>
     </div>
     <section class="hero">
       <div class="heroLeft">
@@ -2679,6 +2694,10 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
           <div class="pill">Stage: <b id="stagePill">Bedroom Trader</b></div>
           <div class="pill">Status: <b id="statusPill">Unknown Hustler</b></div>
           <div class="pill">Portfolio: <b id="portfolioPill">$0</b></div>
+        </div>
+        <div class="mmRetentionStrip" aria-label="Next event and goal">
+          <div class="pill mmRetPill"><span class="mmRetK">Next</span> <b id="mmRetNextDesktop">—</b></div>
+          <div class="pill mmRetPill"><span class="mmRetK">Goal</span> <b id="mmRetMileDesktop">—</b></div>
         </div>
         <h1 class="heroTitle">Buy low. Sell high. Build the most absurd wealth machine on the planet.</h1>
         <div class="heroText">Jump between fast-moving stocks, react to fake market headlines, unlock business automation, and spend your fortune on status symbols. Early gains come from trading skill; late-game dominance comes from scale.</div>
@@ -2803,6 +2822,15 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 
     <section id="userView" class="panel hidden">
       <div class="panelHead"><div><div class="panelTitle">User</div><div class="panelSub">Track experience, purchased assets, empire value, and your current financial identity.</div></div></div>
+      <div class="profileCard mmPrestigePreviewCard" id="mmPrestigePreviewCard">
+        <div class="panelTitle" style="font-size:1.05rem">Prestige this run</div>
+        <p class="panelSub" id="mmPrestigePreviewSub" style="margin-top:6px">Cash in legacy points for a faster next run — income mult scales with total legacy.</p>
+        <div class="metrics" style="margin-top:12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+          <div class="metric"><div class="k">If you prestige now</div><div class="v" id="mmPrestigeLpNow">+0 LP</div></div>
+          <div class="metric"><div class="k">Passive mult after</div><div class="v" id="mmPrestigeNextIncome">1.00×</div></div>
+        </div>
+        <p class="layoutHint" id="mmPrestigePreviewHint" style="margin-top:10px"></p>
+      </div>
       <div class="userGrid">
         <div class="profileCard">
           <div class="socialBanner theme-default" id="socialBanner"></div>
@@ -3021,6 +3049,10 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
     <div class="railCard">
       <div class="railTitle">Watchlist</div>
       <div id="watchlist"></div>
+    </div>
+    <div class="railCard" id="mmRetentionRivalRailWrap">
+      <div class="railTitle">Race snapshot</div>
+      <p class="layoutHint" id="mmRetentionRivalRail" style="margin:0;line-height:1.45;font-size:.86rem">Sign in to see who is just ahead on net worth.</p>
     </div>
     <div class="railCard">
       <div class="railTitle">Global Leaderboard</div>
@@ -3606,6 +3638,164 @@ function mmOnResizeLayout(){
     if(game.view === 'home') game.view = 'stocks';
     try{ refresh(); }catch(e){}
   }
+}
+
+function mmFormatShortEta(ms){
+  if(!Number.isFinite(ms) || ms <= 0) return 'soon';
+  const sec = Math.max(1, Math.ceil(ms / 1000));
+  if(sec < 60) return String(sec) + 's';
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  if(m < 120) return s ? `${m}m ${s}s` : `${m}m`;
+  const h = Math.floor(m / 60);
+  return `${h}h ${m % 60}m`;
+}
+function mmRetentionCollectNextTimers(){
+  const out = [];
+  const sharedOn = typeof mmSharedMarketConfigured === 'function' && mmSharedMarketConfigured();
+  const nowSim = Number(game.simNow);
+  const simT = Number.isFinite(nowSim) ? nowSim : Date.now();
+  const wall = Date.now();
+  if(!sharedOn){
+    if(Number(game.nextBonusAt) > simT) out.push({ ms: Number(game.nextBonusAt) - simT, lab: 'Opportunity' });
+    if(Number(game.nextLifeAt) > simT) out.push({ ms: Number(game.nextLifeAt) - simT, lab: 'Life event' });
+    if(Number(game.nextGlobalAt) > simT) out.push({ ms: Number(game.nextGlobalAt) - simT, lab: 'World pulse' });
+  }else{
+    const lifeAt = Number(game._mmWallNextLifeAt);
+    if(Number.isFinite(lifeAt) && lifeAt > wall) out.push({ ms: lifeAt - wall, lab: 'Life event' });
+    let oppAllowed = false;
+    try{
+      oppAllowed =
+        (typeof mmEdgeAuthorityActive === 'function' && mmEdgeAuthorityActive()) ||
+        (typeof mmClientMarketSimAllowed === 'function' && !mmClientMarketSimAllowed());
+    }catch(e){}
+    if(oppAllowed){
+      const oAt = Number(game._mmLocalNextOppAt);
+      if(Number.isFinite(oAt) && oAt > wall) out.push({ ms: oAt - wall, lab: 'Opportunity' });
+    }
+    if(Number(game.nextGlobalAt) > simT) out.push({ ms: Number(game.nextGlobalAt) - simT, lab: 'World pulse' });
+  }
+  out.sort((a, b)=>a.ms - b.ms);
+  const best = out[0];
+  if(!best) return { lab: 'Sim running', eta: '—', ms: 0 };
+  return { lab: best.lab, eta: mmFormatShortEta(best.ms), ms: best.ms };
+}
+function mmRetentionMilestoneLine(){
+  try{
+    const g = prestigeGain();
+    const nw = netWorth();
+    if(g < 1){
+      const need = 5000000;
+      const left = Math.max(0, need - nw);
+      return left > 0 ? `First prestige: ${fmt(left)} net to go` : 'First prestige LP unlocks past ~$5M net';
+    }
+    const nextN = Math.pow(g + 1, 2) * 5000000;
+    const left = Math.max(0, nextN - nw);
+    if(left <= 0) return `Prestige ready — +${g} LP (Profile → Prestige)`;
+    return `Next prestige band (+${g + 1} LP): ${fmt(left)} net to go`;
+  }catch(e){
+    return '—';
+  }
+}
+function mmGetMyLeaderRank(){
+  try{
+    const rows = window.mmSocial && window.mmSocial.leaderRows;
+    const soc = window.mmSocial;
+    const myUsername = soc && soc.profile ? String(soc.profile.username || '').trim() : '';
+    if(!myUsername || !Array.isArray(rows) || !rows.length) return null;
+    const me = mmNetWorthForArenaLeaderboard(rows);
+    const rank =
+      rows
+        .filter(r => String(r.username || '').toLowerCase() !== myUsername.toLowerCase())
+        .filter(r => Number(r.net_worth || 0) > me).length + 1;
+    return rank;
+  }catch(e){
+    return null;
+  }
+}
+function mmRetentionRivalOneLine(rows){
+  const r = Array.isArray(rows) ? rows : (window.mmSocial && window.mmSocial.leaderRows) || [];
+  if(!r.length) return '';
+  const soc = window.mmSocial;
+  const myUsername = soc && soc.profile ? String(soc.profile.username || '').trim().toLowerCase() : '';
+  if(!myUsername) return '';
+  const me = mmNetWorthForArenaLeaderboard(r);
+  const above = [...r]
+    .filter(x => String(x.username || '').trim().toLowerCase() !== myUsername)
+    .filter(x => Number(x.net_worth || 0) > me)
+    .sort((a, b) => Number(a.net_worth || 0) - Number(b.net_worth || 0))[0];
+  if(!above) return 'You lead this snapshot — hold the tape.';
+  const gap = Number(above.net_worth || 0) - me;
+  const nm = String(above.display_name || above.username || 'Rival')
+    .split('@')[0]
+    .slice(0, 20);
+  return `${fmt(gap)} net to pass ${nm}`;
+}
+function mmRenderRetentionHud(){
+  const next = mmRetentionCollectNextTimers();
+  const mile = mmRetentionMilestoneLine();
+  const rows = window.mmSocial && window.mmSocial.leaderRows;
+  const riv = mmRetentionRivalOneLine(rows);
+  const nextStr = next.ms > 0 ? `${next.lab} · ~${next.eta}` : next.lab;
+  const nd = document.getElementById('mmRetNextDesktop');
+  const md = document.getElementById('mmRetMileDesktop');
+  if(nd) nd.textContent = nextStr;
+  if(md) md.textContent = mile;
+  const bar = document.getElementById('mmMobileSummaryBar');
+  if(bar){
+    const n = bar.querySelector('[data-mm-mob-next]');
+    const m = bar.querySelector('[data-mm-mob-mile]');
+    const rv = bar.querySelector('[data-mm-mob-rival]');
+    if(n) n.textContent = 'Next: ' + nextStr;
+    if(m) m.textContent = 'Goal: ' + mile;
+    if(rv){
+      if(riv){
+        rv.hidden = false;
+        rv.textContent = 'Board: ' + riv;
+      }else{
+        rv.hidden = true;
+        rv.textContent = '';
+      }
+    }
+  }
+  const rail = document.getElementById('mmRetentionRivalRail');
+  if(rail){
+    rail.textContent = riv || 'Sign in to see who is just ahead on net worth.';
+  }
+}
+function mmRenderPrestigePreview(){
+  const g = prestigeGain();
+  const leg = Math.max(0, Math.floor(Number(game.legacy) || 0));
+  const nextLeg = leg + Math.max(0, g);
+  const curMult = 1 + leg * 0.08;
+  const nextMult = 1 + nextLeg * 0.08;
+  const lp = document.getElementById('mmPrestigeLpNow');
+  const im = document.getElementById('mmPrestigeNextIncome');
+  const hint = document.getElementById('mmPrestigePreviewHint');
+  if(lp) lp.textContent = '+' + String(Math.max(0, g)) + ' LP';
+  if(im) im.textContent = nextMult.toFixed(2) + '×';
+  if(hint){
+    hint.textContent =
+      g < 1
+        ? 'Grow net worth past about $5M to bank Legacy Points, then prestige for a higher passive multiplier next run.'
+        : `Legacy ${leg} → ${nextLeg} after prestige. Passive mult about ${curMult.toFixed(2)}× → ${nextMult.toFixed(2)}× (re-buy upgrades after reset).`;
+  }
+}
+function mmRunReturnRecap(snap){
+  if(!snap) return;
+  const parts = [];
+  const rNow = mmGetMyLeaderRank();
+  if(rNow != null && snap.rank != null && rNow !== snap.rank){
+    parts.push(`Board #${rNow} by net (was #${snap.rank})`);
+  }else if(rNow != null){
+    parts.push(`Board #${rNow} by net`);
+  }
+  const n0 = Array.isArray(game.news) && game.news[0];
+  const nh = (n0 && (n0.headline || n0.title)) || '';
+  if(nh) parts.push(`News: ${nh.slice(0, 72)}`);
+  const gt = (game.globalEvent && (game.globalEvent.title || game.globalEvent.name)) || '';
+  if(gt && gt !== String(snap.globalT || '')) parts.push(`World: ${gt.slice(0, 60)}`);
+  if(parts.length) toast(parts.join(' — '), 'success');
 }
 
 /** Mobile shell: compact summary under global chrome (same `game` / HUD data as desktop). */
@@ -6481,6 +6671,9 @@ function renderRivalFromLeaderboard(rows){
   const box = document.getElementById('rivalBox');
   if(!box) return;
   box.innerHTML = mmRivalPressureHtml(rows);
+  try{
+    mmRenderRetentionHud();
+  }catch(e){}
 }
 let __mmLastLeaderRank = null;
 function mmUpdateLeaderRankNudge(rows){
@@ -7915,6 +8108,9 @@ function renderUser(){
     row.innerHTML=`<div><b>${item.icon} ${item.name}</b><div class="panelSub" style="margin-top:4px">${item.kind==='business'?'Business':'Lifestyle'} · ${item.category}</div></div><div>${fmt(item.cost)}</div>`;
     wrap.appendChild(row);
   });
+  try{
+    mmRenderPrestigePreview();
+  }catch(e){}
 }
 
 
@@ -8190,6 +8386,7 @@ function updateHud(){
   try{
     mmRenderMobileSummaryBar();
     mmRenderMobileHomeFeed();
+    mmRenderRetentionHud();
   }catch(e){}
 }
 
@@ -8222,6 +8419,11 @@ function refreshLive(){
   }
   const stocksHudSkip = !mobileHome && v === 'stocks' && !game.paused && (__mmLiveTick % 2 === 1);
   if(!stocksHudSkip) updateHud();
+  else{
+    try{
+      mmRenderRetentionHud();
+    }catch(e){}
+  }
   if(v !== 'stocks' || __mmLiveTick % 2 === 0 || mobileHome || portTab) renderMenu();
   bindStockQtyDelegationOnce();
   if(v === 'stocks' || portTab){
@@ -8258,6 +8460,7 @@ function refreshLive(){
   if(mmIsMobileLayout()){
     try{
       mmRenderMobileSummaryBar();
+      mmRenderRetentionHud();
       if((game.mmMobileTab || 'home') === 'home') mmRenderMobileHomeFeed();
     }catch(e){}
   }
@@ -8579,6 +8782,17 @@ document.addEventListener('visibilitychange', ()=>{
     __mmGameLoopStopped = true;
     mmCancelGameLoop();
     __realLast = Date.now();
+    try{
+      window.__mmAwaySnap = {
+        at: Date.now(),
+        rank: mmGetMyLeaderRank(),
+        headline:
+          (Array.isArray(game.news) && game.news[0] && (game.news[0].headline || game.news[0].title)) || '',
+        globalT: (game.globalEvent && (game.globalEvent.title || game.globalEvent.name)) || ''
+      };
+    }catch(e){
+      window.__mmAwaySnap = null;
+    }
     return;
   }
   __mmGameLoopStopped = false;
@@ -8587,6 +8801,13 @@ document.addEventListener('visibilitychange', ()=>{
     if(mmSharedMarketConfigured()) void mmHydrateSharedTapeFromCloud();
   }catch(e){}
   if(!__mmGameRaf) __mmGameRaf = requestAnimationFrame(()=>{ void mmGameLoop(); });
+  const snap = window.__mmAwaySnap;
+  window.__mmAwaySnap = null;
+  setTimeout(()=>{
+    try{
+      if(snap && Date.now() - snap.at >= 3000) mmRunReturnRecap(snap);
+    }catch(e){}
+  }, 650);
 }, { passive: true });
 window.addEventListener('pagehide', function(){
   __mmGameLoopStopped = true;
