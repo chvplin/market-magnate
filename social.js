@@ -39,6 +39,8 @@
   const isSignInPage = /\/signin\.html$/i.test(location.pathname);
   const isSignUpPage = /\/signup\.html$/i.test(location.pathname);
   const isAccountPage = /\/account\.html$/i.test(location.pathname);
+  /** After sign-out or forced session end on hub pages, return players to the email/password screen. */
+  const MM_SIGN_IN_LANDING = "./signin.html";
 
   function readHubAvatarDNA() {
     if (!window.MM_AVATAR) return {};
@@ -458,7 +460,7 @@ async function getUser() {
       return;
     }
     if (!user && isAccountPage) {
-      window.location.href = "./index.html";
+      window.location.replace(MM_SIGN_IN_LANDING);
     }
   }
 
@@ -585,9 +587,22 @@ async function getUser() {
     window.location.href = "./account.html";
   }
 
+  let signOutInFlight = false;
   async function signOut() {
+    if (signOutInFlight) return;
+    signOutInFlight = true;
+    const landing = MM_SIGN_IN_LANDING;
+    const goLanding = () => {
+      try {
+        window.location.replace(landing);
+      } catch (e) {
+        window.location.href = landing;
+      }
+    };
+
     if (!window.mmSupabase) {
       flash(el.authMessage(), "Sign-in is not configured.", false);
+      signOutInFlight = false;
       return;
     }
     let signErr = null;
@@ -600,11 +615,18 @@ async function getUser() {
     if (signErr) {
       try {
         const { error: e2 } = await window.mmSupabase.auth.signOut({ scope: "local" });
-        if (e2) throw e2;
+        if (e2) signErr = e2;
+        else signErr = null;
       } catch (e2) {
-        flash(el.authMessage(), (signErr && signErr.message) || "Sign out failed.", false);
-        return;
+        signErr = e2;
       }
+    }
+    if (signErr) {
+      try {
+        flash(el.authMessage(), (signErr && signErr.message) || "Sign out failed.", false);
+      } catch (e) {}
+      signOutInFlight = false;
+      return;
     }
     try {
       localStorage.removeItem(HUB_AVATAR_FALLBACK_KEY);
@@ -616,10 +638,12 @@ async function getUser() {
       if (el.authEmail()) el.authEmail().value = "";
       if (el.authUsername()) el.authUsername().value = "";
     } catch (e) {}
-    flash(el.authMessage(), "Signed out.", true);
+    try {
+      flash(el.authMessage(), "Signed out.", true);
+    } catch (e) {}
     accountDetailsLoadedOnce = false;
     hubAuthBack();
-    window.location.replace("./index.html");
+    goLanding();
   }
 
   async function syncToCloud() {
@@ -987,7 +1011,20 @@ async function loadLeaderboard() {
     el.hubAuthBack()?.addEventListener("click", hubAuthBack);
     el.signUpBtn()?.addEventListener("click", signUp);
     el.signInBtn()?.addEventListener("click", signIn);
-    el.signOutBtn()?.addEventListener("click", signOut);
+    // Delegated so the visible account page Sign out always runs (avoids duplicate-id / late-DOM edge cases).
+    document.addEventListener(
+      "click",
+      function mmHubSignOutDelegate(ev) {
+        const raw = ev.target;
+        const rootEl =
+          raw && raw.nodeType === 1 ? raw : raw && raw.parentElement && raw.parentElement.nodeType === 1 ? raw.parentElement : null;
+        if (!rootEl || !rootEl.closest) return;
+        if (!rootEl.closest("#signOutBtn")) return;
+        ev.preventDefault();
+        void signOut();
+      },
+      true
+    );
     el.syncBtn()?.addEventListener("click", syncToCloud);
     el.loadBtn()?.addEventListener("click", loadFromCloud);
     el.profileForm()?.addEventListener("submit", saveMyProfile);
