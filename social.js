@@ -806,11 +806,12 @@ async function getUser() {
     const skipWindow = opts.skipWindow !== false;
     const now = Date.now();
     const inWindow = r => {
+      if (!r || typeof r !== "object") return false;
+      if (skipWindow) return true;
       const raw = r.last_seen || r.updated_at || r.last_active || null;
       if (!raw) return false;
       const t = new Date(raw).getTime();
       if (!Number.isFinite(t)) return false;
-      if (skipWindow) return true;
       const age = now - t;
       return age <= windowMs && age >= -120000;
     };

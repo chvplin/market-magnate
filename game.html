@@ -9779,11 +9779,12 @@ function mmFinalizeOnlineListGame(mappedRows, opts){
   var now = Date.now();
   function inWindow(r){
     if(!r || typeof r !== 'object') return false;
+    /** When skipWindow is true we trust `mm_public_online_players` (30m SQL filter); do not drop rows missing timestamps (PostgREST shape / null coalesce edge cases). */
+    if(skipWindow) return true;
     var raw = r.last_seen || r.updated_at || r.last_active || null;
     if(!raw) return false;
     var t = new Date(raw).getTime();
     if(!Number.isFinite(t)) return false;
-    if(skipWindow) return true;
     var age = now - t;
     return age <= windowMs && age >= -120000;
   }
@@ -10201,7 +10202,11 @@ function bindSocialUI(){
 
     void loadLeaderboardSocial().catch(function(e){ try{ console.warn('[MM] early leaderboard refresh', e && (e.message || e)); }catch(x){} });
 
-    await loadSocialProfile();
+    try{
+      await loadSocialProfile();
+    }catch(e){
+      try{ console.warn('[MM] loadSocialProfile', e && (e.message || e)); }catch(x){}
+    }
     renderAvatarGrid();
     renderBannerGrid();
     renderCosmeticStore();
