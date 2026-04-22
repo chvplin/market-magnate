@@ -1,0 +1,1180 @@
+{
+  "version": 1,
+  "generated": "2026-04-22T00:36:18.805Z",
+  "byItemId": {
+    "business_headquarters_0": {
+      "path": "assets/icons/upgrades/bedroom_setup.png",
+      "folder": "upgrades",
+      "name": "Bedroom Setup",
+      "kind": "business",
+      "category": "headquarters"
+    },
+    "business_headquarters_1": {
+      "path": "assets/icons/upgrades/second_desk.png",
+      "folder": "upgrades",
+      "name": "Second Desk",
+      "kind": "business",
+      "category": "headquarters"
+    },
+    "business_headquarters_2": {
+      "path": "assets/icons/upgrades/office_lighting.png",
+      "folder": "upgrades",
+      "name": "Office Lighting",
+      "kind": "business",
+      "category": "headquarters"
+    },
+    "business_headquarters_3": {
+      "path": "assets/icons/upgrades/garage_office.png",
+      "folder": "upgrades",
+      "name": "Garage Office",
+      "kind": "business",
+      "category": "headquarters"
+    },
+    "business_headquarters_4": {
+      "path": "assets/icons/upgrades/small_office_lease.png",
+      "folder": "upgrades",
+      "name": "Small Office Lease",
+      "kind": "business",
+      "category": "headquarters"
+    },
+    "business_headquarters_5": {
+      "path": "assets/icons/upgrades/storefront_hq.png",
+      "folder": "upgrades",
+      "name": "Storefront HQ",
+      "kind": "business",
+      "category": "headquarters"
+    },
+    "business_headquarters_6": {
+      "path": "assets/icons/upgrades/trading_suite.png",
+      "folder": "upgrades",
+      "name": "Trading Suite",
+      "kind": "business",
+      "category": "headquarters"
+    },
+    "business_headquarters_7": {
+      "path": "assets/icons/upgrades/corporate_floor.png",
+      "folder": "upgrades",
+      "name": "Corporate Floor",
+      "kind": "business",
+      "category": "headquarters"
+    },
+    "business_headquarters_8": {
+      "path": "assets/icons/upgrades/skyscraper_hq.png",
+      "folder": "upgrades",
+      "name": "Skyscraper HQ",
+      "kind": "business",
+      "category": "headquarters"
+    },
+    "business_headquarters_9": {
+      "path": "assets/icons/upgrades/global_campuses.png",
+      "folder": "upgrades",
+      "name": "Global Campuses",
+      "kind": "business",
+      "category": "headquarters"
+    },
+    "business_headquarters_10": {
+      "path": "assets/icons/upgrades/financial_district_block.png",
+      "folder": "upgrades",
+      "name": "Financial District Block",
+      "kind": "business",
+      "category": "headquarters"
+    },
+    "business_headquarters_11": {
+      "path": "assets/icons/upgrades/global_tower_network.png",
+      "folder": "upgrades",
+      "name": "Global Tower Network",
+      "kind": "business",
+      "category": "headquarters"
+    },
+    "business_headquarters_12": {
+      "path": "assets/icons/upgrades/sovereign_capital_campus.png",
+      "folder": "upgrades",
+      "name": "Sovereign Capital Campus",
+      "kind": "business",
+      "category": "headquarters"
+    },
+    "business_employees_0": {
+      "path": "assets/icons/upgrades/intern.png",
+      "folder": "upgrades",
+      "name": "Intern",
+      "kind": "business",
+      "category": "employees"
+    },
+    "business_employees_1": {
+      "path": "assets/icons/upgrades/junior_trader.png",
+      "folder": "upgrades",
+      "name": "Junior Trader",
+      "kind": "business",
+      "category": "employees"
+    },
+    "business_employees_2": {
+      "path": "assets/icons/upgrades/analyst.png",
+      "folder": "upgrades",
+      "name": "Analyst",
+      "kind": "business",
+      "category": "employees"
+    },
+    "business_employees_3": {
+      "path": "assets/icons/upgrades/senior_analyst.png",
+      "folder": "upgrades",
+      "name": "Senior Analyst",
+      "kind": "business",
+      "category": "employees"
+    },
+    "business_employees_4": {
+      "path": "assets/icons/upgrades/quant_specialist.png",
+      "folder": "upgrades",
+      "name": "Quant Specialist",
+      "kind": "business",
+      "category": "employees"
+    },
+    "business_employees_5": {
+      "path": "assets/icons/upgrades/advisor.png",
+      "folder": "upgrades",
+      "name": "Advisor",
+      "kind": "business",
+      "category": "employees"
+    },
+    "business_employees_6": {
+      "path": "assets/icons/upgrades/portfolio_manager.png",
+      "folder": "upgrades",
+      "name": "Portfolio Manager",
+      "kind": "business",
+      "category": "employees"
+    },
+    "business_employees_7": {
+      "path": "assets/icons/upgrades/research_team.png",
+      "folder": "upgrades",
+      "name": "Research Team",
+      "kind": "business",
+      "category": "employees"
+    },
+    "business_employees_8": {
+      "path": "assets/icons/upgrades/risk_office.png",
+      "folder": "upgrades",
+      "name": "Risk Office",
+      "kind": "business",
+      "category": "employees"
+    },
+    "business_employees_9": {
+      "path": "assets/icons/upgrades/executive_board.png",
+      "folder": "upgrades",
+      "name": "Executive Board",
+      "kind": "business",
+      "category": "employees"
+    },
+    "business_employees_10": {
+      "path": "assets/icons/upgrades/media_strategist.png",
+      "folder": "upgrades",
+      "name": "Media Strategist",
+      "kind": "business",
+      "category": "employees"
+    },
+    "business_employees_11": {
+      "path": "assets/icons/upgrades/deal_syndicate.png",
+      "folder": "upgrades",
+      "name": "Deal Syndicate",
+      "kind": "business",
+      "category": "employees"
+    },
+    "business_employees_12": {
+      "path": "assets/icons/upgrades/institutional_partners.png",
+      "folder": "upgrades",
+      "name": "Institutional Partners",
+      "kind": "business",
+      "category": "employees"
+    },
+    "business_software_0": {
+      "path": "assets/icons/upgrades/trading_terminal.png",
+      "folder": "upgrades",
+      "name": "Trading Terminal",
+      "kind": "business",
+      "category": "software"
+    },
+    "business_software_1": {
+      "path": "assets/icons/upgrades/realtime_scanner.png",
+      "folder": "upgrades",
+      "name": "Realtime Scanner",
+      "kind": "business",
+      "category": "software"
+    },
+    "business_software_2": {
+      "path": "assets/icons/upgrades/charting_pro.png",
+      "folder": "upgrades",
+      "name": "Charting Pro",
+      "kind": "business",
+      "category": "software"
+    },
+    "business_software_3": {
+      "path": "assets/icons/upgrades/automation_scripts.png",
+      "folder": "upgrades",
+      "name": "Automation Scripts",
+      "kind": "business",
+      "category": "software"
+    },
+    "business_software_4": {
+      "path": "assets/icons/upgrades/data_feed_bundle.png",
+      "folder": "upgrades",
+      "name": "Data Feed Bundle",
+      "kind": "business",
+      "category": "software"
+    },
+    "business_software_5": {
+      "path": "assets/icons/upgrades/algo_engine.png",
+      "folder": "upgrades",
+      "name": "Algo Engine",
+      "kind": "business",
+      "category": "software"
+    },
+    "business_software_6": {
+      "path": "assets/icons/upgrades/ai_signal_engine.png",
+      "folder": "upgrades",
+      "name": "AI Signal Engine",
+      "kind": "business",
+      "category": "software"
+    },
+    "business_software_7": {
+      "path": "assets/icons/upgrades/cloud_trading_mesh.png",
+      "folder": "upgrades",
+      "name": "Cloud Trading Mesh",
+      "kind": "business",
+      "category": "software"
+    },
+    "business_software_8": {
+      "path": "assets/icons/upgrades/institutional_stack.png",
+      "folder": "upgrades",
+      "name": "Institutional Stack",
+      "kind": "business",
+      "category": "software"
+    },
+    "business_software_9": {
+      "path": "assets/icons/upgrades/quantum_simulation_lab.png",
+      "folder": "upgrades",
+      "name": "Quantum Simulation Lab",
+      "kind": "business",
+      "category": "software"
+    },
+    "business_software_10": {
+      "path": "assets/icons/upgrades/predictive_macro_engine.png",
+      "folder": "upgrades",
+      "name": "Predictive Macro Engine",
+      "kind": "business",
+      "category": "software"
+    },
+    "business_software_11": {
+      "path": "assets/icons/upgrades/neural_strategy_stack.png",
+      "folder": "upgrades",
+      "name": "Neural Strategy Stack",
+      "kind": "business",
+      "category": "software"
+    },
+    "business_software_12": {
+      "path": "assets/icons/upgrades/sentient_market_core.png",
+      "folder": "upgrades",
+      "name": "Sentient Market Core",
+      "kind": "business",
+      "category": "software"
+    },
+    "business_automation_0": {
+      "path": "assets/icons/upgrades/auto_alerts.png",
+      "folder": "upgrades",
+      "name": "Auto Alerts",
+      "kind": "business",
+      "category": "automation"
+    },
+    "business_automation_1": {
+      "path": "assets/icons/upgrades/one_click_rebalancer.png",
+      "folder": "upgrades",
+      "name": "One-Click Rebalancer",
+      "kind": "business",
+      "category": "automation"
+    },
+    "business_automation_2": {
+      "path": "assets/icons/upgrades/mobile_ops.png",
+      "folder": "upgrades",
+      "name": "Mobile Ops",
+      "kind": "business",
+      "category": "automation"
+    },
+    "business_automation_3": {
+      "path": "assets/icons/upgrades/smart_routing.png",
+      "folder": "upgrades",
+      "name": "Smart Routing",
+      "kind": "business",
+      "category": "automation"
+    },
+    "business_automation_4": {
+      "path": "assets/icons/upgrades/broker_api_access.png",
+      "folder": "upgrades",
+      "name": "Broker API Access",
+      "kind": "business",
+      "category": "automation"
+    },
+    "business_automation_5": {
+      "path": "assets/icons/upgrades/semi_auto_trading.png",
+      "folder": "upgrades",
+      "name": "Semi-Auto Trading",
+      "kind": "business",
+      "category": "automation"
+    },
+    "business_automation_6": {
+      "path": "assets/icons/upgrades/full_algo_desk.png",
+      "folder": "upgrades",
+      "name": "Full Algo Desk",
+      "kind": "business",
+      "category": "automation"
+    },
+    "business_automation_7": {
+      "path": "assets/icons/upgrades/24_7_trading_grid.png",
+      "folder": "upgrades",
+      "name": "24/7 Trading Grid",
+      "kind": "business",
+      "category": "automation"
+    },
+    "business_automation_8": {
+      "path": "assets/icons/upgrades/global_arbitrage_net.png",
+      "folder": "upgrades",
+      "name": "Global Arbitrage Net",
+      "kind": "business",
+      "category": "automation"
+    },
+    "business_automation_9": {
+      "path": "assets/icons/upgrades/autonomous_finance_core.png",
+      "folder": "upgrades",
+      "name": "Autonomous Finance Core",
+      "kind": "business",
+      "category": "automation"
+    },
+    "business_automation_10": {
+      "path": "assets/icons/upgrades/machine_city_execution_net.png",
+      "folder": "upgrades",
+      "name": "Machine-City Execution Net",
+      "kind": "business",
+      "category": "automation"
+    },
+    "business_automation_11": {
+      "path": "assets/icons/upgrades/cross_market_omnibot.png",
+      "folder": "upgrades",
+      "name": "Cross-Market Omnibot",
+      "kind": "business",
+      "category": "automation"
+    },
+    "business_prestige_0": {
+      "path": "assets/icons/upgrades/brand_reputation.png",
+      "folder": "upgrades",
+      "name": "Brand Reputation",
+      "kind": "business",
+      "category": "prestige"
+    },
+    "business_prestige_1": {
+      "path": "assets/icons/upgrades/industry_award.png",
+      "folder": "upgrades",
+      "name": "Industry Award",
+      "kind": "business",
+      "category": "prestige"
+    },
+    "business_prestige_2": {
+      "path": "assets/icons/upgrades/vip_clients.png",
+      "folder": "upgrades",
+      "name": "VIP Clients",
+      "kind": "business",
+      "category": "prestige"
+    },
+    "business_prestige_3": {
+      "path": "assets/icons/upgrades/legacy_connections.png",
+      "folder": "upgrades",
+      "name": "Legacy Connections",
+      "kind": "business",
+      "category": "prestige"
+    },
+    "business_prestige_4": {
+      "path": "assets/icons/upgrades/elite_status.png",
+      "folder": "upgrades",
+      "name": "Elite Status",
+      "kind": "business",
+      "category": "prestige"
+    },
+    "business_prestige_5": {
+      "path": "assets/icons/upgrades/global_influence.png",
+      "folder": "upgrades",
+      "name": "Global Influence",
+      "kind": "business",
+      "category": "prestige"
+    },
+    "business_prestige_6": {
+      "path": "assets/icons/upgrades/market_mystic_brand.png",
+      "folder": "upgrades",
+      "name": "Market Mystic Brand",
+      "kind": "business",
+      "category": "prestige"
+    },
+    "business_prestige_7": {
+      "path": "assets/icons/upgrades/financial_dynasty.png",
+      "folder": "upgrades",
+      "name": "Financial Dynasty",
+      "kind": "business",
+      "category": "prestige"
+    },
+    "business_prestige_8": {
+      "path": "assets/icons/upgrades/private_access_network.png",
+      "folder": "upgrades",
+      "name": "Private Access Network",
+      "kind": "business",
+      "category": "prestige"
+    },
+    "business_prestige_9": {
+      "path": "assets/icons/upgrades/wall_street_royalty.png",
+      "folder": "upgrades",
+      "name": "Wall Street Royalty",
+      "kind": "business",
+      "category": "prestige"
+    },
+    "business_prestige_10": {
+      "path": "assets/icons/upgrades/market_kingmaker.png",
+      "folder": "upgrades",
+      "name": "Market Kingmaker",
+      "kind": "business",
+      "category": "prestige"
+    },
+    "business_prestige_11": {
+      "path": "assets/icons/upgrades/legendary_financial_aura.png",
+      "folder": "upgrades",
+      "name": "Legendary Financial Aura",
+      "kind": "business",
+      "category": "prestige"
+    },
+    "shopping_homes_0": {
+      "path": "assets/icons/properties/tiny_apartment.png",
+      "folder": "properties",
+      "name": "Tiny Apartment",
+      "kind": "shopping",
+      "category": "homes"
+    },
+    "shopping_homes_1": {
+      "path": "assets/icons/properties/starter_house.png",
+      "folder": "properties",
+      "name": "Starter House",
+      "kind": "shopping",
+      "category": "homes"
+    },
+    "shopping_homes_2": {
+      "path": "assets/icons/properties/suburban_home.png",
+      "folder": "properties",
+      "name": "Suburban Home",
+      "kind": "shopping",
+      "category": "homes"
+    },
+    "shopping_homes_3": {
+      "path": "assets/icons/properties/downtown_loft.png",
+      "folder": "properties",
+      "name": "Downtown Loft",
+      "kind": "shopping",
+      "category": "homes"
+    },
+    "shopping_homes_4": {
+      "path": "assets/icons/properties/luxury_condo.png",
+      "folder": "properties",
+      "name": "Luxury Condo",
+      "kind": "shopping",
+      "category": "homes"
+    },
+    "shopping_homes_5": {
+      "path": "assets/icons/properties/beach_house.png",
+      "folder": "properties",
+      "name": "Beach House",
+      "kind": "shopping",
+      "category": "homes"
+    },
+    "shopping_homes_6": {
+      "path": "assets/icons/properties/estate_home.png",
+      "folder": "properties",
+      "name": "Estate Home",
+      "kind": "shopping",
+      "category": "homes"
+    },
+    "shopping_homes_7": {
+      "path": "assets/icons/properties/gated_mansion.png",
+      "folder": "properties",
+      "name": "Gated Mansion",
+      "kind": "shopping",
+      "category": "homes"
+    },
+    "shopping_homes_8": {
+      "path": "assets/icons/properties/island_villa.png",
+      "folder": "properties",
+      "name": "Island Villa",
+      "kind": "shopping",
+      "category": "homes"
+    },
+    "shopping_homes_9": {
+      "path": "assets/icons/properties/mega_estate_compound.png",
+      "folder": "properties",
+      "name": "Mega Estate Compound",
+      "kind": "shopping",
+      "category": "homes"
+    },
+    "shopping_homes_10": {
+      "path": "assets/icons/properties/sky_palace_penthouse.png",
+      "folder": "properties",
+      "name": "Sky Palace Penthouse",
+      "kind": "shopping",
+      "category": "homes"
+    },
+    "shopping_homes_11": {
+      "path": "assets/icons/properties/private_island_chain.png",
+      "folder": "properties",
+      "name": "Private Island Chain",
+      "kind": "shopping",
+      "category": "homes"
+    },
+    "shopping_cars_0": {
+      "path": "assets/icons/cars/rusty_beater.png",
+      "folder": "cars",
+      "name": "Rusty Beater",
+      "kind": "shopping",
+      "category": "cars"
+    },
+    "shopping_cars_1": {
+      "path": "assets/icons/cars/used_sedan.png",
+      "folder": "cars",
+      "name": "Used Sedan",
+      "kind": "shopping",
+      "category": "cars"
+    },
+    "shopping_cars_2": {
+      "path": "assets/icons/cars/sport_coupe.png",
+      "folder": "cars",
+      "name": "Sport Coupe",
+      "kind": "shopping",
+      "category": "cars"
+    },
+    "shopping_cars_3": {
+      "path": "assets/icons/cars/executive_sedan.png",
+      "folder": "cars",
+      "name": "Executive Sedan",
+      "kind": "shopping",
+      "category": "cars"
+    },
+    "shopping_cars_4": {
+      "path": "assets/icons/cars/luxury_suv.png",
+      "folder": "cars",
+      "name": "Luxury SUV",
+      "kind": "shopping",
+      "category": "cars"
+    },
+    "shopping_cars_5": {
+      "path": "assets/icons/cars/italian_supercar.png",
+      "folder": "cars",
+      "name": "Italian Supercar",
+      "kind": "shopping",
+      "category": "cars"
+    },
+    "shopping_cars_6": {
+      "path": "assets/icons/cars/electric_hypercar.png",
+      "folder": "cars",
+      "name": "Electric Hypercar",
+      "kind": "shopping",
+      "category": "cars"
+    },
+    "shopping_cars_7": {
+      "path": "assets/icons/cars/carbon_hypercar.png",
+      "folder": "cars",
+      "name": "Carbon Hypercar",
+      "kind": "shopping",
+      "category": "cars"
+    },
+    "shopping_cars_8": {
+      "path": "assets/icons/jets/private_helicopter.png",
+      "folder": "jets",
+      "name": "Private Helicopter",
+      "kind": "shopping",
+      "category": "cars"
+    },
+    "shopping_cars_9": {
+      "path": "assets/icons/jets/private_jet.png",
+      "folder": "jets",
+      "name": "Private Jet",
+      "kind": "shopping",
+      "category": "cars"
+    },
+    "shopping_cars_10": {
+      "path": "assets/icons/yachts/superyacht_fleet.png",
+      "folder": "yachts",
+      "name": "Superyacht Fleet",
+      "kind": "shopping",
+      "category": "cars"
+    },
+    "shopping_cars_11": {
+      "path": "assets/icons/jets/orbital_leisure_shuttle.png",
+      "folder": "jets",
+      "name": "Orbital Leisure Shuttle",
+      "kind": "shopping",
+      "category": "cars"
+    },
+    "shopping_jewelry_0": {
+      "path": "assets/icons/jewelry/silver_ring.png",
+      "folder": "jewelry",
+      "name": "Silver Ring",
+      "kind": "shopping",
+      "category": "jewelry"
+    },
+    "shopping_jewelry_1": {
+      "path": "assets/icons/jewelry/gold_chain.png",
+      "folder": "jewelry",
+      "name": "Gold Chain",
+      "kind": "shopping",
+      "category": "jewelry"
+    },
+    "shopping_jewelry_2": {
+      "path": "assets/icons/jewelry/diamond_pendant.png",
+      "folder": "jewelry",
+      "name": "Diamond Pendant",
+      "kind": "shopping",
+      "category": "jewelry"
+    },
+    "shopping_jewelry_3": {
+      "path": "assets/icons/jewelry/platinum_set.png",
+      "folder": "jewelry",
+      "name": "Platinum Set",
+      "kind": "shopping",
+      "category": "jewelry"
+    },
+    "shopping_jewelry_4": {
+      "path": "assets/icons/jewelry/rare_gem_collection.png",
+      "folder": "jewelry",
+      "name": "Rare Gem Collection",
+      "kind": "shopping",
+      "category": "jewelry"
+    },
+    "shopping_jewelry_5": {
+      "path": "assets/icons/jewelry/museum_grade_stones.png",
+      "folder": "jewelry",
+      "name": "Museum-Grade Stones",
+      "kind": "shopping",
+      "category": "jewelry"
+    },
+    "shopping_jewelry_6": {
+      "path": "assets/icons/jewelry/crown_jewel_vault.png",
+      "folder": "jewelry",
+      "name": "Crown Jewel Vault",
+      "kind": "shopping",
+      "category": "jewelry"
+    },
+    "shopping_jewelry_7": {
+      "path": "assets/icons/jewelry/blue_diamond_reserve.png",
+      "folder": "jewelry",
+      "name": "Blue Diamond Reserve",
+      "kind": "shopping",
+      "category": "jewelry"
+    },
+    "shopping_watches_0": {
+      "path": "assets/icons/watches/everyday_watch.png",
+      "folder": "watches",
+      "name": "Everyday Watch",
+      "kind": "shopping",
+      "category": "watches"
+    },
+    "shopping_watches_1": {
+      "path": "assets/icons/watches/mechanical_watch.png",
+      "folder": "watches",
+      "name": "Mechanical Watch",
+      "kind": "shopping",
+      "category": "watches"
+    },
+    "shopping_watches_2": {
+      "path": "assets/icons/watches/swiss_luxury_watch.png",
+      "folder": "watches",
+      "name": "Swiss Luxury Watch",
+      "kind": "shopping",
+      "category": "watches"
+    },
+    "shopping_watches_3": {
+      "path": "assets/icons/watches/diamond_bezel_watch.png",
+      "folder": "watches",
+      "name": "Diamond Bezel Watch",
+      "kind": "shopping",
+      "category": "watches"
+    },
+    "shopping_watches_4": {
+      "path": "assets/icons/watches/collector_tourbillon.png",
+      "folder": "watches",
+      "name": "Collector Tourbillon",
+      "kind": "shopping",
+      "category": "watches"
+    },
+    "shopping_watches_5": {
+      "path": "assets/icons/watches/one_of_one_timepiece.png",
+      "folder": "watches",
+      "name": "One-of-One Timepiece",
+      "kind": "shopping",
+      "category": "watches"
+    },
+    "shopping_watches_6": {
+      "path": "assets/icons/watches/vault_collection.png",
+      "folder": "watches",
+      "name": "Vault Collection",
+      "kind": "shopping",
+      "category": "watches"
+    },
+    "shopping_watches_7": {
+      "path": "assets/icons/watches/astronomical_time_archive.png",
+      "folder": "watches",
+      "name": "Astronomical Time Archive",
+      "kind": "shopping",
+      "category": "watches"
+    },
+    "shopping_luxury_0": {
+      "path": "assets/icons/lifestyle/vip_club_access.png",
+      "folder": "lifestyle",
+      "name": "VIP Club Access",
+      "kind": "shopping",
+      "category": "luxury"
+    },
+    "shopping_luxury_1": {
+      "path": "assets/icons/lifestyle/exclusive_parties.png",
+      "folder": "lifestyle",
+      "name": "Exclusive Parties",
+      "kind": "shopping",
+      "category": "luxury"
+    },
+    "shopping_luxury_2": {
+      "path": "assets/icons/lifestyle/first_class_travel.png",
+      "folder": "lifestyle",
+      "name": "First-Class Travel",
+      "kind": "shopping",
+      "category": "luxury"
+    },
+    "shopping_luxury_3": {
+      "path": "assets/icons/yachts/yacht_weekends.png",
+      "folder": "yachts",
+      "name": "Yacht Weekends",
+      "kind": "shopping",
+      "category": "luxury"
+    },
+    "shopping_luxury_4": {
+      "path": "assets/icons/lifestyle/private_events.png",
+      "folder": "lifestyle",
+      "name": "Private Events",
+      "kind": "shopping",
+      "category": "luxury"
+    },
+    "shopping_luxury_5": {
+      "path": "assets/icons/yachts/mega_yacht.png",
+      "folder": "yachts",
+      "name": "Mega Yacht",
+      "kind": "shopping",
+      "category": "luxury"
+    },
+    "shopping_luxury_6": {
+      "path": "assets/icons/lifestyle/private_festival_sponsorships.png",
+      "folder": "lifestyle",
+      "name": "Private Festival Sponsorships",
+      "kind": "shopping",
+      "category": "luxury"
+    },
+    "shopping_luxury_7": {
+      "path": "assets/icons/lifestyle/luxury_casino_nights.png",
+      "folder": "lifestyle",
+      "name": "Luxury Casino Nights",
+      "kind": "shopping",
+      "category": "luxury"
+    },
+    "shopping_social_0": {
+      "path": "assets/icons/lifestyle/networking_brunches.png",
+      "folder": "lifestyle",
+      "name": "Networking Brunches",
+      "kind": "shopping",
+      "category": "social"
+    },
+    "shopping_social_1": {
+      "path": "assets/icons/lifestyle/vip_event_tickets.png",
+      "folder": "lifestyle",
+      "name": "VIP Event Tickets",
+      "kind": "shopping",
+      "category": "social"
+    },
+    "shopping_social_2": {
+      "path": "assets/icons/lifestyle/luxury_photoshoots.png",
+      "folder": "lifestyle",
+      "name": "Luxury Photoshoots",
+      "kind": "shopping",
+      "category": "social"
+    },
+    "shopping_social_3": {
+      "path": "assets/icons/lifestyle/celebrity_friend_group.png",
+      "folder": "lifestyle",
+      "name": "Celebrity Friend Group",
+      "kind": "shopping",
+      "category": "social"
+    },
+    "shopping_social_4": {
+      "path": "assets/icons/lifestyle/private_retreats.png",
+      "folder": "lifestyle",
+      "name": "Private Retreats",
+      "kind": "shopping",
+      "category": "social"
+    },
+    "shopping_social_5": {
+      "path": "assets/icons/lifestyle/global_influence_tour.png",
+      "folder": "lifestyle",
+      "name": "Global Influence Tour",
+      "kind": "shopping",
+      "category": "social"
+    },
+    "shopping_social_6": {
+      "path": "assets/icons/lifestyle/philanthropy_gala_circuit.png",
+      "folder": "lifestyle",
+      "name": "Philanthropy Gala Circuit",
+      "kind": "shopping",
+      "category": "social"
+    },
+    "shopping_social_7": {
+      "path": "assets/icons/lifestyle/global_media_presence.png",
+      "folder": "lifestyle",
+      "name": "Global Media Presence",
+      "kind": "shopping",
+      "category": "social"
+    },
+    "shopping_collectibles_0": {
+      "path": "assets/icons/misc/signed_wall_print.png",
+      "folder": "misc",
+      "name": "Signed Wall Print",
+      "kind": "shopping",
+      "category": "collectibles"
+    },
+    "shopping_collectibles_1": {
+      "path": "assets/icons/misc/bronze_trophy_shelf.png",
+      "folder": "misc",
+      "name": "Bronze Trophy Shelf",
+      "kind": "shopping",
+      "category": "collectibles"
+    },
+    "shopping_collectibles_2": {
+      "path": "assets/icons/misc/designer_sculpture.png",
+      "folder": "misc",
+      "name": "Designer Sculpture",
+      "kind": "shopping",
+      "category": "collectibles"
+    },
+    "shopping_collectibles_3": {
+      "path": "assets/icons/misc/rare_trading_card_vault.png",
+      "folder": "misc",
+      "name": "Rare Trading Card Vault",
+      "kind": "shopping",
+      "category": "collectibles"
+    },
+    "shopping_collectibles_4": {
+      "path": "assets/icons/misc/limited_art_toy_set.png",
+      "folder": "misc",
+      "name": "Limited Art Toy Set",
+      "kind": "shopping",
+      "category": "collectibles"
+    },
+    "shopping_collectibles_5": {
+      "path": "assets/icons/misc/crystal_installation.png",
+      "folder": "misc",
+      "name": "Crystal Installation",
+      "kind": "shopping",
+      "category": "collectibles"
+    },
+    "shopping_collectibles_6": {
+      "path": "assets/icons/misc/prototype_tech_relic.png",
+      "folder": "misc",
+      "name": "Prototype Tech Relic",
+      "kind": "shopping",
+      "category": "collectibles"
+    },
+    "shopping_collectibles_7": {
+      "path": "assets/icons/misc/space_memorabilia_gallery.png",
+      "folder": "misc",
+      "name": "Space Memorabilia Gallery",
+      "kind": "shopping",
+      "category": "collectibles"
+    },
+    "shopping_collectibles_8": {
+      "path": "assets/icons/misc/legendary_game_archive.png",
+      "folder": "misc",
+      "name": "Legendary Game Archive",
+      "kind": "shopping",
+      "category": "collectibles"
+    },
+    "shopping_collectibles_9": {
+      "path": "assets/icons/misc/ancient_artifact_collection.png",
+      "folder": "misc",
+      "name": "Ancient Artifact Collection",
+      "kind": "shopping",
+      "category": "collectibles"
+    },
+    "shopping_staff_0": {
+      "path": "assets/icons/outfits/personal_assistant.png",
+      "folder": "outfits",
+      "name": "Personal Assistant",
+      "kind": "shopping",
+      "category": "staff"
+    },
+    "shopping_staff_1": {
+      "path": "assets/icons/outfits/lifestyle_manager.png",
+      "folder": "outfits",
+      "name": "Lifestyle Manager",
+      "kind": "shopping",
+      "category": "staff"
+    },
+    "shopping_staff_2": {
+      "path": "assets/icons/outfits/private_security_detail.png",
+      "folder": "outfits",
+      "name": "Private Security Detail",
+      "kind": "shopping",
+      "category": "staff"
+    },
+    "shopping_staff_3": {
+      "path": "assets/icons/outfits/image_consultant.png",
+      "folder": "outfits",
+      "name": "Image Consultant",
+      "kind": "shopping",
+      "category": "staff"
+    },
+    "shopping_staff_4": {
+      "path": "assets/icons/outfits/content_team.png",
+      "folder": "outfits",
+      "name": "Content Team",
+      "kind": "shopping",
+      "category": "staff"
+    },
+    "shopping_staff_5": {
+      "path": "assets/icons/outfits/luxury_concierge_desk.png",
+      "folder": "outfits",
+      "name": "Luxury Concierge Desk",
+      "kind": "shopping",
+      "category": "staff"
+    },
+    "shopping_staff_6": {
+      "path": "assets/icons/outfits/flight_crew_on_retainer.png",
+      "folder": "outfits",
+      "name": "Flight Crew on Retainer",
+      "kind": "shopping",
+      "category": "staff"
+    },
+    "shopping_staff_7": {
+      "path": "assets/icons/outfits/household_estate_staff.png",
+      "folder": "outfits",
+      "name": "Household Estate Staff",
+      "kind": "shopping",
+      "category": "staff"
+    },
+    "shopping_experiences_0": {
+      "path": "assets/icons/lifestyle/private_concert_night.png",
+      "folder": "lifestyle",
+      "name": "Private Concert Night",
+      "kind": "shopping",
+      "category": "experiences"
+    },
+    "shopping_experiences_1": {
+      "path": "assets/icons/lifestyle/film_festival_vip_run.png",
+      "folder": "lifestyle",
+      "name": "Film Festival VIP Run",
+      "kind": "shopping",
+      "category": "experiences"
+    },
+    "shopping_experiences_2": {
+      "path": "assets/icons/lifestyle/track_day_experience.png",
+      "folder": "lifestyle",
+      "name": "Track Day Experience",
+      "kind": "shopping",
+      "category": "experiences"
+    },
+    "shopping_experiences_3": {
+      "path": "assets/icons/lifestyle/summit_expedition.png",
+      "folder": "lifestyle",
+      "name": "Summit Expedition",
+      "kind": "shopping",
+      "category": "experiences"
+    },
+    "shopping_experiences_4": {
+      "path": "assets/icons/lifestyle/world_grand_tour.png",
+      "folder": "lifestyle",
+      "name": "World Grand Tour",
+      "kind": "shopping",
+      "category": "experiences"
+    },
+    "shopping_experiences_5": {
+      "path": "assets/icons/lifestyle/private_island_festival.png",
+      "folder": "lifestyle",
+      "name": "Private Island Festival",
+      "kind": "shopping",
+      "category": "experiences"
+    },
+    "shopping_experiences_6": {
+      "path": "assets/icons/lifestyle/edge_of_space_vacation.png",
+      "folder": "lifestyle",
+      "name": "Edge-of-Space Vacation",
+      "kind": "shopping",
+      "category": "experiences"
+    },
+    "shopping_experiences_7": {
+      "path": "assets/icons/lifestyle/orbital_leisure_week.png",
+      "folder": "lifestyle",
+      "name": "Orbital Leisure Week",
+      "kind": "shopping",
+      "category": "experiences"
+    }
+  },
+  "byNameKey": {
+    "Bedroom Setup": "assets/icons/upgrades/bedroom_setup.png",
+    "Second Desk": "assets/icons/upgrades/second_desk.png",
+    "Office Lighting": "assets/icons/upgrades/office_lighting.png",
+    "Garage Office": "assets/icons/upgrades/garage_office.png",
+    "Small Office Lease": "assets/icons/upgrades/small_office_lease.png",
+    "Storefront HQ": "assets/icons/upgrades/storefront_hq.png",
+    "Trading Suite": "assets/icons/upgrades/trading_suite.png",
+    "Corporate Floor": "assets/icons/upgrades/corporate_floor.png",
+    "Skyscraper HQ": "assets/icons/upgrades/skyscraper_hq.png",
+    "Global Campuses": "assets/icons/upgrades/global_campuses.png",
+    "Financial District Block": "assets/icons/upgrades/financial_district_block.png",
+    "Global Tower Network": "assets/icons/upgrades/global_tower_network.png",
+    "Sovereign Capital Campus": "assets/icons/upgrades/sovereign_capital_campus.png",
+    "Intern": "assets/icons/upgrades/intern.png",
+    "Junior Trader": "assets/icons/upgrades/junior_trader.png",
+    "Analyst": "assets/icons/upgrades/analyst.png",
+    "Senior Analyst": "assets/icons/upgrades/senior_analyst.png",
+    "Quant Specialist": "assets/icons/upgrades/quant_specialist.png",
+    "Advisor": "assets/icons/upgrades/advisor.png",
+    "Portfolio Manager": "assets/icons/upgrades/portfolio_manager.png",
+    "Research Team": "assets/icons/upgrades/research_team.png",
+    "Risk Office": "assets/icons/upgrades/risk_office.png",
+    "Executive Board": "assets/icons/upgrades/executive_board.png",
+    "Media Strategist": "assets/icons/upgrades/media_strategist.png",
+    "Deal Syndicate": "assets/icons/upgrades/deal_syndicate.png",
+    "Institutional Partners": "assets/icons/upgrades/institutional_partners.png",
+    "Trading Terminal": "assets/icons/upgrades/trading_terminal.png",
+    "Realtime Scanner": "assets/icons/upgrades/realtime_scanner.png",
+    "Charting Pro": "assets/icons/upgrades/charting_pro.png",
+    "Automation Scripts": "assets/icons/upgrades/automation_scripts.png",
+    "Data Feed Bundle": "assets/icons/upgrades/data_feed_bundle.png",
+    "Algo Engine": "assets/icons/upgrades/algo_engine.png",
+    "AI Signal Engine": "assets/icons/upgrades/ai_signal_engine.png",
+    "Cloud Trading Mesh": "assets/icons/upgrades/cloud_trading_mesh.png",
+    "Institutional Stack": "assets/icons/upgrades/institutional_stack.png",
+    "Quantum Simulation Lab": "assets/icons/upgrades/quantum_simulation_lab.png",
+    "Predictive Macro Engine": "assets/icons/upgrades/predictive_macro_engine.png",
+    "Neural Strategy Stack": "assets/icons/upgrades/neural_strategy_stack.png",
+    "Sentient Market Core": "assets/icons/upgrades/sentient_market_core.png",
+    "Auto Alerts": "assets/icons/upgrades/auto_alerts.png",
+    "One-Click Rebalancer": "assets/icons/upgrades/one_click_rebalancer.png",
+    "Mobile Ops": "assets/icons/upgrades/mobile_ops.png",
+    "Smart Routing": "assets/icons/upgrades/smart_routing.png",
+    "Broker API Access": "assets/icons/upgrades/broker_api_access.png",
+    "Semi-Auto Trading": "assets/icons/upgrades/semi_auto_trading.png",
+    "Full Algo Desk": "assets/icons/upgrades/full_algo_desk.png",
+    "24/7 Trading Grid": "assets/icons/upgrades/24_7_trading_grid.png",
+    "Global Arbitrage Net": "assets/icons/upgrades/global_arbitrage_net.png",
+    "Autonomous Finance Core": "assets/icons/upgrades/autonomous_finance_core.png",
+    "Machine-City Execution Net": "assets/icons/upgrades/machine_city_execution_net.png",
+    "Cross-Market Omnibot": "assets/icons/upgrades/cross_market_omnibot.png",
+    "Brand Reputation": "assets/icons/upgrades/brand_reputation.png",
+    "Industry Award": "assets/icons/upgrades/industry_award.png",
+    "VIP Clients": "assets/icons/upgrades/vip_clients.png",
+    "Legacy Connections": "assets/icons/upgrades/legacy_connections.png",
+    "Elite Status": "assets/icons/upgrades/elite_status.png",
+    "Global Influence": "assets/icons/upgrades/global_influence.png",
+    "Market Mystic Brand": "assets/icons/upgrades/market_mystic_brand.png",
+    "Financial Dynasty": "assets/icons/upgrades/financial_dynasty.png",
+    "Private Access Network": "assets/icons/upgrades/private_access_network.png",
+    "Wall Street Royalty": "assets/icons/upgrades/wall_street_royalty.png",
+    "Market Kingmaker": "assets/icons/upgrades/market_kingmaker.png",
+    "Legendary Financial Aura": "assets/icons/upgrades/legendary_financial_aura.png",
+    "Tiny Apartment": "assets/icons/properties/tiny_apartment.png",
+    "Starter House": "assets/icons/properties/starter_house.png",
+    "Suburban Home": "assets/icons/properties/suburban_home.png",
+    "Downtown Loft": "assets/icons/properties/downtown_loft.png",
+    "Luxury Condo": "assets/icons/properties/luxury_condo.png",
+    "Beach House": "assets/icons/properties/beach_house.png",
+    "Estate Home": "assets/icons/properties/estate_home.png",
+    "Gated Mansion": "assets/icons/properties/gated_mansion.png",
+    "Island Villa": "assets/icons/properties/island_villa.png",
+    "Mega Estate Compound": "assets/icons/properties/mega_estate_compound.png",
+    "Sky Palace Penthouse": "assets/icons/properties/sky_palace_penthouse.png",
+    "Private Island Chain": "assets/icons/properties/private_island_chain.png",
+    "Rusty Beater": "assets/icons/cars/rusty_beater.png",
+    "Used Sedan": "assets/icons/cars/used_sedan.png",
+    "Sport Coupe": "assets/icons/cars/sport_coupe.png",
+    "Executive Sedan": "assets/icons/cars/executive_sedan.png",
+    "Luxury SUV": "assets/icons/cars/luxury_suv.png",
+    "Italian Supercar": "assets/icons/cars/italian_supercar.png",
+    "Electric Hypercar": "assets/icons/cars/electric_hypercar.png",
+    "Carbon Hypercar": "assets/icons/cars/carbon_hypercar.png",
+    "Private Helicopter": "assets/icons/jets/private_helicopter.png",
+    "Private Jet": "assets/icons/jets/private_jet.png",
+    "Superyacht Fleet": "assets/icons/yachts/superyacht_fleet.png",
+    "Orbital Leisure Shuttle": "assets/icons/jets/orbital_leisure_shuttle.png",
+    "Silver Ring": "assets/icons/jewelry/silver_ring.png",
+    "Gold Chain": "assets/icons/jewelry/gold_chain.png",
+    "Diamond Pendant": "assets/icons/jewelry/diamond_pendant.png",
+    "Platinum Set": "assets/icons/jewelry/platinum_set.png",
+    "Rare Gem Collection": "assets/icons/jewelry/rare_gem_collection.png",
+    "Museum-Grade Stones": "assets/icons/jewelry/museum_grade_stones.png",
+    "Crown Jewel Vault": "assets/icons/jewelry/crown_jewel_vault.png",
+    "Blue Diamond Reserve": "assets/icons/jewelry/blue_diamond_reserve.png",
+    "Everyday Watch": "assets/icons/watches/everyday_watch.png",
+    "Mechanical Watch": "assets/icons/watches/mechanical_watch.png",
+    "Swiss Luxury Watch": "assets/icons/watches/swiss_luxury_watch.png",
+    "Diamond Bezel Watch": "assets/icons/watches/diamond_bezel_watch.png",
+    "Collector Tourbillon": "assets/icons/watches/collector_tourbillon.png",
+    "One-of-One Timepiece": "assets/icons/watches/one_of_one_timepiece.png",
+    "Vault Collection": "assets/icons/watches/vault_collection.png",
+    "Astronomical Time Archive": "assets/icons/watches/astronomical_time_archive.png",
+    "VIP Club Access": "assets/icons/lifestyle/vip_club_access.png",
+    "Exclusive Parties": "assets/icons/lifestyle/exclusive_parties.png",
+    "First-Class Travel": "assets/icons/lifestyle/first_class_travel.png",
+    "Yacht Weekends": "assets/icons/yachts/yacht_weekends.png",
+    "Private Events": "assets/icons/lifestyle/private_events.png",
+    "Mega Yacht": "assets/icons/yachts/mega_yacht.png",
+    "Private Festival Sponsorships": "assets/icons/lifestyle/private_festival_sponsorships.png",
+    "Luxury Casino Nights": "assets/icons/lifestyle/luxury_casino_nights.png",
+    "Networking Brunches": "assets/icons/lifestyle/networking_brunches.png",
+    "VIP Event Tickets": "assets/icons/lifestyle/vip_event_tickets.png",
+    "Luxury Photoshoots": "assets/icons/lifestyle/luxury_photoshoots.png",
+    "Celebrity Friend Group": "assets/icons/lifestyle/celebrity_friend_group.png",
+    "Private Retreats": "assets/icons/lifestyle/private_retreats.png",
+    "Global Influence Tour": "assets/icons/lifestyle/global_influence_tour.png",
+    "Philanthropy Gala Circuit": "assets/icons/lifestyle/philanthropy_gala_circuit.png",
+    "Global Media Presence": "assets/icons/lifestyle/global_media_presence.png",
+    "Signed Wall Print": "assets/icons/misc/signed_wall_print.png",
+    "Bronze Trophy Shelf": "assets/icons/misc/bronze_trophy_shelf.png",
+    "Designer Sculpture": "assets/icons/misc/designer_sculpture.png",
+    "Rare Trading Card Vault": "assets/icons/misc/rare_trading_card_vault.png",
+    "Limited Art Toy Set": "assets/icons/misc/limited_art_toy_set.png",
+    "Crystal Installation": "assets/icons/misc/crystal_installation.png",
+    "Prototype Tech Relic": "assets/icons/misc/prototype_tech_relic.png",
+    "Space Memorabilia Gallery": "assets/icons/misc/space_memorabilia_gallery.png",
+    "Legendary Game Archive": "assets/icons/misc/legendary_game_archive.png",
+    "Ancient Artifact Collection": "assets/icons/misc/ancient_artifact_collection.png",
+    "Personal Assistant": "assets/icons/outfits/personal_assistant.png",
+    "Lifestyle Manager": "assets/icons/outfits/lifestyle_manager.png",
+    "Private Security Detail": "assets/icons/outfits/private_security_detail.png",
+    "Image Consultant": "assets/icons/outfits/image_consultant.png",
+    "Content Team": "assets/icons/outfits/content_team.png",
+    "Luxury Concierge Desk": "assets/icons/outfits/luxury_concierge_desk.png",
+    "Flight Crew on Retainer": "assets/icons/outfits/flight_crew_on_retainer.png",
+    "Household Estate Staff": "assets/icons/outfits/household_estate_staff.png",
+    "Private Concert Night": "assets/icons/lifestyle/private_concert_night.png",
+    "Film Festival VIP Run": "assets/icons/lifestyle/film_festival_vip_run.png",
+    "Track Day Experience": "assets/icons/lifestyle/track_day_experience.png",
+    "Summit Expedition": "assets/icons/lifestyle/summit_expedition.png",
+    "World Grand Tour": "assets/icons/lifestyle/world_grand_tour.png",
+    "Private Island Festival": "assets/icons/lifestyle/private_island_festival.png",
+    "Edge-of-Space Vacation": "assets/icons/lifestyle/edge_of_space_vacation.png",
+    "Orbital Leisure Week": "assets/icons/lifestyle/orbital_leisure_week.png"
+  },
+  "fallbacks": {
+    "cars": "assets/icons/cars/_fallback.png",
+    "properties": "assets/icons/properties/_fallback.png",
+    "jets": "assets/icons/jets/_fallback.png",
+    "yachts": "assets/icons/yachts/_fallback.png",
+    "watches": "assets/icons/watches/_fallback.png",
+    "jewelry": "assets/icons/jewelry/_fallback.png",
+    "outfits": "assets/icons/outfits/_fallback.png",
+    "lifestyle": "assets/icons/lifestyle/_fallback.png",
+    "upgrades": "assets/icons/upgrades/_fallback.png",
+    "misc": "assets/icons/misc/_fallback.png"
+  }
+}

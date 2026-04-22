@@ -2542,6 +2542,7 @@ html, body, body *, body *::before, body *::after { cursor:auto !important; }
 <script src="./avatar-engine.js"></script>
 <script src="./identity-visuals.js"></script>
 <script src="./identity-studio.js"></script>
+<script src="./assets/icons/mm-icon-assets.js"></script>
 
 </head>
 <body>
@@ -7909,10 +7910,11 @@ function renderItems(kind){
     if(item.effects.style) effectText.push(`+${item.effects.style} style`);
     if(item.effects.network) effectText.push(`+${Math.round(item.effects.network*100)}% network`);
     const thumbUrl = kind === 'shopping' && window.mmIdentityThumbForItem ? window.mmIdentityThumbForItem(item) : '';
-    const ico =
-      thumbUrl
-        ? `<div class="ico ico--photo"><img alt="" loading="lazy" decoding="async" src="${escapeHtml(thumbUrl)}"/></div>`
-        : `<div class="ico">${mmIconFromEmoji(item.icon, 28)}</div>`;
+    const manifestUrl = typeof window.mmResolveShopCardImageUrl === 'function' ? window.mmResolveShopCardImageUrl(item, kind) : '';
+    const photoUrl = (kind === 'shopping' && thumbUrl) ? thumbUrl : (manifestUrl || thumbUrl || '');
+    const ico = photoUrl
+      ? `<div class="ico ico--photo"><img alt="" loading="lazy" decoding="async" src="${escapeHtml(photoUrl)}" data-mm-item-id="${escapeHtml(item.id)}" onerror="try{window.mmItemIconImgErr&&window.mmItemIconImgErr(this)}catch(e){}"/></div>`
+      : `<div class="ico">${mmIconFromEmoji(item.icon, 28)}</div>`;
     card.innerHTML=
       `${ico}<div><h4>${escapeHtml(item.name)}</h4><p>${escapeHtml(item.desc)}</p></div><div class="priceCol"><div class="cost">${owned?'Owned':fmt(item.cost)}</div><div class="effect">${escapeHtml(effectText.join(' · ') || 'Status boost')}</div><button class="buySmall ${owned?'owned':''}">${owned?'Owned':'Buy'}</button></div>`;
     if(!owned) card.querySelector('button').onclick=()=>buyItem(item.id);
@@ -8519,9 +8521,11 @@ function renderUser(){
   ids.map(getItemById).sort((a,b)=>b.cost-a.cost).forEach(item=>{
     const row=document.createElement('div'); row.className='assetRow';
     const tu = item.kind === 'shopping' && window.mmIdentityThumbForItem ? window.mmIdentityThumbForItem(item) : '';
+    const manifestUrl = typeof window.mmResolveShopCardImageUrl === 'function' ? window.mmResolveShopCardImageUrl(item, item.kind) : '';
+    const photoUrl = (item.kind === 'shopping' && tu) ? tu : (manifestUrl || tu || '');
     const ra = item.kind === 'shopping' && window.mmIdentityRarityLabel ? window.mmIdentityRarityLabel(item.cost) : '';
-    const thumb = tu
-      ? `<div class="assetRowThumb"><img alt="" loading="lazy" decoding="async" src="${escapeHtml(tu)}"/></div>`
+    const thumb = photoUrl
+      ? `<div class="assetRowThumb"><img alt="" loading="lazy" decoding="async" src="${escapeHtml(photoUrl)}" data-mm-item-id="${escapeHtml(item.id)}" onerror="try{window.mmItemIconImgErr&&window.mmItemIconImgErr(this)}catch(e){}"/></div>`
       : `<div class="assetRowThumb assetRowThumb--ico">${mmIconFromEmoji(item.icon, 22)}</div>`;
     row.innerHTML=
       `${thumb}<div class="assetRowBody"><b class="assetRowTitle"><span>${escapeHtml(item.name)}</span></b><div class="panelSub" style="margin-top:4px">${item.kind==='business'?'Business':'Lifestyle'} · ${escapeHtml(item.category)}${ra ? ' · ' + escapeHtml(ra) : ''}</div></div><div>${fmt(item.cost)}</div>`;
