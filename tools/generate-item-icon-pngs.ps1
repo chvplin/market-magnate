@@ -51,16 +51,20 @@ if (-not (Test-Path $manifestPath)) {
 $json = Get-Content $manifestPath -Raw -Encoding UTF8 | ConvertFrom-Json
 $base = Join-Path $root "assets\icons"
 
+function Join-RootRel([string]$rootPath, [string]$rel) {
+  $clean = $rel -replace "^[./\\]+", "" -replace "/", "\"
+  return Join-Path $rootPath $clean
+}
+
 foreach ($prop in $json.fallbacks.PSObject.Properties) {
   $rel = $prop.Value
-  $full = Join-Path $root ($rel -replace "/", "\")
+  $full = Join-RootRel $root.Path $rel
   Save-GradientPng $full "_fallback"
 }
 
 foreach ($prop in $json.byItemId.PSObject.Properties) {
   $row = $prop.Value
-  $rel = $row.path -replace "/", "\"
-  $full = Join-Path $root $rel
+  $full = Join-RootRel $root.Path $row.path
   Save-GradientPng $full $row.name
 }
 
